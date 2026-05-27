@@ -1,93 +1,147 @@
-# Cloud-Native Image Processing
+# Cloud-Native Image Processing Platform
 
+> Thesis project - Bachelor of Science in Computer Science Engineering, SUPSI DTI/ISIN
 
+A cloud-native platform for image processing and AI-driven analysis, built as a
+progressive case study covering the full DevOps lifecycle: from a Spring Boot
+monolith to a microservices architecture deployed on Kubernetes with a service mesh.
 
-## Getting started
+---
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## What it does
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+Users upload images through a web dashboard and trigger two categories of processing:
 
-## Add your files
+- **Deterministic processing** - format conversion, thumbnail generation (FFmpeg)
+- **AI-driven analysis** - image classification, background removal (Hugging Face pre-trained models)
 
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+The focus of the project is not the processing logic itself, but the **architectural
+orchestration** around it: service decomposition, container lifecycle management,
+CI/CD automation, authentication, and observability.
+
+---
+
+## Architecture overview
+
+The system evolves progressively across six sprints:
 
 ```
-cd existing_repo
-git remote add origin https://gitlab-edu.supsi.ch/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing.git
-git branch -M main
-git push -uf origin main
+Sprint 1  Spring Boot monolith        --> single JVM, Spring Data REST, HAL API
+Sprint 2  Microservices + Docker      --> Gateway / Image Service / Python Worker
+Sprint 3  Kubernetes                  --> Minikube, HPA, Ingress, PersistentVolumes
+Sprint 4  CI/CD + Security            --> GitLab CI/CD pipeline, Keycloak, JWT
+Sprint 5  Service Mesh                --> Istio, mTLS, Prometheus, Grafana, Kiali, Jaeger
+Sprint 6  Cloud + Helm                --> GKE, Helm charts, multi-environment deploy
 ```
 
-## Integrate with your tools
+### Services (from Sprint 2 onwards)
 
-* [Set up project integrations](https://gitlab-edu.supsi.ch/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/-/settings/integrations)
+| Service | Language | Responsibility |
+|---|---|---|
+| Gateway Service | Java / Spring Boot | UI, routing, authentication |
+| Image Service | Java / Spring Boot | Domain model, Spring Data REST API, job coordination |
+| Python Worker | Python (FastAPI) | FFmpeg processing, HuggingFace inference |
+| PostgreSQL | - | Persistence for all domain entities |
+| Keycloak | - | OAuth 2.0 identity provider (from Sprint 4) |
 
-## Collaborate with your team
+### Domain model
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+```
+User --< Image --< ProcessingJob
+```
 
-## Test and Deploy
+- `User` owns many `Image` records
+- Each `Image` can have many `ProcessingJob` records (one per processing request)
+- `ProcessingJob` tracks type (`FORMAT_CONVERSION`, `THUMBNAIL`, `AI_CLASSIFICATION`),
+  status (`PENDING` --> `RUNNING` --> `DONE` / `FAILED`), and output file path
 
-Use the built-in continuous integration in GitLab.
+---
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+## Tech stack
 
-***
+| Layer | Technology |
+|---|---|
+| Backend | Java 21, Spring Boot 3, Spring Data JPA, Spring Data REST, Spring Security |
+| Processing | FFmpeg, Hugging Face Transformers (Python) |
+| Containerisation | Docker, Docker Compose |
+| Orchestration | Kubernetes (Minikube --> GKE), Helm |
+| CI/CD | GitLab CI/CD |
+| Auth | Keycloak, OAuth 2.0, JWT |
+| Service mesh | Istio, Envoy |
+| Observability | Prometheus, Grafana, Kiali, Jaeger |
+| IaC (bonus) | Terraform, Ansible |
 
-# Editing this README
+---
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+## Getting started (Sprint 1 - monolith)
 
-## Suggestions for a good README
+### Prerequisites
+- Java 21
+- Maven 3.9+
+- PostgreSQL
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+### Configure the application
 
-## Name
-Choose a self-explaining name for your project.
+> ...work in progress
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+### Run the application
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+> ...work in progress
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+---
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+## Project structure
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+```
+cloud-native-image-processing/
+`-- .gitlab/
+    |-- issue_templates/
+    |   |-- user_story.md
+    |   `-- task.md
+    `-- merge_request_templates/
+        `-- default.md
+```
+---
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+## Development workflow
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+See the [Contributing Guide](../../wikis/contributing-guide) for the full workflow,
+label taxonomy, branch naming convention, and Definition of Done.
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+The short version:
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+```bash
+# 1. Pick an issue from the board and move it to In Progress
+# 2. Create a branch
+git checkout -b feature/16-file-upload-endpoint
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+# 3. Implement, commit
+git commit -m "feat(#16): add POST /upload endpoint"
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+# 4. Open an MR targeting dev (use the MR template)
+# 5. MR merged --> issue closed automatically via 'Closes #16'
+```
 
-## License
-For open source projects, say how it is licensed.
+Branch naming: `type/issue-id-short-description`
+Target branch for MRs: always `dev` - never `main` directly.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+---
+
+## Sprint roadmap
+
+| Sprint | Milestone | Status |
+|---|---|---|
+| 1 | Spring Boot monolith | In progress |
+| 2 | Microservices + Docker |  Planned |
+| 3 | Kubernetes | Planned |
+| 4 | CI/CD + Security | Planned |
+| 5 | Service Mesh | Planned |
+| 6 | Helm + Cloud + Polish | Planned |
+
+---
+
+## Author
+
+**Nicola Romano** - nicola.romano@student.supsi.ch
+Supervisors: Massimo Coluzzi, Roberto Guidi
+SUPSI - DTI / ISIN, May 2026

@@ -1,4 +1,4 @@
-# 1 Configure locals PostgreSQL 
+# 2 Configure locals PostgreSQL 
 > This guide is OS specific for Arch Linux, as this project is developed on this os
 > It is perfectly possible to execute the same task on a different OS, but instructions will not be provided.
 > These guide assumes you have an internet connection pacman and yay working and installed. 

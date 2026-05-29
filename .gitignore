@@ -32,6 +32,9 @@ build/
 ### VS Code ###
 .vscode/
 
+### Env variables and secrets###
+.env
+
 ### Project specific ###
 # Logs
 *.log
@@ -49,3 +52,4 @@ storage/
 
 # Local property overrides, never commit credentials
 application-local.properties
+

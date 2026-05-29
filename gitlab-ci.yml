@@ -1,1 +1,14 @@
-stages: []
+image: 3.9.16-eclipse-temurin-11-alpine
+
+stages: 
+- test
+
+test-job:
+  stage: test
+  cache:
+    key: "$CI_PROJECT_ID-maven"
+    paths:
+      - .m2/repository
+  variables:
+    MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+  script: mvn test -B

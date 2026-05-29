@@ -1,0 +1,89 @@
+# 1 Configure locals PostgreSQL 
+> This guide is OS specific for Arch Linux, as this project is developed on this os
+> It is perfectly possible to execute the same task on a different OS, but instructions will not be provided.
+> These guide assumes you have an internet connection pacman and yay working and installed. 
+
+### Tools and libraries
+##### PostgreSQL
+Java [arch wiki](https://wiki.archlinux.org/title/PostgreSQL)
+This project uses PostgreSQL 18.4
+1. install
+    ```Bash
+		sudo pacman -S postgresql
+    ```
+2. verfy the installation:
+    ```Bash
+		postgres --version
+    ```
+    output should look like:
+    ```Bash
+		$ postgres --version
+		
+		postgres (PostgreSQL) 18.4
+    ``` 
+3. initialize postgres
+   ```Bash
+		# 1. Create the directory as root
+		sudo mkdir -p /var/lib/postgres
+		
+		# 2. Give ownership of the directory to the postgres user
+		sudo chown -R postgres:postgres /var/lib/postgres
+		
+		# 3. Now, initialize the database again
+		sudo -u postgres initdb -D /var/lib/postgres/data
+   ```
+4. start postgres:
+   ```Bash
+		sudo systemctl enable --now postgresql
+   ```
+5. open psql
+   ```Bash
+		sudo -i -u postgres psql
+   ```
+6. create your user and password
+   ```Bash
+		CREATE USER my_app_user WITH PASSWORD 'my_secure_password';
+		CREATE DATABASE cloud_native_db OWNER my_app_user;
+   ```
+   and save these variables in a .env file (this must be gitignored)
+   ```Bash
+		POSTGRES_USER_NAME=my_app_user
+		POSTGRES_USER_PASSWORD=my_secure_password
+		POSTGRES_DB_NAME=cloud_native_db
+   ```
+7. update application.properties  
+   add the following lines:
+   ```Bash
+		spring.datasource.url=jdbc:postgresql://localhost:5432/${POSTGRES_DB_NAME:cloud_native_db}
+		spring.datasource.username=${POSTGRES_USER_NAME}
+		spring.datasource.password=${POSTGRES_USER_PASSWORD}
+		spring.jpa.hibernate.ddl-auto=update
+   ```
+8. update dependencies to automatically read .env.
+   refer to [paul shwarz official guide](https://github.com/paulschwarz/spring-dotenv)
+   ```Bash
+		<dependencyManagement>
+		    <dependencies>
+		        <dependency>
+		            <groupId>me.paulschwarz</groupId>
+		            <artifactId>spring-dotenv-bom</artifactId>
+		            <version>$version</version>
+		            <type>pom</type>
+		            <scope>import</scope>
+		        </dependency>
+		    </dependencies>
+		</dependencyManagement>
+		
+		<dependencies>
+		    <dependency>
+		        <groupId>me.paulschwarz</groupId>
+		        <artifactId>springboot4-dotenv</artifactId>
+		        <optional>true</optional>
+		    </dependency>
+		</dependencies>
+   ```
+9. start the application and check the HAL explorer
+   ```Bash
+		mvn clean spring-boot:run
+   ```
+   find the explorer at `localhost:8080`

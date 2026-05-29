@@ -1,14 +1,13 @@
-image: maven:3.9-eclipse-temurin-21
+# CI/CD Pipeline
+# Full implementation planned for Sprint 4 — CI/CD + Security milestone
+# Pipeline disabled until proper runner and image are configured
 
-stages: 
-- test
+stages:
+  - test
 
 test-job:
   stage: test
-  cache:
-    key: "$CI_PROJECT_ID-maven"
-    paths:
-      - .m2/repository
-  variables:
-    MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
-  script: mvn test -B
+  rules:
+    - when: never
+  script:
+    - mvn test

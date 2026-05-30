@@ -49,9 +49,9 @@ public class ProcessingJob{
 		public String getOutputName(){ return this.outputName; }
 		public void setOutputName(String outputName){ this.outputName = outputName; }
 
-		public JobType getJobType(){ return this.type; }
-		public void setJobType(JobType type){ this.type = type; }
+		public JobType getType(){ return this.type; }
+		public void setType(JobType type){ this.type = type; }
 
-		public JobStatus getJobStatus(){ return this.status; }
-		public void setJobStatus(JobStatus status){ this.status= status; }
+		public JobStatus getStatus(){ return this.status; }
+		public void setStatus(JobStatus status){ this.status= status; }
 }

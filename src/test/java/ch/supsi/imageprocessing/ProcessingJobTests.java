@@ -38,7 +38,7 @@ class ProcessingJobTests{
 		Image image = new Image("imageName", new byte[0], "png", user);
         imageRepository.save(image);
 
-		ProcessingJob pj = new ProcessingJob(image, JobType.FORMAT_CONVERSION, "outputName");
+		ProcessingJob pj = new ProcessingJob(image, JobType.FORMAT_CONVERSION, "outputName", "targetFormat");
 		ProcessingJob saved =processingJobRepository.save(pj);
 
         assertThat(saved.getId()).isNotNull();
@@ -55,11 +55,11 @@ class ProcessingJobTests{
 		Image image = new Image("imageName", new byte[0], "png", user); 
         imageRepository.save(image);
 
-		ProcessingJob pj = new ProcessingJob(image, JobType.FORMAT_CONVERSION, "outputName");
+		ProcessingJob pj = new ProcessingJob(image, JobType.FORMAT_CONVERSION, "outputName", "targetFormat");
 		processingJobRepository.save(pj);
 
         assertThatThrownBy(() ->
-            processingJobRepository.saveAndFlush(new ProcessingJob(image, JobType.FORMAT_CONVERSION, "outputName"))
+            processingJobRepository.saveAndFlush(new ProcessingJob(image, JobType.FORMAT_CONVERSION, "outputName", "targetFormat"))
         ).isInstanceOf(DataIntegrityViolationException.class);
     }
 }

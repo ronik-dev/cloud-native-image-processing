@@ -37,7 +37,7 @@ src/test/java/ch/supsi/imageprocessing/
 | Annotation | Effect |
 |---|---|
 | `@Entity` | Maps the class to a database table |
-| `@Table(name = "image")` | Sets the table name explicitly|
+| `@Table(name = "processingJob")` | Sets the table name explicitly|
 | `@Id` | Marks the primary key |
 | `@GeneratedValue(IDENTITY)` | Delegates id generation to PostgreSQL (auto-increment) |
 | `@Column(nullable = false, unique = true)` | Adds NOT NULL and UNIQUE constraints to the column |
@@ -104,6 +104,7 @@ You can POST a new user directly from the explorer to confirm end-to-end persist
   "type": "FORMAT_CONVERSION",
   "status": "PENDING",
   "outputName": "output_processed_image",
+  "targetFormat": "png",
   "image": "http://localhost:8080/api/images/1"
 }
 ```

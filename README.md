@@ -105,7 +105,7 @@ cloud-native-image-processing/
 
 ## Development workflow
 
-See the [Contributing Guide](../../wikis/contributing-guide) for the full workflow,
+See the [Contributing Guide](../../wikis/Contributing-Guide) for the full workflow,
 label taxonomy, branch naming convention, and Definition of Done.
 
 The short version:

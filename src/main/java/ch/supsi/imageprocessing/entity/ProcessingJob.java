@@ -33,12 +33,16 @@ public class ProcessingJob{
 		@Column(nullable = false, unique = true)
 		private String outputName; 
 
+		@Column(nullable = false)
+		private String targetFormat; 
+
 		public ProcessingJob(){}
 
-		public ProcessingJob(Image image, JobType type ,String outputName){
+		public ProcessingJob(Image image, JobType type ,String outputName, String targetFormat){
 				this.type= type;
 				this.outputName= outputName;
 				this.image= image;
+				this.targetFormat = targetFormat.toLowerCase();
 		}
 
 		public Long getId(){ return this.id; }
@@ -54,4 +58,7 @@ public class ProcessingJob{
 
 		public JobStatus getStatus(){ return this.status; }
 		public void setStatus(JobStatus status){ this.status= status; }
+
+		public String getTargetFormat(){ return this.targetFormat; }
+		public void setTargetFormat(String targetFormat){ this.targetFormat = targetFormat; }
 }

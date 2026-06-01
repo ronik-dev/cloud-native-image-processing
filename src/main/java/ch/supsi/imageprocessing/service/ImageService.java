@@ -1,8 +1,10 @@
 package ch.supsi.imageprocessing.service;
 import ch.supsi.imageprocessing.repository.ImageRepository;
 import ch.supsi.imageprocessing.repository.ProcessingJobRepository;
+import ch.supsi.imageprocessing.repository.UserRepository;
 import ch.supsi.imageprocessing.entity.ProcessingJob;
 import ch.supsi.imageprocessing.entity.Image;
+import ch.supsi.imageprocessing.entity.User;
 import ch.supsi.imageprocessing.entity.JobType;
 import ch.supsi.imageprocessing.entity.JobStatus;
 import ch.supsi.imageprocessing.exception.InvalidRequestException;
@@ -19,6 +21,8 @@ public class ImageService {
 		private ImageRepository ir;
 		@Autowired
 		private ProcessingJobRepository pjr;
+		@Autowired
+		private UserRepository ur;
 		@Autowired
 		private ImageProcessor imageProcessor;
 
@@ -43,7 +47,7 @@ public class ImageService {
 		@Transactional
 		public ProcessingJob processJob(Long jobId) {
 				ProcessingJob job = pjr.findById(jobId)
-						.orElseThrow(() -> new IllegalArgumentException("Job not found: " + jobId));
+						.orElseThrow(() -> new ResourceNotFoundException("Job not found: " + jobId));
 
 				job.setStatus(JobStatus.RUNNING);
 				job = pjr.saveAndFlush(job);
@@ -59,6 +63,26 @@ public class ImageService {
 				}
 
 				return pjr.save(job);
+		}
+
+		@Transactional(isolation = Isolation.READ_COMMITTED)
+		public Image submitUpload(Long userId, String filename, String storagePath, String format) {
+				if (filename == null || filename.strip().isEmpty()) {
+						throw new InvalidRequestException("Filename cannot be empty.");
+				}
+
+				User user = ur.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found:"));
+
+				Image image = new Image(filename, storagePath, format, user);
+				Image savedImage = ir.save(image);
+
+				String outputName = filename.substring(0, filename.lastIndexOf(".")) + "_converted";
+				String fullOutputName = outputName + "." + format.toLowerCase().strip();
+
+				ProcessingJob job = new ProcessingJob(savedImage, JobType.FORMAT_CONVERSION, fullOutputName, format);
+				pjr.save(job); 
+
+				return savedImage;
 		}
 
 		@Transactional(readOnly = true)

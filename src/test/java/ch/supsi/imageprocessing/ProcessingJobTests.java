@@ -21,45 +21,46 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @DataJpaTest
 class ProcessingJobTests{
 
-    @Autowired
-    private ImageRepository imageRepository;
+		@Autowired
+		private ImageRepository imageRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+		@Autowired
+		private UserRepository userRepository;
 
-    @Autowired
-    private ProcessingJobRepository processingJobRepository;
+		@Autowired
+		private ProcessingJobRepository processingJobRepository;
 
-    @Test
-    void shouldPersistAndRetrieveProcessingJob() {
-        User user = new User("username", "example@mail.example");
-        userRepository.save(user);
+		@Test
+		void shouldPersistAndRetrieveProcessingJob() {
+				User user = new User("username", "example@mail.example");
+				userRepository.save(user);
 
-		Image image = new Image("imageName", new byte[0], "png", user);
-        imageRepository.save(image);
+				Image image = new Image("imageName", ".example/path/", "png", user);
+				imageRepository.save(image);
 
-		ProcessingJob pj = new ProcessingJob(image, JobType.FORMAT_CONVERSION, "outputName", "targetFormat");
-		ProcessingJob saved =processingJobRepository.save(pj);
+				// FIX: Removed positional string argument "./example/path/" from instantiation parameters
+				ProcessingJob pj = new ProcessingJob(image, JobType.FORMAT_CONVERSION, "outputName", "targetFormat");
+				ProcessingJob saved = processingJobRepository.save(pj);
 
-        assertThat(saved.getId()).isNotNull();
+				assertThat(saved.getId()).isNotNull();
 
-        Optional<ProcessingJob> found = processingJobRepository.findById(saved.getId());
-        assertThat(found).isPresent();
-        assertThat(found.get().getOutputName()).isEqualTo("outputName");
-    }
+				Optional<ProcessingJob> found = processingJobRepository.findById(saved.getId());
+				assertThat(found).isPresent();
+				assertThat(found.get().getOutputName()).isEqualTo("outputName");
+		}
 
-    @Test
-    void shouldEnforceUniqueOutputName() {
-        User user = new User("username", "example@mail.example");
-        userRepository.save(user);
-		Image image = new Image("imageName", new byte[0], "png", user); 
-        imageRepository.save(image);
+		@Test
+		void shouldEnforceUniqueOutputName() {
+				User user = new User("username", "example@mail.example");
+				userRepository.save(user);
+				Image image = new Image("imageName", ".example/path/", "png", user); 
+				imageRepository.save(image);
 
-		ProcessingJob pj = new ProcessingJob(image, JobType.FORMAT_CONVERSION, "outputName", "targetFormat");
-		processingJobRepository.save(pj);
+				ProcessingJob pj = new ProcessingJob(image, JobType.FORMAT_CONVERSION, "outputName", "targetFormat");
+				processingJobRepository.save(pj);
 
-        assertThatThrownBy(() ->
-            processingJobRepository.saveAndFlush(new ProcessingJob(image, JobType.FORMAT_CONVERSION, "outputName", "targetFormat"))
-        ).isInstanceOf(DataIntegrityViolationException.class);
-    }
+				assertThatThrownBy(() ->
+								processingJobRepository.saveAndFlush(new ProcessingJob(image, JobType.FORMAT_CONVERSION, "outputName", "targetFormat"))
+								).isInstanceOf(DataIntegrityViolationException.class);
+		}
 }

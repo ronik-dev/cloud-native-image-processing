@@ -33,16 +33,20 @@ public class ProcessingJob{
 		@Column(nullable = false, unique = true)
 		private String outputName; 
 
+		@Column(nullable = true)
+		private String resultPath;
+
 		@Column(nullable = false)
 		private String targetFormat; 
 
 		public ProcessingJob(){}
 
-		public ProcessingJob(Image image, JobType type ,String outputName, String targetFormat){
-				this.type= type;
-				this.outputName= outputName;
-				this.image= image;
-				this.targetFormat = targetFormat.toLowerCase();
+		public ProcessingJob(Image image, JobType type, String outputName, String targetFormat) {
+		    this.image = image;
+		    this.type = type;
+		    this.outputName = outputName;
+		    this.targetFormat = targetFormat.toLowerCase();
+		    this.status = JobStatus.PENDING;
 		}
 
 		public Long getId(){ return this.id; }
@@ -57,8 +61,11 @@ public class ProcessingJob{
 		public void setType(JobType type){ this.type = type; }
 
 		public JobStatus getStatus(){ return this.status; }
-		public void setStatus(JobStatus status){ this.status= status; }
+		public void setStatus(JobStatus status){ this.status = status; }
+
+		public String getResultPath(){ return this.resultPath; }
+		public void setResultPath(String resultPath){ this.resultPath = resultPath; }
 
 		public String getTargetFormat(){ return this.targetFormat; }
-		public void setTargetFormat(String targetFormat){ this.targetFormat = targetFormat; }
+		public void setTargetFormat(String targetFormat){ this.targetFormat = targetFormat.toLowerCase(); }
 }

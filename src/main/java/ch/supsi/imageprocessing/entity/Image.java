@@ -21,8 +21,8 @@ public class Image{
 		@Column(nullable = false)
 		private String format;
 
-		@Column(nullable = false, name = "data",columnDefinition = "BYTEA")
-		private byte[] image;
+		@Column(nullable = false)
+		private String storagePath;
 
 		@ManyToOne
 		@JoinColumn(nullable=false, name = "user_id")
@@ -30,9 +30,9 @@ public class Image{
 
 		public Image(){}
 
-		public Image(String name, byte[] image, String format, User user){
+		public Image(String name, String storagePath, String format, User user){
 				this.name = name;
-				this.image = image;
+				this.storagePath = storagePath;
 				this.format = format;
 				this.user= user;
 		}
@@ -45,8 +45,8 @@ public class Image{
 		public String getFormat(){ return this.format; }
 		public void setFormat(String format){ this.format = format; }
 
-		public byte[] getImage(){ return this.image; }
-		public void setImage(byte[] image){ this.image = image; }
+		public String getStoragePath(){ return this.storagePath; }
+		public void setStoragePath(String storagePath){ this.storagePath = storagePath; }
 
 		public User getUser() { return this.user; }
 		public void setUser(User user) { this.user = user; }

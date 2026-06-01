@@ -29,7 +29,7 @@ class ImageRepositoryTests{
         User user = new User("username", "example@mail.example");
         userRepository.save(user);
 
-		Image image = new Image("imageName", new byte[0], "png", user);
+		Image image = new Image("imageName", "./example/path/", "png", user);
         Image saved = imageRepository.save(image);
 
         assertThat(saved.getId()).isNotNull();
@@ -44,10 +44,10 @@ class ImageRepositoryTests{
         User user = new User("username", "example@mail.example");
         userRepository.save(user);
 
-        imageRepository.save(new Image("imageName", new byte[0], "png", user));
+        imageRepository.save(new Image("imageName", "./example/path/", "png", user));
 
         assertThatThrownBy(() ->
-            imageRepository.saveAndFlush(new Image("imageName", new byte[0], "png", user))
+            imageRepository.saveAndFlush(new Image("imageName", "./example/path/", "png", user))
         ).isInstanceOf(DataIntegrityViolationException.class);
     }
 }

@@ -3,7 +3,7 @@ package ch.supsi.imageprocessing;
 import ch.supsi.imageprocessing.entity.Image;
 import ch.supsi.imageprocessing.entity.User;
 import ch.supsi.imageprocessing.controller.ImageController;
-import ch.supsi.imageprocessing.repository.ImageRepository;
+import ch.supsi.imageprocessing.service.ImageService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -25,7 +25,7 @@ class ImageControllerTest {
 		private MockMvc mockMvc;
 
 		@MockitoBean
-		private ImageRepository imageRepository;
+		private ImageService is;
 
 		@Test
 		void getAllImages_ShouldReturnFlatJsonArray_WhenInvoked() throws Exception {
@@ -39,14 +39,14 @@ class ImageControllerTest {
 				idField.setAccessible(true);
 				idField.set(mockImage, 1L);
 
-				when(imageRepository.findAll()).thenReturn(List.of(mockImage));
+				when(is.getAllImages()).thenReturn(List.of(mockImage));
 
-				mockMvc.perform(get("/api/images/list")
+				mockMvc.perform(get("/api/images")
 								.contentType(MediaType.APPLICATION_JSON))
 						.andExpect(status().isOk())
 						.andExpect(jsonPath("$[0].id").value(1))
 						.andExpect(jsonPath("$[0].filename").value("test_image.png"))
-						.andExpect(jsonPath("$[0].userId").value(1)) // This will now pass successfully!
+						.andExpect(jsonPath("$[0].userId").value(1)) 
 						.andExpect(jsonPath("$[0].user").doesNotExist());
 		}
 }

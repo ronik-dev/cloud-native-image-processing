@@ -1,0 +1,151 @@
+* {
+		box-sizing: border-box;
+}
+
+body, html {
+		margin: 0;
+		padding: 0;
+		font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+		background-color: #f4f6f9;
+		color: #333;
+}
+
+.container {
+		width: 100vw;
+		height: 100vh;
+		display: flex;
+		flex-direction: row;
+		overflow: hidden;
+}
+
+.column {
+		display: flex;
+		flex-direction: column;
+		width: 33.33%;
+		height: 100%;
+		border-right: 1px solid #e0e4ec;
+		padding: 15px;
+		background: #ffffff;
+}
+
+.column:last-child {
+		border-right: none;
+}
+
+.row {
+		display: flex;
+		flex-direction: column;
+		width: 100%;
+		margin-bottom: 20px;
+}
+
+.header-row { height: auto; margin-bottom: 10px; border-bottom: 2px solid #3b82f6; }
+.header-row h2 { margin: 5px 0; color: #1e3a8a; font-size: 1.4rem; }
+.form-row { height: auto; }
+.list-row { flex-grow: 1; min-height: 0; }
+.half-height { height: 45%; flex-grow: 0; }
+.action-row { height: auto; margin-top: auto; }
+
+h3 { margin: 0 0 8px 0; font-size: 1rem; color: #4b5563; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* Input Elements */
+.input-group {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		margin-bottom: 5px;
+}
+
+input, select, button {
+		width: 100%;
+		padding: 10px;
+		border-radius: 6px;
+		border: 1px solid #cbd5e1;
+		font-size: 0.95rem;
+		outline: none;
+}
+
+input:focus, select:focus {
+		border-color: #3b82f6;
+		box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+button {
+		background-color: #2563eb;
+		color: white;
+		border: none;
+		font-weight: 600;
+		cursor: pointer;
+		transition: background-color 0.2s;
+}
+
+button:hover { background-color: #1d4ed8; }
+.btn-primary { background-color: #10b981; font-size: 1.1rem; padding: 15px; }
+.btn-primary:hover { background-color: #059669; }
+
+/* Dynamic List Items Container Boxes */
+.list-box {
+		width: 100%;
+		height: 100%;
+		border: 1px solid #cbd5e1;
+		border-radius: 6px;
+		background-color: #f8fafc;
+		overflow-y: auto;
+		padding: 8px;
+		gap: 6px;
+}
+
+/* Custom Interactive UI Cards */
+.item-card {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		padding: 10px;
+		background: white;
+		border: 1px solid #e2e8f0;
+		border-radius: 4px;
+		font-size: 0.9rem;
+}
+
+.item-card.selected {
+		border-color: #3b82f6;
+		background-color: #eff6ff;
+}
+
+.item-card span {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		margin-right: 10px;
+}
+
+.item-actions {
+		display: flex;
+		gap: 5px;
+		align-items: center;
+}
+
+.item-actions button {
+		padding: 5px 8px;
+		font-size: 0.8rem;
+		width: auto;
+}
+
+.btn-danger { background-color: #ef4444; }
+.btn-danger:hover { background-color: #dc2626; }
+.btn-select { background-color: #64748b; }
+.btn-select.active { background-color: #3b82f6; }
+.btn-download { background-color: #8b5cf6; }
+.btn-download:hover { background-color: #7c3aed; }
+
+.status-badge {
+		padding: 3px 6px;
+		border-radius: 4px;
+		font-size: 0.75rem;
+		font-weight: bold;
+		text-transform: uppercase;
+}
+.status-running { background-color: #fef3c7; color: #d97706; }
+.status-done { background-color: #d1fae5; color: #065f46; }
+.status-failed { background-color: #fee2e2; color: #991b1b; }

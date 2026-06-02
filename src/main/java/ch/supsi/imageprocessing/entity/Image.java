@@ -9,6 +9,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.PrePersist;
 import java.time.LocalDateTime;   
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity 
 @Table(name = "image")
@@ -28,6 +30,7 @@ public class Image{
 
 		@ManyToOne
 		@JoinColumn(nullable=false, name = "user_id")
+		@OnDelete(action = OnDeleteAction.CASCADE)
 		private User user;	
 
 		@Column(nullable = false, updatable = false)

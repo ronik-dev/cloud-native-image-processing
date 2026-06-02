@@ -48,6 +48,10 @@ public class ImageService {
 
 		@Transactional(isolation = Isolation.READ_COMMITTED)
 		public Image submitUpload(Long userId, String filename, String storagePath, String format) {
+				if (format == null || format.strip().isEmpty()) {
+						throw new InvalidRequestException("Format cannot be empty.");
+				}
+
 				if (filename == null || filename.strip().isEmpty()) {
 						throw new InvalidRequestException("Filename cannot be empty.");
 				}
@@ -87,6 +91,10 @@ public class ImageService {
 
 		@Transactional
 		public void deleteImage(Long imageId){
+
+				if (!ir.existsById(imageId)) {
+						throw new ResourceNotFoundException("Image not found with ID: " + imageId);
+				}
 				Optional<Image> io = ir.findById(imageId);
 				Image i = io.orElseThrow(()->new ResourceNotFoundException("Image not found with ID: " + imageId));
 				ir.delete(i);

@@ -14,8 +14,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api")
 public class ProcessJobController{
@@ -27,16 +25,6 @@ public class ProcessJobController{
 		@Autowired
 		private StorageService ss;
 
-
-		@GetMapping("/jobs")
-		public ResponseEntity<List<JobResponse>> getAllJobs() {
-				List<JobResponse> jobs = pjs.getAllJobs()
-						.stream()
-						.map(JobResponse::fromEntity)
-						.toList();
-;
-				return ResponseEntity.ok(jobs);
-		}
 
 		@PostMapping("/jobs/{id}/process")
 		public ResponseEntity<JobResponse> triggerProcessing(@PathVariable Long id) {

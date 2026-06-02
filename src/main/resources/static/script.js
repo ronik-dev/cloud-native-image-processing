@@ -146,11 +146,7 @@ async function refreshImagesAndJobs() {
 						// Handle both Spring Data REST HAL arrays and standard custom JSON arrays
 						const images = imgData._embedded ? imgData._embedded.images : (Array.isArray(imgData) ? imgData : []);
 
-						// 2. Fetch filtered or global list of processing jobs
-						let jobUrl = `${BASE_URL}/api/jobs`;
-						if (selectedImageId) {
-								jobUrl = `${BASE_URL}/api/images/${selectedImageId}/jobs`;
-						}
+						jobUrl = `${BASE_URL}/api/images/${selectedImageId}/jobs`;
 						const jobResponse = await fetch(jobUrl);
 						const jobs = await jobResponse.json();
 

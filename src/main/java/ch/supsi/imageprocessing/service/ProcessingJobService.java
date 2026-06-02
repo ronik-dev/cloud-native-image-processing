@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ProcessingJobService {
@@ -20,7 +19,7 @@ public class ProcessingJobService {
 		private ProcessingJobRepository pjr;
 
 		@Autowired
-		private ImageProcessor imageProcessor;
+		private ImageProcessor ip;
 
 		@Transactional(readOnly = true)
 		public List<ProcessingJob> getAllJobs() {
@@ -36,7 +35,7 @@ public class ProcessingJobService {
 				job = pjr.saveAndFlush(job);
 
 				try {
-						String resultPath = imageProcessor.execute(job);
+						String resultPath = ip.execute(job);
 
 						job.setResultPath(resultPath);
 						job.setStatus(JobStatus.DONE);
@@ -54,9 +53,9 @@ public class ProcessingJobService {
 		}
 
 		@Transactional
-		public void deleteJob(Long processingJobId){
-				Optional<ProcessingJob> io = pjr.findById(processingJobId);
-				ProcessingJob i = io.orElseThrow(()->new ResourceNotFoundException("Image not found with ID: " + processingJobId));
-				pjr.delete(i);
+		public void deleteJob(Long jobId){
+				ProcessingJob job = pjr.findById(jobId)
+						.orElseThrow(()->new ResourceNotFoundException("Job not found with ID: " + jobId));
+				pjr.delete(job);
 		}
 }

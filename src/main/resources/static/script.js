@@ -24,7 +24,7 @@ async function refreshUsers() {
 				const users = data._embedded ? data._embedded.users : [];
 
 				const container = document.getElementById("usersList");
-				container.innerHTML = users.length === 0 ? '<p style="color:#64748b; padding:10px; margin:0;">No registered users.</p>' : '';
+				container.innerHTML = users.length === 0 ? '<p style=" padding:10px; margin:0;">No registered users.</p>' : '';
 
 				users.forEach(user => {
 						// Spring Data REST utilizes direct href URL strings inside self properties as keys
@@ -137,24 +137,29 @@ async function deleteJob(jobId) {
 
 async function refreshImagesAndJobs() {
 		try {
+				const imagesContainer = document.getElementById("imagesList");
+				const runningJobsContainer = document.getElementById("runningJobsList");
+				const finishedJobsContainer = document.getElementById("finishedJobsList");
 				// 1. Fetch filtered or global list of images
 				if (selectedUserId) {
-						imgUrl = `${BASE_URL}/api/users/${selectedUserId}/images`;
+						let imgUrl = `${BASE_URL}/api/users/${selectedUserId}/images`;
 						const imgResponse = await fetch(imgUrl);
 						const imgData = await imgResponse.json();
 
 						// Handle both Spring Data REST HAL arrays and standard custom JSON arrays
 						const images = imgData._embedded ? imgData._embedded.images : (Array.isArray(imgData) ? imgData : []);
 
-						jobUrl = `${BASE_URL}/api/images/${selectedImageId}/jobs`;
-						const jobResponse = await fetch(jobUrl);
-						const jobs = await jobResponse.json();
+						// Only fetch jobs if an image is actually selected
+						let jobs = [];
+						if (selectedImageId) {
+								let jobUrl = `${BASE_URL}/api/images/${selectedImageId}/jobs`;
+								const jobResponse = await fetch(jobUrl);
+								if (jobResponse.ok) {
+										jobs = await jobResponse.json();
+								}
+						}
 
-						const imagesContainer = document.getElementById("imagesList");
-						const runningJobsContainer = document.getElementById("runningJobsList");
-						const finishedJobsContainer = document.getElementById("finishedJobsList");
-
-						imagesContainer.innerHTML = images.length === 0 ? '<p style="color:#64748b; padding:10px; margin:0;">No image assets.</p>' : '';
+						imagesContainer.innerHTML = images.length === 0 ? '<p style=" padding:10px; margin:0;">No image assets.</p>' : '';
 						runningJobsContainer.innerHTML = '';
 						finishedJobsContainer.innerHTML = '';
 
@@ -167,7 +172,7 @@ async function refreshImagesAndJobs() {
 								const imgCard = document.createElement("div");
 								imgCard.className = `item-card ${isSelected ? 'selected' : ''}`;
 								imgCard.innerHTML = `
-							<span>${img.filename || 'Unnamed Asset'} <small style="color:#64748b;">(${img.format ? img.format.toUpperCase() : 'UNKNOWN'})</small></span>
+							<span>${img.filename || 'Unnamed Asset'} <small style="">(${img.format ? img.format.toUpperCase() : 'UNKNOWN'})</small></span>
 							<div class="item-actions">
 								<button class="btn-select ${isSelected ? 'active' : ''}" onclick="selectImage('${imgId}')">
 									${isSelected ? 'Selected' : 'Select'}
@@ -225,11 +230,15 @@ async function refreshImagesAndJobs() {
 								}
 						});
 
-						if (activeCount === 0) runningJobsContainer.innerHTML = '<p style="color:#64748b; padding:10px; margin:0;">No active worker executions.</p>';
-						if (finishedCount === 0) finishedJobsContainer.innerHTML = '<p style="color:#64748b; padding:10px; margin:0;">No archived output logs.</p>';
-
-				}
-
+						// If no jobs were fetched (either because no image is selected or the image has no jobs)
+						if (activeCount === 0) runningJobsContainer.innerHTML = '<p style=" padding:10px; margin:0;">No active worker executions.</p>';
+						if (finishedCount === 0) finishedJobsContainer.innerHTML = '<p style=" padding:10px; margin:0;">No archived output logs.</p>';
+				}else {
+            // Clear the UI when no user is selected
+            imagesContainer.innerHTML = '<p style="padding:10px; margin:0;">Select a user to view their assets.</p>';
+            runningJobsContainer.innerHTML = '<p style="padding:10px; margin:0;">No active worker executions.</p>';
+            finishedJobsContainer.innerHTML = '<p style=" padding:10px; margin:0;">No archived output logs.</p>';
+        }
 		} catch (err) {
 				console.error("Error synchronizing decoupled asset trackers:", err);
 		}
@@ -274,29 +283,41 @@ async function uploadImage() {
 }
 
 async function triggerPipelineJob() {
-		if (!selectedImageId) {
-				alert("Validation Fault: Please select an active Image asset first.");
-				return;
-		}
+    if (!selectedImageId) {
+        alert("Validation Fault: Please select an active Image asset first.");
+        return;
+    }
 
-		const targetFormat = document.getElementById("targetFormatSelect").value;
-		const outputName = "output_" + selectedImageId;
+    const targetFormat = document.getElementById("targetFormatSelect").value;
+    const outputNameInput = document.getElementById("outputNameInput");
+    const outputName = outputNameInput.value.trim();
 
-		try {
-				// Single unified call creates AND safely fires off execution via your updated backend logic
-				const response = await fetch(`${BASE_URL}/api/images/${selectedImageId}/newjob?outputName=${outputName}&targetFormat=${targetFormat}`, {
-						method: 'POST'
-				});
+    // 1. Fail-fast validation matching your backend constraints
+    if (!outputName) {
+        alert("Validation Fault: Please provide a valid output name for the processing job.");
+        outputNameInput.focus();
+        return;
+    }
 
-				if (response.ok) {
-						selectedImageId = null; 
-						refreshImagesAndJobs();
-				} else {
-						alert("Could not initialize processing task pipeline context.");
-				}
-		} catch (err) {
-				console.error("Service communication block during job creation", err);
-		}
+    // 2. Safely encode the string to handle spaces/special characters in the URL
+    const safeOutputName = encodeURIComponent(outputName);
+
+    try {
+        const response = await fetch(`${BASE_URL}/api/images/${selectedImageId}/newjob?outputName=${safeOutputName}&targetFormat=${targetFormat}`, {
+            method: 'POST'
+        });
+
+        if (response.ok) {
+            // 3. Clear the input and reset selection on success
+            outputNameInput.value = '';
+            selectedImageId = null; 
+            refreshImagesAndJobs();
+        } else {
+            alert("Could not initialize processing task pipeline context.");
+        }
+    } catch (err) {
+        console.error("Service communication block during job creation", err);
+    }
 }
 
 function downloadResult(jobId) {

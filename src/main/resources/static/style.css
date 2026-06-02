@@ -1,3 +1,47 @@
+:root {
+/* Backgrounds - Minimalist gallery grays and clean whites */
+		--bg-body: #f4f4f5;       /* Soft, matte studio wall */
+		--bg-surface: #ffffff;    /* Pure white canvas for image containers */
+		--bg-list: #fafafa;       /* Barely-there off-white for structural distinction */
+		--bg-selected: #f0f0f0;   /* Very subtle gray wash for selection */
+
+		/* Text - Crisp graphite, avoiding the harshness of pure black */
+		--text-main: #27272a;     /* Deep charcoal */
+		--text-muted: #71717a;    /* Soft mid-gray for metadata and secondary info */
+		--text-heading: #18181b;  /* High-contrast dark graphite for hierarchy */
+		--text-inverse: #ffffff;  /* Pure white for inside accent buttons */
+
+		/* Borders - Whisper-quiet lines, relying mostly on whitespace */
+		--border-light: #e4e4e7;
+		--border-input: #d4d4d8;
+		--border-card: #f4f4f5;
+
+		/* Primary Brand & Focus - Highly intentional, premium accents */
+		--primary: #c2410c;       /* Premium burnt orange / terracotta */
+		--primary-focus: rgba(194, 65, 12, 0.08); /* Faint warm wash */
+
+		/* Buttons - Muted tones to avoid competing with visual content */
+		--btn-gray: #52525b;      /* Replaced standard blue with a sophisticated slate */
+		--btn-gray-hover: #3f3f46;
+		--btn-green: #657164;     /* Calm, muted sage green */
+		--btn-green-hover: #525c51;
+		--btn-red: #9f585a;       /* Subdued, dusty brick red */
+		--btn-red-hover: #824749;
+		--btn-purple: #847895;    /* Very dusty, muted mauve */
+		--btn-purple-hover: #886dae;
+		--btn-slate: #a1a1aa;
+
+		/* Status Badges - Elegant, unobtrusive indicators */
+		--status-running-bg: #fcfbf6;
+		--status-running-text: #9e6f50;  /* Warm stone gray for active processing */
+		
+		--status-done-bg: #f6fcf6;
+		--status-done-text: #487d43;     /* Sage green for successful execution */
+		
+		--status-failed-bg: #fcf6f6;
+		--status-failed-text: #9f585a;   /* Brick red for halted tasks */
+}
+
 * {
 		box-sizing: border-box;
 }
@@ -6,8 +50,8 @@ body, html {
 		margin: 0;
 		padding: 0;
 		font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
-		background-color: #f4f6f9;
-		color: #333;
+		background-color: var(--bg-body);
+		color: var(--text-main);
 }
 
 .container {
@@ -23,9 +67,9 @@ body, html {
 		flex-direction: column;
 		width: 33.33%;
 		height: 100%;
-		border-right: 1px solid #e0e4ec;
+		border-right: 1px solid var(--border-light);
 		padding: 15px;
-		background: #ffffff;
+		background: var(--bg-surface);
 }
 
 .column:last-child {
@@ -39,14 +83,14 @@ body, html {
 		margin-bottom: 20px;
 }
 
-.header-row { height: auto; margin-bottom: 10px; border-bottom: 2px solid #3b82f6; }
-.header-row h2 { margin: 5px 0; color: #1e3a8a; font-size: 1.4rem; }
+.header-row { height: auto; margin-bottom: 10px; border-bottom: 2px solid var(--primary); }
+.header-row h2 { margin: 5px 0; color: var(--text-heading); font-size: 1.4rem; }
 .form-row { height: auto; }
 .list-row { flex-grow: 1; min-height: 0; }
 .half-height { height: 45%; flex-grow: 0; }
 .action-row { height: auto; margin-top: auto; }
 
-h3 { margin: 0 0 8px 0; font-size: 1rem; color: #4b5563; text-transform: uppercase; letter-spacing: 0.5px; }
+h3 { margin: 0 0 8px 0; font-size: 1rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
 
 /* Input Elements */
 .input-group {
@@ -59,37 +103,37 @@ h3 { margin: 0 0 8px 0; font-size: 1rem; color: #4b5563; text-transform: upperca
 input, select, button {
 		width: 100%;
 		padding: 10px;
-		border-radius: 6px;
-		border: 1px solid #cbd5e1;
+		border-radius: 0px;
+		border: 1px solid var(--border-input);
 		font-size: 0.95rem;
 		outline: none;
 }
 
 input:focus, select:focus {
-		border-color: #3b82f6;
-		box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+		border-color: var(--primary);
+		box-shadow: 0 0 0 3px var(--primary-focus);
 }
 
 button {
-		background-color: #2563eb;
-		color: white;
+		background-color: var(--btn-gray);
+		color: var(--text-inverse);
 		border: none;
 		font-weight: 600;
 		cursor: pointer;
 		transition: background-color 0.2s;
 }
 
-button:hover { background-color: #1d4ed8; }
-.btn-primary { background-color: #10b981; font-size: 1.1rem; padding: 15px; }
-.btn-primary:hover { background-color: #059669; }
+button:hover { background-color: var(--btn-gray-hover); }
+.btn-primary { background-color: var(--btn-green); font-size: 1.1rem; padding: 15px; }
+.btn-primary:hover { background-color: var(--btn-green-hover); }
 
 /* Dynamic List Items Container Boxes */
 .list-box {
 		width: 100%;
 		height: 100%;
-		border: 1px solid #cbd5e1;
-		border-radius: 6px;
-		background-color: #f8fafc;
+		border: 1px solid var(--border-input);
+		border-radius: 0px;
+		background-color: var(--bg-list);
 		overflow-y: auto;
 		padding: 8px;
 		gap: 6px;
@@ -102,15 +146,15 @@ button:hover { background-color: #1d4ed8; }
 		align-items: center;
 		justify-content: space-between;
 		padding: 10px;
-		background: white;
-		border: 1px solid #e2e8f0;
-		border-radius: 4px;
+		background: var(--bg-surface);
+		border: 1px solid var(--border-card);
+		border-radius: 0px;
 		font-size: 0.9rem;
 }
 
 .item-card.selected {
-		border-color: #3b82f6;
-		background-color: #eff6ff;
+		border-color: var(--primary);
+		background-color: var(--bg-selected);
 }
 
 .item-card span {
@@ -132,20 +176,20 @@ button:hover { background-color: #1d4ed8; }
 		width: auto;
 }
 
-.btn-danger { background-color: #ef4444; }
-.btn-danger:hover { background-color: #dc2626; }
-.btn-select { background-color: #64748b; }
-.btn-select.active { background-color: #3b82f6; }
-.btn-download { background-color: #8b5cf6; }
-.btn-download:hover { background-color: #7c3aed; }
+.btn-danger { background-color: var(--btn-red); }
+.btn-danger:hover { background-color: var(--btn-red-hover); }
+.btn-select { background-color: var(--btn-slate); }
+.btn-select.active { background-color: var(--primary); }
+.btn-download { background-color: var(--btn-purple); }
+.btn-download:hover { background-color: var(--btn-purple-hover); }
 
 .status-badge {
 		padding: 3px 6px;
-		border-radius: 4px;
+		border-radius: 0px;
 		font-size: 0.75rem;
 		font-weight: bold;
 		text-transform: uppercase;
 }
-.status-running { background-color: #fef3c7; color: #d97706; }
-.status-done { background-color: #d1fae5; color: #065f46; }
-.status-failed { background-color: #fee2e2; color: #991b1b; }
+.status-running { background-color: var(--status-running-bg); color: var(--status-running-text); }
+.status-done { background-color: var(--status-done-bg); color: var(--status-done-text); }
+.status-failed { background-color: var(--status-failed-bg); color: var(--status-failed-text); }

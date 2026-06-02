@@ -88,12 +88,12 @@ public class ImageService {
 		@Transactional(readOnly = true)
 		public Image getImageData(Long imageId) {
 				return ir.findById(imageId)
-						.orElseThrow(() -> new IllegalArgumentException("Image not found with ID: " + imageId));
+						.orElseThrow(() -> new ResourceNotFoundException("Image not found with ID: " + imageId));
 		}
 
 		@Transactional(readOnly = true)
 		public ProcessingJob getJobStatus(Long jobId) {
 				return pjr.findById(jobId)
-						.orElseThrow(() -> new IllegalArgumentException("Job not found with ID: " + jobId));
+						.orElseThrow(() -> new ResourceNotFoundException("Job not found with ID: " + jobId));
 		}
 }

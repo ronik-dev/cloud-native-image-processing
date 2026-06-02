@@ -10,6 +10,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.EnumType;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 @Entity 
 @Table(name = "processingJob")
 public class ProcessingJob{
@@ -28,6 +31,7 @@ public class ProcessingJob{
 
 		@ManyToOne
 		@JoinColumn(nullable=false, name = "image_id")
+		@OnDelete(action = OnDeleteAction.CASCADE)
 		private Image image; 
 
 		@Column(nullable = false, unique = true)

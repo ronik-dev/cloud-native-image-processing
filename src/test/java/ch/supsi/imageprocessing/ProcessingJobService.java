@@ -48,7 +48,7 @@ class ProcessingJobServiceTest {
 
 				assertNotNull(result);
 				assertEquals(JobStatus.DONE, result.getStatus());
-				assertEquals("/tmp/outputs/output.png", result.getResultPath());
+				assertEquals("/tmp/outputs/output.png", result.getTargetStorageKey());
 				verify(ip, times(1)).execute(any(ProcessingJob.class));
 		}
 

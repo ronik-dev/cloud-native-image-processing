@@ -38,7 +38,7 @@ public class ProcessingJob{
 		private String outputName; 
 
 		@Column(nullable = true)
-		private String resultPath;
+		private String targetStorageKey;
 
 		@Column(nullable = false)
 		private String targetFormat; 
@@ -67,8 +67,8 @@ public class ProcessingJob{
 		public JobStatus getStatus(){ return this.status; }
 		public void setStatus(JobStatus status){ this.status = status; }
 
-		public String getResultPath(){ return this.resultPath; }
-		public void setResultPath(String resultPath){ this.resultPath = resultPath; }
+		public String getTargetStorageKey(){ return this.targetStorageKey; }
+		public void setTargetStorageKey(String targetStorageKey){ this.targetStorageKey= targetStorageKey; }
 
 		public String getTargetFormat(){ return this.targetFormat; }
 		public void setTargetFormat(String targetFormat){ this.targetFormat = targetFormat.toLowerCase(); }

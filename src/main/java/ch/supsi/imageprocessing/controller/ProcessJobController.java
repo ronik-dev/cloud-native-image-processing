@@ -48,11 +48,11 @@ public class ProcessJobController{
 		public ResponseEntity<Resource> downloadJobResult(@PathVariable Long id) {
 				ProcessingJob job = pjs.getJobStatus(id);
 
-				if (job.getStatus() != JobStatus.DONE || job.getResultPath() == null || job.getResultPath().isBlank()) {
+				if (job.getStatus() != JobStatus.DONE || job.getTargetStorageKey() == null || job.getTargetStorageKey().isBlank()) {
 						throw new ResourceNotFoundException("Processed file output is not available for Job ID: " + id);
 				}
 
-				Resource fileResource = ss.getResource(job.getResultPath());
+				Resource fileResource = ss.getResource(job.getTargetStorageKey());
 
 				return ResponseEntity.ok()
 						.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + job.getOutputName() + "\"")

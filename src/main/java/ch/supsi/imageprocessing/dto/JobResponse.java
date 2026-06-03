@@ -7,7 +7,7 @@ public record JobResponse(
     String type,
     String status,
     String outputName,
-    String resultPath,
+    String targetStorageKey,
     Long imageId
 ) {
     public static JobResponse fromEntity(ProcessingJob job) {
@@ -16,7 +16,7 @@ public record JobResponse(
             job.getType().name(), 
             job.getStatus().name(),
             job.getOutputName(),
-            job.getResultPath(),
+            job.getTargetStorageKey(),
             job.getImage() != null ? job.getImage().getId() : null
         );
     }

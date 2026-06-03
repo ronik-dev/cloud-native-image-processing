@@ -11,6 +11,7 @@ import org.springframework.core.io.UrlResource;
 
 import java.net.MalformedURLException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -22,42 +23,90 @@ public class StorageService {
 		@Value("${storage.upload-dir:/tmp/imageprocessing/uploads}")
 		private String uploadDirStr;
 
-		public Path store(MultipartFile file) {
+		@Value("${storage.output-dir:/tmp/imageprocessing/outputs}")
+		private String outputDirStr;
+
+		public Path storeMultipartFile(MultipartFile file, String storageKey) {
 				if (file == null || file.isEmpty()) {
 						throw new InvalidRequestException("Uploaded file cannot be empty.");
 				}
-
-				String originalFilename = file.getOriginalFilename();
-				if (originalFilename == null || !originalFilename.contains(".")) {
-						throw new InvalidRequestException("Invalid file name or missing extension.");
+				if (storageKey == null || storageKey.trim().isEmpty()){
+						throw new InvalidRequestException("Storage key cannot be empty.");
 				}
 
-				try {
-						Path uploadPath = Paths.get(uploadDirStr);
-						if (!Files.exists(uploadPath)) {
-								Files.createDirectories(uploadPath);
-						}
-
-						Path destinationPath = uploadPath.resolve(originalFilename);
-						Files.copy(file.getInputStream(), destinationPath, StandardCopyOption.REPLACE_EXISTING);
-
-						return destinationPath.toAbsolutePath();
+				try (InputStream inputStream = file.getInputStream()) {
+						return saveToDisk(inputStream, uploadDirStr, storageKey);
 				} catch (IOException e) {
-						throw new RuntimeException("Disk I/O execution failure during copy", e);
+						throw new RuntimeException("Failed to read multipart upload stream", e);
 				}
 		}
 
-		public Resource getResource(String absolutePath){
+		public Path storeLocalFile(InputStream inputStream, String storageKey) {
+				if (inputStream == null) {
+						throw new InvalidRequestException("Source input stream cannot be null.");
+				}
+				if (storageKey == null || storageKey.trim().isEmpty()){
+						throw new InvalidRequestException("Storage key cannot be empty.");
+				}
+
+				return saveToDisk(inputStream, uploadDirStr, storageKey);
+		}
+
+		private Path saveToDisk(InputStream inputStream, String baseDirStr, String storageKey) {
 				try {
-						Path file = Paths.get(absolutePath);
-						Resource resource = new UrlResource(file.toUri());
-						if (resource.exists() || resource.isReadable()) {
-								return resource;
-						} else {
-								throw new ResourceNotFoundException("Could not read physical file at: " + absolutePath);
+						Path baseDir = Paths.get(baseDirStr);
+						Path destinationPath = baseDir.resolve(storageKey).normalize();
+
+						if (!destinationPath.startsWith(baseDir)) {
+								throw new InvalidRequestException("Invalid storage key path.");
 						}
+
+						Path parentDir = destinationPath.getParent();
+						if (parentDir != null && !Files.exists(parentDir)) {
+								Files.createDirectories(parentDir);
+						}
+
+						Files.copy(inputStream, destinationPath, StandardCopyOption.REPLACE_EXISTING);
+
+						return destinationPath.toAbsolutePath();
+				} catch (IOException e) {
+						throw new RuntimeException("Disk I/O execution failure during storage write", e);
+				}
+		}
+
+		public Resource getResource(String storageKey) {
+				if (storageKey == null || storageKey.trim().isEmpty())
+						throw new InvalidRequestException("Storage key cannot be empty.");
+
+				try {
+						Path outputBaseDir = Paths.get(outputDirStr);
+						Path outputFile = outputBaseDir.resolve(storageKey).normalize();
+
+						if (!outputFile.startsWith(outputBaseDir)) {
+								throw new InvalidRequestException("Invalid storage key path.");
+						}
+
+						Resource outputResource = new UrlResource(outputFile.toUri());
+						if (outputResource.exists() && outputResource.isReadable()) {
+								return outputResource;
+						}
+
+						Path uploadBaseDir = Paths.get(uploadDirStr);
+						Path uploadFile = uploadBaseDir.resolve(storageKey).normalize();
+
+						if (!uploadFile.startsWith(uploadBaseDir)) {
+								throw new InvalidRequestException("Invalid storage key path.");
+						}
+
+						Resource uploadResource = new UrlResource(uploadFile.toUri());
+						if (uploadResource.exists() && uploadResource.isReadable()) {
+								return uploadResource;
+						}
+
+						throw new ResourceNotFoundException("Could not find physical file in uploads or outputs: " + storageKey);
+
 				} catch (MalformedURLException e) {
-						throw new ResourceNotFoundException("Could not resolve file path URL layout:\n"+e.getMessage());
+						throw new ResourceNotFoundException("Could not resolve file path URL layout: " + e.getMessage());
 				}
 		}
 }

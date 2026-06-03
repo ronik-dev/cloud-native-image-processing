@@ -7,7 +7,7 @@ public record ImageResponse(
     Long id,
     String filename,
     String format,
-    String storagePath,
+    String storageKey,
     LocalDateTime uploadedAt,
     Long userId
 ) {
@@ -16,7 +16,7 @@ public record ImageResponse(
             image.getId(),
             image.getName(),
             image.getFormat(),
-            image.getStoragePath(),
+            image.getStorageKey(),
             image.getUploadedAt(),
             image.getUser() != null ? image.getUser().getId() : null
         );

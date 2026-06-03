@@ -25,8 +25,8 @@ public class Image{
 		@Column(nullable = false)
 		private String format;
 
-		@Column(nullable = false)
-		private String storagePath;
+		@Column(unique=true, nullable = false)
+		private String storageKey;
 
 		@ManyToOne
 		@JoinColumn(nullable=false, name = "user_id")
@@ -38,9 +38,9 @@ public class Image{
 
 		public Image(){}
 
-		public Image(String name, String storagePath, String format, User user){
+		public Image(String name, String storageKey, String format, User user){
 				this.name = name;
-				this.storagePath = storagePath;
+				this.storageKey = storageKey;
 				this.format = format;
 				this.user= user;
 		}
@@ -58,8 +58,8 @@ public class Image{
 		public String getFormat(){ return this.format; }
 		public void setFormat(String format){ this.format = format; }
 
-		public String getStoragePath(){ return this.storagePath; }
-		public void setStoragePath(String storagePath){ this.storagePath = storagePath; }
+		public String getStorageKey(){ return this.storageKey; }
+		public void setStorageKey(String storageKey){ this.storageKey= storageKey; }
 
 		public User getUser() { return this.user; }
 		public void setUser(User user) { this.user = user; }

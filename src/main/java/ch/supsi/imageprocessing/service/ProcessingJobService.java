@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class ProcessingJobService {
@@ -31,15 +32,21 @@ public class ProcessingJobService {
 				ProcessingJob job = pjr.findById(jobId)
 						.orElseThrow(() -> new ResourceNotFoundException("Job not found: " + jobId));
 
+				if (job.getTargetStorageKey() == null || job.getTargetStorageKey().isBlank()) {
+						String newStorageKey = UUID.randomUUID().toString();
+						job.setTargetStorageKey(newStorageKey);
+				}
+
 				job.setStatus(JobStatus.RUNNING);
 				job = pjr.saveAndFlush(job);
 
 				try {
-						String resultPath = ip.execute(job);
+						String storageKey = ip.execute(job);
 
-						job.setResultPath(resultPath);
+						job.setTargetStorageKey(storageKey);
 						job.setStatus(JobStatus.DONE);
 				} catch (Exception e) {
+						e.printStackTrace();
 						job.setStatus(JobStatus.FAILED);
 				}
 

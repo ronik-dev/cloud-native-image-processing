@@ -40,7 +40,7 @@ async function refreshUsers() {
 					<button class="btn-select ${isSelected ? 'active' : ''}" onclick="selectUser('${parsedId}')">
 						${isSelected ? 'Selected' : 'Select'}
 					</button>
-					<button class="btn-danger" onclick="deleteUser('${userSelfHref}')">Delete</button>
+					<button class="btn-danger" onclick="deleteUser('${parsedId}')">Delete</button>
 				</div>
 			`;
 						container.appendChild(card);
@@ -76,12 +76,11 @@ async function createUser() {
 		}
 }
 
-async function deleteUser(selfHref) {
+async function deleteUser(userId) {
 		if (!confirm("Are you sure you want to delete this profile?")) return;
 		try {
-				const response = await fetch(selfHref, { method: 'DELETE' });
+				const response = await fetch(`${BASE_URL}/api/users/${userId}`, { method: 'DELETE' });
 				if (response.ok) {
-						const deletedId = selfHref.split('/').pop();
 						if (selectedUserId === deletedId) {
 								selectedUserId = null;
 								selectedImageId = null;
@@ -107,32 +106,31 @@ function selectUser(id) {
 // ============================================================================
 
 async function deleteImage(imageId) {
-    console.log("deleteImage called with ID:", imageId); // <-- Debug Log
-    if (!confirm("Are you sure you want to delete this image?")) return;
-    try {
-        const response = await fetch(`${BASE_URL}/api/images/${imageId}`, { method: 'DELETE' });
-        console.log("Delete Image Response Status:", response.status); // <-- Debug Log
-        if (response.ok) {
-            if (selectedImageId === String(imageId)) selectedImageId = null;
-            refreshImagesAndJobs();
-        }
-    } catch (err) {
-        console.error("Failed to delete image asset:", err);
-    }
+		console.log("deleteImage called with ID:", imageId); // <-- Debug Log
+		if (!confirm("Are you sure you want to delete this image?")) return;
+		try {
+				const response = await fetch(`${BASE_URL}/api/images/${imageId}`, { method: 'DELETE' });
+				if (response.ok) {
+						if (selectedImageId === String(imageId)) selectedImageId = null;
+						refreshImagesAndJobs();
+				}
+		} catch (err) {
+				console.error("Failed to delete image asset:", err);
+		}
 }
 
 async function deleteJob(jobId) {
-    console.log("deleteJob called with ID:", jobId); // <-- Debug Log
-    if (!confirm("Are you sure you want to delete this job execution tracking history?")) return;
-    try {
-        const response = await fetch(`${BASE_URL}/api/jobs/${jobId}`, { method: 'DELETE' });
-        console.log("Delete Job Response Status:", response.status); // <-- Debug Log
-        if (response.ok) {
-            refreshImagesAndJobs();
-        }
-    } catch (err) {
-        console.error("Failed to terminate or remove job entity:", err);
-    }
+		console.log("deleteJob called with ID:", jobId); // <-- Debug Log
+		if (!confirm("Are you sure you want to delete this job execution tracking history?")) return;
+		try {
+				const response = await fetch(`${BASE_URL}/api/jobs/${jobId}`, { method: 'DELETE' });
+				console.log("Delete Job Response Status:", response.status); // <-- Debug Log
+				if (response.ok) {
+						refreshImagesAndJobs();
+				}
+		} catch (err) {
+				console.error("Failed to terminate or remove job entity:", err);
+		}
 }
 
 async function refreshImagesAndJobs() {
@@ -234,11 +232,11 @@ async function refreshImagesAndJobs() {
 						if (activeCount === 0) runningJobsContainer.innerHTML = '<p style=" padding:10px; margin:0;">No active worker executions.</p>';
 						if (finishedCount === 0) finishedJobsContainer.innerHTML = '<p style=" padding:10px; margin:0;">No archived output logs.</p>';
 				}else {
-            // Clear the UI when no user is selected
-            imagesContainer.innerHTML = '<p style="padding:10px; margin:0;">Select a user to view their assets.</p>';
-            runningJobsContainer.innerHTML = '<p style="padding:10px; margin:0;">No active worker executions.</p>';
-            finishedJobsContainer.innerHTML = '<p style=" padding:10px; margin:0;">No archived output logs.</p>';
-        }
+						// Clear the UI when no user is selected
+						imagesContainer.innerHTML = '<p style="padding:10px; margin:0;">Select a user to view their assets.</p>';
+						runningJobsContainer.innerHTML = '<p style="padding:10px; margin:0;">No active worker executions.</p>';
+						finishedJobsContainer.innerHTML = '<p style=" padding:10px; margin:0;">No archived output logs.</p>';
+				}
 		} catch (err) {
 				console.error("Error synchronizing decoupled asset trackers:", err);
 		}
@@ -283,41 +281,85 @@ async function uploadImage() {
 }
 
 async function triggerPipelineJob() {
-    if (!selectedImageId) {
-        alert("Validation Fault: Please select an active Image asset first.");
-        return;
-    }
+		if (!selectedImageId) {
+				alert("Validation Fault: Please select an active Image asset first.");
+				return;
+		}
 
-    const targetFormat = document.getElementById("targetFormatSelect").value;
-    const outputNameInput = document.getElementById("outputNameInput");
-    const outputName = outputNameInput.value.trim();
+		const operationType = document.getElementById("operationSelect").value;
+		const targetFormat = document.getElementById("targetFormatSelect").value;
+		const outputNameInput = document.getElementById("outputNameInput");
+		const outputName = outputNameInput.value.trim();
 
-    // 1. Fail-fast validation matching your backend constraints
-    if (!outputName) {
-        alert("Validation Fault: Please provide a valid output name for the processing job.");
-        outputNameInput.focus();
-        return;
-    }
+		if (!outputName) {
+				alert("Validation Fault: Please provide a valid output name for the processing task.");
+				outputNameInput.focus();
+				return;
+		}
 
-    // 2. Safely encode the string to handle spaces/special characters in the URL
-    const safeOutputName = encodeURIComponent(outputName);
+		const safeOutputName = encodeURIComponent(outputName);
 
-    try {
-        const response = await fetch(`${BASE_URL}/api/images/${selectedImageId}/newjob?outputName=${safeOutputName}&targetFormat=${targetFormat}`, {
-            method: 'POST'
-        });
+		const endpointUrl = `${BASE_URL}/api/images/${selectedImageId}/jobs`;
+		const requestBody = { type: operationType, outputName: outputName, targetFormat: targetFormat };
 
-        if (response.ok) {
-            // 3. Clear the input and reset selection on success
-            outputNameInput.value = '';
-            selectedImageId = null; 
-            refreshImagesAndJobs();
-        } else {
-            alert("Could not initialize processing task pipeline context.");
-        }
-    } catch (err) {
-        console.error("Service communication block during job creation", err);
-    }
+		try {
+				// STEP 1: Create the Job
+				const createResponse = await fetch(endpointUrl, { 
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify(requestBody)
+				});
+
+				if (createResponse.ok) {
+						const jobData = await createResponse.json();
+						const jobId = jobData.id;
+
+						console.log(`Job ${jobId} created. Triggering execution...`);
+
+						// STEP 2: Trigger the Job
+						const triggerResponse = await fetch(`${BASE_URL}/api/jobs/${jobId}/process`, {
+								method: 'POST'
+						});
+
+						if (triggerResponse.ok) {
+								// STEP 3: Start polling
+								pollJobStatus(jobId);
+						} else {
+								console.error("Failed to trigger execution for job:", jobId);
+						}
+				}
+		} catch (err) {
+				console.error("Gateway transmission exception:", err);
+		}
+}
+
+// 4. The Polling Mechanism
+async function pollJobStatus(jobId) {
+		try {
+				// Fetch the current state of the job
+				const response = await fetch(`${BASE_URL}/api/jobs/${jobId}`);
+				if (!response.ok) throw new Error("Status check failed at API gateway");
+
+				const jobData = await response.json();
+
+				if (jobData.status === 'DONE') {
+						console.log(`Pipeline success: Job ${jobId} completed.`);
+						// Final UI refresh to show the completed file and remove spinners
+						refreshImagesAndJobs(); 
+				} 
+				else if (jobData.status === 'FAILED') {
+						console.error(`Pipeline failure: Job ${jobId} encountered an error.`);
+						alert("The processing job failed. Check backend logs.");
+						refreshImagesAndJobs();
+				} 
+				else {
+						// Status is PENDING or PROCESSING. 
+						// Wait 2000ms (2 seconds) and recursively call this function again.
+						setTimeout(() => pollJobStatus(jobId), 2000);
+				}
+		} catch (error) {
+				console.error("Error polling job status:", error);
+		}
 }
 
 function downloadResult(jobId) {

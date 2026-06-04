@@ -7,6 +7,8 @@ import ch.supsi.imageprocessing.entity.ProcessingJob;
 import ch.supsi.imageprocessing.entity.Image;
 import ch.supsi.imageprocessing.entity.User;
 import ch.supsi.imageprocessing.entity.JobType;
+import ch.supsi.imageprocessing.entity.JobStatus;
+import ch.supsi.imageprocessing.dto.JobRequest;
 import ch.supsi.imageprocessing.utils.ImageFormatValidator;
 import ch.supsi.imageprocessing.exception.InvalidRequestException;
 import ch.supsi.imageprocessing.exception.ResourceNotFoundException;
@@ -18,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -55,8 +56,20 @@ public class ImageService {
 				return ir.save(image);
 		}
 
-		@Transactional(isolation = Isolation.READ_COMMITTED)
-		public ProcessingJob createConversionJob(Long imageId, String outputName, String targetFormat) {
+		@Transactional
+		public ProcessingJob createJob(Long imageId, JobRequest request) {
+
+				String outputName = request.getOrDefaultOutputName();
+				String format = request.getOrDefaultTargetFormat();
+
+				return switch (request.type()) {
+						case FORMAT_CONVERSION -> createConversionJob(imageId, outputName, format);
+						case BACKGROUND_REMOVAL -> createBackgroundRemovalJob(imageId, outputName, format);
+						default -> throw new IllegalArgumentException("Unsupported job type: " + request.type());
+				};
+		}
+
+		private ProcessingJob createConversionJob(Long imageId, String outputName, String targetFormat) {
 
 				if (targetFormat == null || targetFormat.strip().isEmpty()) 
 						throw new InvalidRequestException("Invalid or missing target format.");
@@ -72,6 +85,24 @@ public class ImageService {
 				ProcessingJob savedJob = pjr.save(job);
 				return savedJob;
 		}
+
+		private ProcessingJob createBackgroundRemovalJob(Long imageId, String outputName, String targetFormat) {
+
+				if (targetFormat == null || targetFormat.strip().isEmpty()) 
+						throw new InvalidRequestException("Invalid or missing target format.");
+				if (outputName == null || outputName.strip().isEmpty()) 
+						throw new InvalidRequestException("Invalid or missing output name.");
+
+				Image image = ir.findById(imageId)
+						.orElseThrow(() -> new ResourceNotFoundException("Image not found with ID: " + imageId));
+
+				String fullOutputName = outputName + "." + targetFormat.toLowerCase().strip();
+				ProcessingJob job = new ProcessingJob(image, JobType.BACKGROUND_REMOVAL, fullOutputName, targetFormat);
+
+				ProcessingJob savedJob = pjr.save(job);
+				return savedJob;
+		}
+
 
 		@Transactional(isolation = Isolation.READ_COMMITTED)
 		public Image submitUpload(Long userId, String filename, String storagePath, String format) {
@@ -118,12 +149,14 @@ public class ImageService {
 
 		@Transactional
 		public void deleteImage(Long imageId){
-
 				if (!ir.existsById(imageId)) {
 						throw new ResourceNotFoundException("Image not found with ID: " + imageId);
 				}
-				Optional<Image> io = ir.findById(imageId);
-				Image i = io.orElseThrow(()->new ResourceNotFoundException("Image not found with ID: " + imageId));
+				Image i = ir.findById(imageId).orElseThrow(()->new ResourceNotFoundException("Image not found with ID: " + imageId));
+				for (ProcessingJob j : pjr.findByImageId(i.getId())){
+						if(j.getStatus()==JobStatus.DONE) ss.deleteResource(j.getTargetStorageKey());
+				}
 				ir.delete(i);
+				ss.deleteResource(i.getStorageKey());
 		}
 }

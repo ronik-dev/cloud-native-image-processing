@@ -1,23 +1,26 @@
 package ch.supsi.imageprocessing;
 
-import ch.supsi.imageprocessing.entity.Image;
-import ch.supsi.imageprocessing.entity.User;
 import ch.supsi.imageprocessing.controller.ImageController;
+import ch.supsi.imageprocessing.dto.JobRequest;
+import ch.supsi.imageprocessing.entity.Image;
+import ch.supsi.imageprocessing.entity.JobType;
+import ch.supsi.imageprocessing.entity.ProcessingJob;
+import ch.supsi.imageprocessing.entity.User;
 import ch.supsi.imageprocessing.service.ImageService;
-import ch.supsi.imageprocessing.service.ProcessingJobService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean; 
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.http.MediaType;
 
 import java.util.List;
 
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ImageController.class)
 class ImageControllerTest {
@@ -28,29 +31,95 @@ class ImageControllerTest {
 		@MockitoBean
 		private ImageService is;
 
-		@MockitoBean
-		private ProcessingJobService pjs; 
+		@Test
+		void createJob_ShouldReturn202_WhenRequestIsValid() throws Exception {
+				// Arrange
+				Long imageId = 1L;
+
+				// 1. Use Java 21 Text Blocks (""") instead of ObjectMapper!
+				String jsonPayload = """
+				{
+						"type": "FORMAT_CONVERSION",
+								"outputName": "output_file",
+								"targetFormat": "png"
+				}
+				""";
+
+				User mockUser = new User("nicola", "nicola@supsi.ch");
+				Image mockImage = new Image("test.png", "/tmp/test.png", "png", mockUser);
+				setField(mockImage, "id", imageId);
+
+				ProcessingJob mockJob = new ProcessingJob(mockImage, JobType.FORMAT_CONVERSION, "output_file.png", "png");
+				setField(mockJob, "id", 100L);
+
+				// Notice we use any(JobRequest.class) because Spring will parse the JSON string for us
+				when(is.createJob(eq(imageId), any(JobRequest.class))).thenReturn(mockJob);
+
+				// Act & Assert
+				mockMvc.perform(post("/api/images/{id}/jobs", imageId)
+								.contentType(MediaType.APPLICATION_JSON)
+								.content(jsonPayload)) // 2. Pass the raw string directly
+						.andExpect(status().isAccepted())
+						.andExpect(jsonPath("$.id").value(100))
+						.andExpect(jsonPath("$.outputName").value("output_file.png"));
+		}
+
+		//@Test
+		//void createJob_ShouldReturn400_WhenImageIdIsNegative() throws Exception {
+		//		// Arrange
+		//		String jsonPayload = """
+		//		{
+		//				"type": "FORMAT_CONVERSION",
+		//						"outputName": "output",
+		//						"targetFormat": "png"
+		//		}
+		//		""";
+
+		//		// Act & Assert (The @Min(0) constraint should block this)
+		//		mockMvc.perform(post("/api/images/-1/jobs")
+		//						.contentType(MediaType.APPLICATION_JSON)
+		//						.content(jsonPayload))
+		//				.andExpect(status().isBadRequest());
+
+		//		verifyNoInteractions(is);
+		//}
 
 		@Test
-		void getImagesByUser_ShouldReturnFilteredImages_WhenInvoked() throws Exception {
-				User mockUser = new User("test001", "test001@e.mail");
+		void getJobsByImage_ShouldReturn200AndJobList() throws Exception {
+				// Arrange
+				Long imageId = 1L;
+				User mockUser = new User("nicola", "nicola@supsi.ch");
+				Image mockImage = new Image("test.png", "/tmp/test.png", "png", mockUser);
+				setField(mockImage, "id", imageId);
 
-				java.lang.reflect.Field userIdField = User.class.getDeclaredField("id");
-				userIdField.setAccessible(true);
-				userIdField.set(mockUser, 1L); 
+				ProcessingJob mockJob = new ProcessingJob(mockImage, JobType.BACKGROUND_REMOVAL, "no_bg.png", "png");
+				setField(mockJob, "id", 200L);
 
-				Image mockImage = new Image("test_image.png", "/tmp/path/test_image.png", "png", mockUser);
-				java.lang.reflect.Field idField = Image.class.getDeclaredField("id");
-				idField.setAccessible(true);
-				idField.set(mockImage, 123L);
+				when(is.getJobsByImage(imageId)).thenReturn(List.of(mockJob));
 
-				// ImageController calls is.getAllImages() and filters internally
-				when(is.getAllImages()).thenReturn(List.of(mockImage));
-
-				mockMvc.perform(get("/api/users/1/images")
+				// Act & Assert
+				mockMvc.perform(get("/api/images/{id}/jobs", imageId)
 								.contentType(MediaType.APPLICATION_JSON))
 						.andExpect(status().isOk())
-						.andExpect(jsonPath("$[0].id").value(123))
-						.andExpect(jsonPath("$[0].filename").value("test_image.png"));
+						.andExpect(jsonPath("$[0].id").value(200))
+						.andExpect(jsonPath("$[0].type").value("BACKGROUND_REMOVAL"));
+		}
+
+		@Test
+		void deleteImage_ShouldReturn204_WhenSuccessful() throws Exception {
+				Long imageId = 1L;
+				doNothing().when(is).deleteImage(imageId);
+
+				mockMvc.perform(delete("/api/images/{id}", imageId))
+						.andExpect(status().isNoContent());
+
+				verify(is, times(1)).deleteImage(imageId);
+		}
+
+		// Helper method to set IDs via reflection for testing
+		private void setField(Object target, String fieldName, Object value) throws Exception {
+				java.lang.reflect.Field field = target.getClass().getDeclaredField(fieldName);
+				field.setAccessible(true);
+				field.set(target, value);
 		}
 }

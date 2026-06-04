@@ -20,11 +20,8 @@ import java.nio.file.StandardCopyOption;
 @Service
 public class StorageService {
 
-		@Value("${storage.upload-dir:/tmp/imageprocessing/uploads}")
-		private String uploadDirStr;
-
-		@Value("${storage.output-dir:/tmp/imageprocessing/outputs}")
-		private String outputDirStr;
+		@Value("${storage.data-dir:/tmp/imageprocessing/data}")
+		private String dataDirStr;
 
 		public Path storeMultipartFile(MultipartFile file, String storageKey) {
 				if (file == null || file.isEmpty()) {
@@ -35,9 +32,31 @@ public class StorageService {
 				}
 
 				try (InputStream inputStream = file.getInputStream()) {
-						return saveToDisk(inputStream, uploadDirStr, storageKey);
+						return saveToDisk(inputStream, dataDirStr, storageKey);
 				} catch (IOException e) {
 						throw new RuntimeException("Failed to read multipart upload stream", e);
+				}
+		}
+
+		public void deleteResource(String storageKey) {
+				if (storageKey == null || storageKey.trim().isEmpty()) {
+						throw new InvalidRequestException("Storage key cannot be empty.");
+				}
+				try{
+						Path BaseDir = Paths.get(dataDirStr);
+						Path outputFile = BaseDir.resolve(storageKey).normalize();
+
+						if (!outputFile.startsWith(BaseDir)) 
+								throw new InvalidRequestException("Invalid storage key path.");
+
+						if (Files.exists(outputFile)) {
+								Files.delete(outputFile);
+								return;
+						}
+
+						throw new ResourceNotFoundException("Could not find physical file to delete in uploads or outputs: " + storageKey);
+				} catch (IOException e) {
+						throw new RuntimeException("Disk I/O execution failure during resource deletion: " + e.getMessage(), e);
 				}
 		}
 
@@ -49,7 +68,7 @@ public class StorageService {
 						throw new InvalidRequestException("Storage key cannot be empty.");
 				}
 
-				return saveToDisk(inputStream, uploadDirStr, storageKey);
+				return saveToDisk(inputStream, dataDirStr, storageKey);
 		}
 
 		private Path saveToDisk(InputStream inputStream, String baseDirStr, String storageKey) {
@@ -79,28 +98,16 @@ public class StorageService {
 						throw new InvalidRequestException("Storage key cannot be empty.");
 
 				try {
-						Path outputBaseDir = Paths.get(outputDirStr);
-						Path outputFile = outputBaseDir.resolve(storageKey).normalize();
+						Path outputBaseDir = Paths.get(dataDirStr);
+						Path file = outputBaseDir.resolve(storageKey).normalize();
 
-						if (!outputFile.startsWith(outputBaseDir)) {
+						if (!file.startsWith(outputBaseDir)) {
 								throw new InvalidRequestException("Invalid storage key path.");
 						}
 
-						Resource outputResource = new UrlResource(outputFile.toUri());
-						if (outputResource.exists() && outputResource.isReadable()) {
-								return outputResource;
-						}
-
-						Path uploadBaseDir = Paths.get(uploadDirStr);
-						Path uploadFile = uploadBaseDir.resolve(storageKey).normalize();
-
-						if (!uploadFile.startsWith(uploadBaseDir)) {
-								throw new InvalidRequestException("Invalid storage key path.");
-						}
-
-						Resource uploadResource = new UrlResource(uploadFile.toUri());
-						if (uploadResource.exists() && uploadResource.isReadable()) {
-								return uploadResource;
+						Resource resource = new UrlResource(file.toUri());
+						if (resource.exists() && resource.isReadable()) {
+								return resource;
 						}
 
 						throw new ResourceNotFoundException("Could not find physical file in uploads or outputs: " + storageKey);

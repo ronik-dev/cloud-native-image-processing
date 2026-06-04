@@ -9,12 +9,19 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.EnumType;
+import jakarta.persistence.UniqueConstraint;
 
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+
 @Entity 
-@Table(name = "processingJob")
+@Table(
+		name = "processingJob",
+		uniqueConstraints = {
+				@UniqueConstraint(columnNames = {"image_id", "outputName"})
+		}
+)
 public class ProcessingJob{
 		@Id
 		@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,7 +41,7 @@ public class ProcessingJob{
 		@OnDelete(action = OnDeleteAction.CASCADE)
 		private Image image; 
 
-		@Column(nullable = false, unique = true)
+		@Column(nullable = false)
 		private String outputName; 
 
 		@Column(nullable = true)

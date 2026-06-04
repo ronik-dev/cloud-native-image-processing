@@ -8,19 +8,27 @@ import ch.supsi.imageprocessing.processor.ImageProcessor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.scheduling.annotation.EnableAsync;   
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.UUID;
 
 @Service
+@EnableAsync
 public class ProcessingJobService {
+
 
 		@Autowired
 		private ProcessingJobRepository pjr;
 
 		@Autowired
 		private ImageProcessor ip;
+
+		@Autowired
+		private StorageService ss;
+
 
 		@Transactional(readOnly = true)
 		public List<ProcessingJob> getAllJobs() {
@@ -37,20 +45,27 @@ public class ProcessingJobService {
 						job.setTargetStorageKey(newStorageKey);
 				}
 
-				job.setStatus(JobStatus.RUNNING);
-				job = pjr.saveAndFlush(job);
+				return pjr.save(job);
+		}
+
+		@Async
+		public void startAsyncProcessExecution(Long jobId) {
+				ProcessingJob job = pjr.findById(jobId).orElseThrow();
 
 				try {
-						String storageKey = ip.execute(job);
+						job.setStatus(JobStatus.RUNNING);
+						pjr.save(job);
 
-						job.setTargetStorageKey(storageKey);
+						ip.execute(job);
+
 						job.setStatus(JobStatus.DONE);
-				} catch (Exception e) {
-						e.printStackTrace();
-						job.setStatus(JobStatus.FAILED);
-				}
 
-				return pjr.save(job);
+				} catch (Exception e) {
+						job.setStatus(JobStatus.FAILED);
+
+				} finally {
+						pjr.save(job);
+				}
 		}
 
 		@Transactional(readOnly = true)
@@ -63,6 +78,9 @@ public class ProcessingJobService {
 		public void deleteJob(Long jobId){
 				ProcessingJob job = pjr.findById(jobId)
 						.orElseThrow(()->new ResourceNotFoundException("Job not found with ID: " + jobId));
+				if (job.getStatus()==JobStatus.DONE){
+						ss.deleteResource(job.getTargetStorageKey());
+				}
 				pjr.delete(job);
 		}
 }

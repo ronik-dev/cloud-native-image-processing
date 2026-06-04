@@ -11,15 +11,21 @@ import jakarta.persistence.PrePersist;
 import java.time.LocalDateTime;   
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity 
-@Table(name = "image")
+@Table(
+		name = "image",
+		uniqueConstraints = {
+				@UniqueConstraint(columnNames = {"user_id", "name", "format"}),
+		}
+)
 public class Image{
 		@Id
 		@GeneratedValue(strategy = GenerationType.IDENTITY)
 		private Long id;
 
-		@Column(nullable = false, unique = true)
+		@Column(nullable = false)
 		private String name; 
 
 		@Column(nullable = false)
@@ -31,7 +37,7 @@ public class Image{
 		@ManyToOne
 		@JoinColumn(nullable=false, name = "user_id")
 		@OnDelete(action = OnDeleteAction.CASCADE)
-		private User user;	
+		private User user;
 
 		@Column(nullable = false, updatable = false)
 		private LocalDateTime uploadedAt; 

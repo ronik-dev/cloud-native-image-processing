@@ -13,9 +13,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;   
+
+import jakarta.validation.constraints.Min;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/jobs")
+@Validated
 public class ProcessJobController{
 
 
@@ -26,26 +30,27 @@ public class ProcessJobController{
 		private StorageService ss;
 
 
-		@PostMapping("/jobs/{id}/process")
-		public ResponseEntity<JobResponse> triggerProcessing(@PathVariable Long id) {
-				ProcessingJob updatedJob = pjs.processJob(id);
-				return ResponseEntity.ok(JobResponse.fromEntity(updatedJob));
+		@PostMapping("/{id}/process")
+		public ResponseEntity<JobResponse> triggerProcessing(@PathVariable @Min(0) Long id) {
+				ProcessingJob pj = pjs.processJob(id);
+				pjs.startAsyncProcessExecution(pj.getId());
+				return ResponseEntity.ok(JobResponse.fromEntity(pj));
 		}
 
-		@GetMapping("/jobs/{id}")
-		public ResponseEntity<JobResponse> getJobStatus(@PathVariable Long id) {
+		@GetMapping("/{id}")
+		public ResponseEntity<JobResponse> getJobStatus(@PathVariable @Min(0) Long id) {
 				ProcessingJob job = pjs.getJobStatus(id);
 				return ResponseEntity.ok(JobResponse.fromEntity(job));
 		}
 
-		@DeleteMapping("/jobs/{id}")
+		@DeleteMapping("/{id}")
 		public ResponseEntity<Void> deleteJob(@PathVariable Long id) {
 		    pjs.deleteJob(id); 
 		    return ResponseEntity.noContent().build();
 		}
 
-		@GetMapping("/jobs/{id}/result")
-		public ResponseEntity<Resource> downloadJobResult(@PathVariable Long id) {
+		@GetMapping("/{id}/result")
+		public ResponseEntity<Resource> downloadJobResult(@PathVariable @Min(0) Long id) {
 				ProcessingJob job = pjs.getJobStatus(id);
 
 				if (job.getStatus() != JobStatus.DONE || job.getTargetStorageKey() == null || job.getTargetStorageKey().isBlank()) {

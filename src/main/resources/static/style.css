@@ -1,45 +1,40 @@
 :root {
-/* Backgrounds - Minimalist gallery grays and clean whites */
-		--bg-body: #f4f4f5;       /* Soft, matte studio wall */
-		--bg-surface: #ffffff;    /* Pure white canvas for image containers */
-		--bg-list: #fafafa;       /* Barely-there off-white for structural distinction */
-		--bg-selected: #f0f0f0;   /* Very subtle gray wash for selection */
+		--bg-body: #f4f4f5;       
+		--bg-surface: #ffffff;    
+		--bg-list: #fafafa;       
+		--bg-selected: #f0f0f0;   
 
-		/* Text - Crisp graphite, avoiding the harshness of pure black */
-		--text-main: #27272a;     /* Deep charcoal */
-		--text-muted: #71717a;    /* Soft mid-gray for metadata and secondary info */
-		--text-heading: #18181b;  /* High-contrast dark graphite for hierarchy */
-		--text-inverse: #ffffff;  /* Pure white for inside accent buttons */
+		--text-main: #27272a;     
+		--text-muted: #71717a;    
+		--text-heading: #18181b;  
+		--text-inverse: #ffffff;  
 
-		/* Borders - Whisper-quiet lines, relying mostly on whitespace */
 		--border-light: #e4e4e7;
 		--border-input: #d4d4d8;
 		--border-card: #f4f4f5;
 
-		/* Primary Brand & Focus - Highly intentional, premium accents */
-		--primary: #c2410c;       /* Premium burnt orange / terracotta */
-		--primary-focus: rgba(194, 65, 12, 0.08); /* Faint warm wash */
+		--primary: #489341;       
+		--primary-focus: rgba(194, 65, 12, 0.08); 
 
-		/* Buttons - Muted tones to avoid competing with visual content */
-		--btn-gray: #52525b;      /* Replaced standard blue with a sophisticated slate */
-		--btn-gray-hover: #3f3f46;
-		--btn-green: #657164;     /* Calm, muted sage green */
+		--btn-def: #5d8859;
+		--btn-def-hover: #489341;
+		--btn-def-select: #489341;
+		--btn-green: #657164;
 		--btn-green-hover: #525c51;
-		--btn-red: #9f585a;       /* Subdued, dusty brick red */
+		--btn-red: #9f585a;
 		--btn-red-hover: #824749;
-		--btn-purple: #847895;    /* Very dusty, muted mauve */
+		--btn-purple: #847895;
 		--btn-purple-hover: #886dae;
 		--btn-slate: #a1a1aa;
 
-		/* Status Badges - Elegant, unobtrusive indicators */
 		--status-running-bg: #fcfbf6;
-		--status-running-text: #9e6f50;  /* Warm stone gray for active processing */
+		--status-running-text: #9e6f50;
 		
 		--status-done-bg: #f6fcf6;
-		--status-done-text: #487d43;     /* Sage green for successful execution */
+		--status-done-text: #487d43;
 		
 		--status-failed-bg: #fcf6f6;
-		--status-failed-text: #9f585a;   /* Brick red for halted tasks */
+		--status-failed-text: #9f585a;
 }
 
 * {
@@ -115,7 +110,7 @@ input:focus, select:focus {
 }
 
 button {
-		background-color: var(--btn-gray);
+		background-color: var(--btn-def);
 		color: var(--text-inverse);
 		border: none;
 		font-weight: 600;
@@ -123,7 +118,7 @@ button {
 		transition: background-color 0.2s;
 }
 
-button:hover { background-color: var(--btn-gray-hover); }
+button:hover { background-color: var(--btn-def-hover); }
 .btn-primary { background-color: var(--btn-green); font-size: 1.1rem; padding: 15px; }
 .btn-primary:hover { background-color: var(--btn-green-hover); }
 
@@ -179,7 +174,7 @@ button:hover { background-color: var(--btn-gray-hover); }
 .btn-danger { background-color: var(--btn-red); }
 .btn-danger:hover { background-color: var(--btn-red-hover); }
 .btn-select { background-color: var(--btn-slate); }
-.btn-select.active { background-color: var(--primary); }
+.btn-select.active { background-color: var(--btn-def-select); }
 .btn-download { background-color: var(--btn-purple); }
 .btn-download:hover { background-color: var(--btn-purple-hover); }
 

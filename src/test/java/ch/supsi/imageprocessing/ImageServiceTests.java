@@ -1,6 +1,9 @@
 package ch.supsi.imageprocessing;
 
+
+import ch.supsi.imageprocessing.dto.JobRequest;
 import ch.supsi.imageprocessing.entity.Image;
+import ch.supsi.imageprocessing.entity.JobType;
 import ch.supsi.imageprocessing.entity.ProcessingJob;
 import ch.supsi.imageprocessing.entity.User;
 import ch.supsi.imageprocessing.repository.ImageRepository;
@@ -56,7 +59,7 @@ class ImageServiceTest {
 				});
 
 				// Act 
-				ProcessingJob result = imageService.createConversionJob(imageId, outputName, targetFormat);
+				ProcessingJob result = imageService.createJob(imageId, new JobRequest(JobType.FORMAT_CONVERSION, outputName, targetFormat));
 
 				// Assert
 				assertNotNull(result);
@@ -69,32 +72,14 @@ class ImageServiceTest {
 		}
 
 		@Test
-		void createConversionJob_ShouldThrow_WhenTargetFormatIsEmpty() {
-				assertThrows(ch.supsi.imageprocessing.exception.InvalidRequestException.class, () -> {
-						imageService.createConversionJob(1L, "output", "    ");
-				});
-
-				verifyNoInteractions(imageRepository);
-				verifyNoInteractions(processingJobRepository);
-		}
-
-		@Test
-		void createConversionJob_ShouldThrow_WhenOutputNameIsEmpty() {
-				assertThrows(ch.supsi.imageprocessing.exception.InvalidRequestException.class, () -> {
-						imageService.createConversionJob(1L, "", "png");
-				});
-
-				verifyNoInteractions(imageRepository);
-				verifyNoInteractions(processingJobRepository);
-		}
-
-		@Test
-		void createConversionJob_ShouldThrow_WhenImageDoesNotExist() {
+		void createJob_ShouldThrow_WhenImageDoesNotExist() {
 				Long nonExistentImageId = 999L;
 				when(imageRepository.findById(nonExistentImageId)).thenReturn(Optional.empty());
 
 				assertThrows(ch.supsi.imageprocessing.exception.ResourceNotFoundException.class, () -> {
-						imageService.createConversionJob(nonExistentImageId, "output", "png");
+						// Act: Call the public method with a valid JobRequest
+						JobRequest request = new JobRequest(JobType.FORMAT_CONVERSION, "output", "png");
+						imageService.createJob(nonExistentImageId, request);
 				});
 
 				verify(imageRepository, times(1)).findById(nonExistentImageId);

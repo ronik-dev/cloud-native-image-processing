@@ -1,7 +1,9 @@
 package ch.supsi.imageprocessing.service;
 
 import ch.supsi.imageprocessing.entity.User;
+import ch.supsi.imageprocessing.entity.Image;
 import ch.supsi.imageprocessing.repository.UserRepository;
+import ch.supsi.imageprocessing.repository.ImageRepository;
 import ch.supsi.imageprocessing.exception.ResourceNotFoundException;
 import ch.supsi.imageprocessing.exception.InvalidRequestException;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,12 @@ public class UserService {
 
 		@Autowired
 		private UserRepository ur;
+
+		@Autowired
+		private ImageRepository ir;
+
+		@Autowired
+		private ImageService is;
 
 		@Transactional
 		public User createUser(String username, String email) {
@@ -27,12 +35,25 @@ public class UserService {
 		}
 
 		@Transactional(readOnly = true)
-		public User getUserById(Long userId) {
-				if (userId == null) {
+		public User getUserById(Long id) {
+				if (id == null) {
 						throw new InvalidRequestException("User ID cannot be null.");
 				}
 
-				return ur.findById(userId)
-						.orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
+				return ur.findById(id)
+						.orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
+		}
+
+		@Transactional
+		public void deleteUser(Long id){
+				if (id == null) {
+						throw new InvalidRequestException("User ID cannot be null.");
+				}
+				User user = ur.findById(id)
+						.orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
+				for(Image i: ir.findByUserId(id)){
+						is.deleteImage(i.getId());	
+				}
+				ur.delete(user);
 		}
 }

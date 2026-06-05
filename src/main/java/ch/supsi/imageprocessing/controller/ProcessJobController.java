@@ -34,7 +34,7 @@ public class ProcessJobController{
 		public ResponseEntity<JobResponse> triggerProcessing(@PathVariable @Min(0) Long id) {
 				ProcessingJob pj = pjs.processJob(id);
 				pjs.startAsyncProcessExecution(pj.getId());
-				return ResponseEntity.ok(JobResponse.fromEntity(pj));
+				return ResponseEntity.accepted().body(JobResponse.fromEntity(pj));
 		}
 
 		@GetMapping("/{id}")

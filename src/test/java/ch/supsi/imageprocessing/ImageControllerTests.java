@@ -64,25 +64,25 @@ class ImageControllerTest {
 						.andExpect(jsonPath("$.outputName").value("output_file.png"));
 		}
 
-		//@Test
-		//void createJob_ShouldReturn400_WhenImageIdIsNegative() throws Exception {
-		//		// Arrange
-		//		String jsonPayload = """
-		//		{
-		//				"type": "FORMAT_CONVERSION",
-		//						"outputName": "output",
-		//						"targetFormat": "png"
-		//		}
-		//		""";
+		@Test
+		void createJob_ShouldReturn400_WhenImageIdIsNegative() throws Exception {
+				// Arrange
+				String jsonPayload = """
+				{
+						"type": "FORMAT_CONVERSION",
+								"outputName": "output",
+								"targetFormat": "png"
+				}
+				""";
 
-		//		// Act & Assert (The @Min(0) constraint should block this)
-		//		mockMvc.perform(post("/api/images/-1/jobs")
-		//						.contentType(MediaType.APPLICATION_JSON)
-		//						.content(jsonPayload))
-		//				.andExpect(status().isBadRequest());
+				// Act & Assert (The @Min(0) constraint should block this)
+				mockMvc.perform(post("/api/images/-1/jobs")
+								.contentType(MediaType.APPLICATION_JSON)
+								.content(jsonPayload))
+						.andExpect(status().isBadRequest());
 
-		//		verifyNoInteractions(is);
-		//}
+				verifyNoInteractions(is);
+		}
 
 		@Test
 		void getJobsByImage_ShouldReturn200AndJobList() throws Exception {

@@ -58,15 +58,15 @@ class UserControllerTest {
                 .andExpect(jsonPath("$[0].filename").value("my_image.png")); // Or 'name', depending on your ImageResponse DTO
     }
 
-    //@Test
-    //void getImagesByUser_ShouldReturn400_WhenUserIdIsNegative() throws Exception {
-    //    // The @Min(0) validation should block this before the controller executes
-    //    mockMvc.perform(get("/api/users/-5/images")
-    //            .contentType(MediaType.APPLICATION_JSON))
-    //            .andExpect(status().isBadRequest());
-    //    
-    //    verifyNoInteractions(is);
-    //}
+    @Test
+    void getImagesByUser_ShouldReturn400_WhenUserIdIsNegative() throws Exception {
+        // The @Min(0) validation should block this before the controller executes
+        mockMvc.perform(get("/api/users/-5/images")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+        
+        verifyNoInteractions(is);
+    }
 
     @Test
     void deleteUser_ShouldReturn204_WhenSuccessful() throws Exception {

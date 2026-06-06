@@ -20,7 +20,7 @@ import jakarta.validation.constraints.Min;
 @RestController
 @RequestMapping("/api/jobs")
 @Validated
-public class ProcessJobController{
+public class ProcessingJobController{
 
 
 		@Autowired

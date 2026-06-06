@@ -21,6 +21,7 @@ import org.springframework.validation.annotation.Validated;
 
 import org.springframework.web.bind.annotation.PathVariable;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.Valid;   
 
 import java.util.List;
 
@@ -36,9 +37,17 @@ public class UserController{
 		private UserService us;
 
 		@PostMapping()
-		public ResponseEntity<UserResponse> newUser(@RequestBody UserRequest request) {
+		public ResponseEntity<UserResponse> newUser(@Valid @RequestBody UserRequest request) {
 				User u = us.createUser(request.username(),request.email());
 				return ResponseEntity.status(HttpStatus.CREATED).body(UserResponse.fromEntity(u));
+		}
+
+		@GetMapping()
+		public ResponseEntity<List<UserResponse>> getAllUsers() {
+				List<UserResponse> responses = us.getAllUsers().stream()
+						.map(UserResponse::fromEntity)
+						.toList();
+				return ResponseEntity.ok(responses);
 		}
 
 		@GetMapping("/{id}/images")

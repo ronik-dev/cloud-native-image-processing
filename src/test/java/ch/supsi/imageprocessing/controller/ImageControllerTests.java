@@ -1,6 +1,5 @@
-package ch.supsi.imageprocessing;
+package ch.supsi.imageprocessing.controller;
 
-import ch.supsi.imageprocessing.controller.ImageController;
 import ch.supsi.imageprocessing.dto.JobRequest;
 import ch.supsi.imageprocessing.entity.Image;
 import ch.supsi.imageprocessing.entity.JobType;
@@ -32,11 +31,10 @@ class ImageControllerTest {
 		private ImageService is;
 
 		@Test
-		void createJob_ShouldReturn202_WhenRequestIsValid() throws Exception {
+		void createJob_ShouldReturn201_WhenRequestIsValid() throws Exception {
 				// Arrange
 				Long imageId = 1L;
 
-				// 1. Use Java 21 Text Blocks (""") instead of ObjectMapper!
 				String jsonPayload = """
 				{
 						"type": "FORMAT_CONVERSION",
@@ -52,14 +50,13 @@ class ImageControllerTest {
 				ProcessingJob mockJob = new ProcessingJob(mockImage, JobType.FORMAT_CONVERSION, "output_file.png", "png");
 				setField(mockJob, "id", 100L);
 
-				// Notice we use any(JobRequest.class) because Spring will parse the JSON string for us
 				when(is.createJob(eq(imageId), any(JobRequest.class))).thenReturn(mockJob);
 
 				// Act & Assert
 				mockMvc.perform(post("/api/images/{id}/jobs", imageId)
 								.contentType(MediaType.APPLICATION_JSON)
 								.content(jsonPayload)) // 2. Pass the raw string directly
-						.andExpect(status().isAccepted())
+						.andExpect(status().isCreated())
 						.andExpect(jsonPath("$.id").value(100))
 						.andExpect(jsonPath("$.outputName").value("output_file.png"));
 		}

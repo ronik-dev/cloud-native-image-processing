@@ -1,4 +1,4 @@
-package ch.supsi.imageprocessing;
+package ch.supsi.imageprocessing.service;
 
 import ch.supsi.imageprocessing.entity.JobStatus;
 import ch.supsi.imageprocessing.entity.JobType;
@@ -7,8 +7,6 @@ import ch.supsi.imageprocessing.entity.Image;
 import ch.supsi.imageprocessing.entity.User;
 import ch.supsi.imageprocessing.processor.ImageProcessor;
 import ch.supsi.imageprocessing.repository.ProcessingJobRepository;
-import ch.supsi.imageprocessing.service.ProcessingJobService;
-import ch.supsi.imageprocessing.service.StorageService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

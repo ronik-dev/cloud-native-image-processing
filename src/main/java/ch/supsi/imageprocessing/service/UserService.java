@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
+
 @Service
 public class UserService {
 
@@ -55,5 +57,10 @@ public class UserService {
 						is.deleteImage(i.getId());	
 				}
 				ur.delete(user);
+		}
+
+		@Transactional(readOnly = true)
+		public List<User> getAllUsers() {
+				return ur.findAll();
 		}
 }

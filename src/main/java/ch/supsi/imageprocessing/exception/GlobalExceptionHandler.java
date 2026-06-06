@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;   
+import org.springframework.dao.DataIntegrityViolationException;
 
 
 import java.time.LocalDateTime;
@@ -97,7 +98,7 @@ public class GlobalExceptionHandler {
 		}
 
 
-		// Handles MultipartException subclass thrown when an upload exceeds the maximum upload size allowed.
+		// Handle MultipartException subclass thrown when an upload exceeds the maximum upload size allowed.
 		@ExceptionHandler(MaxUploadSizeExceededException.class)
 		public ResponseEntity<ErrorResponse> handleMaxSizeException(MaxUploadSizeExceededException ex, HttpServletRequest request) {
 				return buildResponse(
@@ -107,6 +108,18 @@ public class GlobalExceptionHandler {
 								request.getRequestURI(), 
 								null);
 		}		
+
+		// Handle Data integrity violations errors coming from the DB
+		@ExceptionHandler(DataIntegrityViolationException.class)
+		public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex, HttpServletRequest request) {
+				return buildResponse(
+								HttpStatus.CONFLICT, 
+								"Conflict", 
+								"A record with this information already exists (e.g., duplicate username or email).", 
+								request.getRequestURI(), 
+								null
+								);
+		}
 
 
 		private ResponseEntity<ErrorResponse> buildResponse(HttpStatus status, String error, String message, String path, Map<String, String> validationErrors) {

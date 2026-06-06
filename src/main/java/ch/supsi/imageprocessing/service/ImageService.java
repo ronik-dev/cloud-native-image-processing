@@ -59,7 +59,7 @@ public class ImageService {
 		@Transactional
 		public ProcessingJob createJob(Long imageId, JobRequest request) {
 
-				String outputName = request.getOrDefaultOutputName();
+				String outputName = request.outputName();
 				String format = request.getOrDefaultTargetFormat();
 
 				return switch (request.type()) {

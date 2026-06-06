@@ -39,6 +39,7 @@ build/
 # Logs
 *.log
 spring.log
+logs/
 
 # OS
 .DS_Store

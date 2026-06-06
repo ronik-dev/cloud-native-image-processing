@@ -1,12 +1,9 @@
-package ch.supsi.imageprocessing;
+package ch.supsi.imageprocessing.repository;
 
 import ch.supsi.imageprocessing.entity.User;
-import ch.supsi.imageprocessing.repository.UserRepository;
 import ch.supsi.imageprocessing.entity.Image;
-import ch.supsi.imageprocessing.repository.ImageRepository;
 import ch.supsi.imageprocessing.entity.ProcessingJob;
 import ch.supsi.imageprocessing.entity.JobType;
-import ch.supsi.imageprocessing.repository.ProcessingJobRepository;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
-class ProcessingJobTests{
+class ProcessingJobRepositoryTests{
 
 		@Autowired
 		private ImageRepository imageRepository;

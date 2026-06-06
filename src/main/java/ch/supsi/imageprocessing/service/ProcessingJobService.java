@@ -8,7 +8,6 @@ import ch.supsi.imageprocessing.processor.ImageProcessor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.scheduling.annotation.EnableAsync;   
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -16,7 +15,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@EnableAsync
 public class ProcessingJobService {
 
 

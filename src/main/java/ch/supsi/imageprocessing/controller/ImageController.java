@@ -7,6 +7,7 @@ import ch.supsi.imageprocessing.service.ImageService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,15 +33,15 @@ public class ImageController {
 		@PostMapping("/{id}/jobs")
 		public ResponseEntity<JobResponse> createJob(@PathVariable @Min(0) Long id,@Valid @RequestBody JobRequest request) {
 		        ProcessingJob pj = is.createJob(id, request);
-		        return ResponseEntity.accepted().body(JobResponse.fromEntity(pj));
+		        return ResponseEntity.status(HttpStatus.CREATED).body(JobResponse.fromEntity(pj));
 		}
 
 		@GetMapping("/{id}/jobs")
 		public ResponseEntity<List<JobResponse>> getJobsByImage(@PathVariable @Min(0) Long id) {
-				List<JobResponse> jobs = is.getJobsByImage(id).stream()
+				List<JobResponse> jobsr = is.getJobsByImage(id).stream()
 						.map(JobResponse::fromEntity)
 						.toList(); 
-				return ResponseEntity.ok(jobs);
+				return ResponseEntity.ok(jobsr);
 		}
 
 		@DeleteMapping("/{id}")

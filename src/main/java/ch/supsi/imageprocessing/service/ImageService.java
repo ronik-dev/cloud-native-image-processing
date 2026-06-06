@@ -129,9 +129,9 @@ public class ImageService {
 		}
 
 		@Transactional(readOnly = true)
-		public ProcessingJob getJobStatus(Long jobId) {
-				return pjr.findById(jobId)
-						.orElseThrow(() -> new ResourceNotFoundException("Job not found with ID: " + jobId));
+		public List<Image> getImagesByUserId(Long userId){
+				if(!ur.existsById(userId)) throw new ResourceNotFoundException("not found with ID: " + userId);
+				return ir.findByUserId(userId);
 		}
 
 		@Transactional(readOnly = true)

@@ -1,7 +1,7 @@
 # 14 Logging and Distributed Tracing (task: 21)
-This guide is OS specific for Arch Linux, as this project is developed on this os
-It is perfectly possible to execute the same task on a different OS, but instructions will not be provided.
-These guide assumes you have an internet connection pacman and yay working and installed.
+> This guide is OS specific for Arch Linux, as this project is developed on this os
+> It is perfectly possible to execute the same task on a different OS, but instructions will not be provided.
+> These guide assumes you have an internet connection pacman and yay working and installed.
 
 ### Context
 To support the transition toward a cloud-native microservices architecture, standard console logging is insufficient for tracking requests that span multiple boundaries or background threads. The application integrates the Micrometer Observation API and the OpenTelemetry SDK to automatically generate W3C-compliant Trace IDs and Span IDs. Rather than exporting these metrics to an external visualization engine (which will be implemented in a future phase of the project), the system intercepts tracing lifecycle events and streams them directly into the standard application logs. These logs, enriched with their distributed trace context, are output to the console and simultaneously persisted to a local file on the host machine.

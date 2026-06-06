@@ -1,7 +1,7 @@
 # 13 Exception Handling (task 21)
-This guide is OS specific for Arch Linux, as this project is developed on this os
-It is perfectly possible to execute the same task on a different OS, but instructions will not be provided.
-These guide assumes you have an internet connection pacman and yay working and installed.
+> This guide is OS specific for Arch Linux, as this project is developed on this os
+> It is perfectly possible to execute the same task on a different OS, but instructions will not be provided.
+> These guide assumes you have an internet connection pacman and yay working and installed.
 
 ### Context
 To provide a reliable and predictable integration for frontend applications, the backend must never leak internal stack traces or default Tomcat HTML error pages. All exceptions thrown during the image ingestion and processing lifecycle are structurally intercepted and translated into a standardized, machine-readable JSON format. This approach isolates the client from internal database or filesystem implementation details while clearly differentiating between client faults `4xx` and server faults `5xx`.

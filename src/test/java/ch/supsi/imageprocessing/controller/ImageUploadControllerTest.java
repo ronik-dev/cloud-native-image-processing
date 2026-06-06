@@ -1,9 +1,8 @@
-package ch.supsi.imageprocessing;
+package ch.supsi.imageprocessing.controller;
 
 import ch.supsi.imageprocessing.entity.Image;
 import ch.supsi.imageprocessing.entity.User;
 import ch.supsi.imageprocessing.service.ImageService;
-import ch.supsi.imageprocessing.controller.ImageUploadController;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean; 

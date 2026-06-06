@@ -1,7 +1,6 @@
-package ch.supsi.imageprocessing;
+package ch.supsi.imageprocessing.repository;
 
 import ch.supsi.imageprocessing.entity.User;
-import ch.supsi.imageprocessing.repository.UserRepository;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

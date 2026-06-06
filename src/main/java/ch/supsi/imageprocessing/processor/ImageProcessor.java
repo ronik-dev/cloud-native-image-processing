@@ -3,9 +3,12 @@ package ch.supsi.imageprocessing.processor;
 import ch.supsi.imageprocessing.entity.ProcessingJob;
 import ch.supsi.imageprocessing.entity.JobType;
 import ch.supsi.imageprocessing.service.StorageService;
+
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import io.micrometer.observation.annotation.Observed;
 
 import java.io.IOException;
 import java.io.File;
@@ -32,6 +35,8 @@ public class ImageProcessor {
 				}
 		}
 
+
+		@Observed(name = "image.processor.execute", contextualName = "processing-image-filters")
 		public String execute(ProcessingJob job) throws IOException, InterruptedException {
 				File sourceFile = ss.getResource(job.getImage().getStorageKey()).getFile();
 

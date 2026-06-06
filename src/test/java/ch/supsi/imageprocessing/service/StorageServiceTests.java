@@ -1,8 +1,8 @@
-package ch.supsi.imageprocessing;
+package ch.supsi.imageprocessing.service;
+
 
 import ch.supsi.imageprocessing.exception.InvalidRequestException;
 import ch.supsi.imageprocessing.exception.ResourceNotFoundException;
-import ch.supsi.imageprocessing.service.StorageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;

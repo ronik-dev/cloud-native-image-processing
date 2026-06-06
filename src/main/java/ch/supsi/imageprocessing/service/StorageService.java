@@ -9,6 +9,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 
+import io.micrometer.observation.annotation.Observed;
+
 import java.net.MalformedURLException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,6 +25,8 @@ public class StorageService {
 		@Value("${storage.data-dir:/tmp/imageprocessing/data}")
 		private String dataDirStr;
 
+
+		@Observed(name="storage.service.store.multipartFile", contextualName = "storing-multipart-file")
 		public Path storeMultipartFile(MultipartFile file, String storageKey) {
 				if (file == null || file.isEmpty()) {
 						throw new InvalidRequestException("Uploaded file cannot be empty.");
@@ -38,6 +42,8 @@ public class StorageService {
 				}
 		}
 
+
+		@Observed(name="storage.service.delete", contextualName = "deleting-resource")
 		public void deleteResource(String storageKey) {
 				if (storageKey == null || storageKey.trim().isEmpty()) {
 						throw new InvalidRequestException("Storage key cannot be empty.");
@@ -60,6 +66,8 @@ public class StorageService {
 				}
 		}
 
+
+		@Observed(name="storage.service.store.localFile", contextualName = "storing-local-file")
 		public Path storeLocalFile(InputStream inputStream, String storageKey) {
 				if (inputStream == null) {
 						throw new InvalidRequestException("Source input stream cannot be null.");
@@ -93,6 +101,8 @@ public class StorageService {
 				}
 		}
 
+
+		@Observed(name="storage.service.get.resource", contextualName = "return-resource")
 		public Resource getResource(String storageKey) {
 				if (storageKey == null || storageKey.trim().isEmpty())
 						throw new InvalidRequestException("Storage key cannot be empty.");

@@ -1,7 +1,7 @@
 # 10 Custom REST Controller Endpoints and Storage Separation (task 18)
 
-This guide covers the custom REST implementation introduced to decouple physical storage actions, stabilize API consumer payload contracts, and prepare the monolithic structure for an eventual microservices transition.  
-This guide is specific to Arch Linux, assuming a local OpenJDK 21, Maven 3.9.x, and a running PostgreSQL instance are active.
+> This guide covers the custom REST implementation introduced to decouple physical storage actions, stabilize API consumer payload contracts, and prepare the monolithic structure for an eventual microservices transition.  
+> This guide is specific to Arch Linux, assuming a local OpenJDK 21, Maven 3.9.x, and a running PostgreSQL instance are active.
 
 ### Context
 

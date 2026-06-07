@@ -29,31 +29,24 @@ class UserControllerTest {
     @MockitoBean
     private UserService us;
 
-    @Test
+@Test
     void getImagesByUser_ShouldReturnFilteredImages_WhenInvoked() throws Exception {
         // Arrange
         User targetUser = new User("nicola", "nicola@supsi.ch");
         setField(targetUser, "id", 1L);
 
-        User otherUser = new User("other", "other@supsi.ch");
-        setField(otherUser, "id", 2L);
-
         Image targetImage = new Image("my_image.png", "/tmp/img1.png", "png", targetUser);
         setField(targetImage, "id", 100L);
 
-        Image otherImage = new Image("other_image.png", "/tmp/img2.png", "png", otherUser);
-        setField(otherImage, "id", 101L);
+        when(is.getImagesByUserId(1L)).thenReturn(List.of(targetImage));
 
-        // Return a mixed list from the service
-        when(is.getAllImages()).thenReturn(List.of(targetImage, otherImage));
-
-        // Act & Assert: The controller should filter out 'otherImage'
+        // Act & Assert
         mockMvc.perform(get("/api/users/1/images")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].id").value(100))
-                .andExpect(jsonPath("$[0].filename").value("my_image.png")); // Or 'name', depending on your ImageResponse DTO
+                .andExpect(jsonPath("$[0].filename").value("my_image.png")); 
     }
 
     @Test

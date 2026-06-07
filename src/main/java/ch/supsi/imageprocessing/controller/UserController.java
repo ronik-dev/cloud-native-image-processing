@@ -52,11 +52,9 @@ public class UserController{
 
 		@GetMapping("/{id}/images")
 		public ResponseEntity<List<ImageResponse>> getImagesByUser(@PathVariable @Min(0) Long id) {
-				List<ImageResponse> responses = is.getAllImages().stream()
-						.filter(img -> img.getUser() != null && img.getUser().getId().equals(id))
+				List<ImageResponse> responses = is.getImagesByUserId(id).stream() 
 						.map(ImageResponse::fromEntity)
 						.toList();
-
 				return ResponseEntity.ok(responses);
 		}
 

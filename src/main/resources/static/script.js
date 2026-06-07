@@ -272,7 +272,7 @@ async function uploadImage() {
     formData.append("userId", selectedUserId);
 
     try {
-        const response = await fetch(`${BASE_URL}/api/upload`, {
+        const response = await fetch(`${BASE_URL}/api/images`, {
             method: 'POST',
             body: formData
         });

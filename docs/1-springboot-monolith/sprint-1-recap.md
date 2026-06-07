@@ -40,7 +40,7 @@ The first sprint delivers a Spring Boot monolith that implements the full image-
 
 The architecture follows a classic layered model within the single process: a web/controller tier, a service/business-logic tier, and a persistence/repository tier. Two deliberate departures from the simplest possible approach are worth documenting.
 
-**HAL/Spring Data REST → Spring MVC.** Spring Data REST was used in early prototyping to expose HATEOAS endpoints rapidly and explore the domain model. It was subsequently removed in favour of explicit Spring MVC controllers. This transition decouples the public API contract from the database schema, eliminates `LazyInitializationException` risks from open-session patterns, and produces a more predictable surface for future microservice decomposition.
+**HAL/Spring Data REST -> Spring MVC.** Spring Data REST was used in early prototyping to expose HATEOAS endpoints rapidly and explore the domain model. It was subsequently removed in favour of explicit Spring MVC controllers. This transition decouples the public API contract from the database schema, eliminates `LazyInitializationException` risks from open-session patterns, and produces a more predictable surface for future microservice decomposition.
 
 **`ImageService` vs `ImageProcessor` separation.** The processing component is intentionally split in two: `ImageService` owns transactional state (job lifecycle, database writes), while `ImageProcessor` owns physical I/O (FFmpeg invocation, file streaming). This mirrors the boundary that will exist between a Job Orchestrator microservice and a Worker microservice in Sprint 2 : the `@Async` boundary here becomes a message-queue boundary there, with minimal changes to the orchestration logic.
 
@@ -164,7 +164,7 @@ The data model consists of three entities with two one-to-many relationships.
 | `format`     | `VARCHAR`   | NOT NULL                         | Detected format (`png`, `jpg`, `webp`, …) |
 | `storageKey` | `VARCHAR`   | NOT NULL, UNIQUE                 | UUID-based key for filesystem lookup      |
 | `uploadedAt` | `TIMESTAMP` | NOT NULL, immutable              | Set by `@PrePersist`; never updated       |
-| `user_id`    | `BIGINT`    | FK → `users(id)`, CASCADE DELETE | Owner of the image                        |
+| `user_id`    | `BIGINT`    | FK -> `users(id)`, CASCADE DELETE | Owner of the image                       |
 
 > **Composite unique constraint:** `(user_id, name, format)` : prevents a user from uploading the same file in the same format twice.
 
@@ -178,9 +178,10 @@ The data model consists of three entities with two one-to-many relationships.
 | `outputName`       | `VARCHAR`        | NOT NULL                         | User-supplied name for the output file                      |
 | `targetFormat`     | `VARCHAR`        | NOT NULL                         | Desired output format, stored lowercase                     |
 | `targetStorageKey` | `VARCHAR`        | NULLABLE                         | Populated after execution; used to retrieve the result file |
-| `image_id`         | `BIGINT`         | FK → `image(id)`, CASCADE DELETE | Source image for this job                                   |
+| `image_id`         | `BIGINT`         | FK -> `image(id)`, CASCADE DELETE | Source image for this job                                  |
 
 > **Composite unique constraint:** `(image_id, outputName)` : prevents duplicate output names per image.
+
 
 ### 3.2 Relationships
 
@@ -190,6 +191,36 @@ users  1 --> N  image  1 --> N  processingJob
 
 One `User` owns zero or more `Image` records. One `Image` is the source for zero or more `ProcessingJob` records. Both foreign keys carry `CASCADE DELETE` semantics : deleting a user removes all their images and, transitively, all associated jobs.
 
+### er graph
+
+```mermaid
+erDiagram
+    users ||--o{ image : owns
+    image ||--o{ processingJob : owns
+    processingJob
+    users {
+        BIGINT id PK
+        VARCHAR username UK "NOT NULL"
+        VARCHAR email UK "NOT NULL"
+    }
+    image {
+        BIGINT id PK
+        VARCHAR name  "NOT NULL"
+        VARCHAR email  "NOT NULL"
+        VARCHAR storageKey  "NOT NULL,UNIQUE"
+        TIMESTAMP uploadedAt  "NOT NULL,immutable"
+        BIGINT user_id FK
+    }
+    processingJob {
+        BIGINT id PK
+        VARCHAR type "FORMAT_CONVERSION | OTHER..."
+        VARCHAR status "PENDING | RUNNINIG | OTHER..."
+        VARCHAR outputName "NOT NULL"
+        VARCHAR targetFormat "NOT NULL"
+        VARCHAR targetStorageKey "nullable - set on completion"
+        BIGINT image_id FK
+    }
+```
 ---
 
 ## 4. Processing Pipeline
@@ -209,7 +240,7 @@ Every `ProcessingJob` follows a deterministic state machine from creation to com
 
 | `JobType`            | Implementation                        | Notes                                                                                                       |
 | -------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `FORMAT_CONVERSION`  | FFmpeg via `ProcessBuilder`           | Converts between image formats. FFmpeg exit code ≠ 0 throws `IOException` → job set to `FAILED`.            |
+| `FORMAT_CONVERSION`  | FFmpeg via `ProcessBuilder`           | Converts between image formats. FFmpeg exit code ≠ 0 throws `IOException` -> job set to `FAILED`.            |
 | `BACKGROUND_REMOVAL` | File-copy stub (10 s simulated delay) | AI integration placeholder. Real model call to be wired in Sprint 2 without changing the service interface. |
 
 ### 4.3 Asynchronous Execution
@@ -317,10 +348,10 @@ Critical service and storage methods are annotated with `@Observed` (Micrometer)
 | Dashboard has file input and submit button               | Done   | `index.html` / `script.js`                                   |
 | `POST /api/images` saves file and creates `Image` record | Done   | `ImageController`, `ImageService.handleImageUpload`          |
 | `ProcessingJob` created with status `PENDING` on upload  | Done   | `ImageService.createJob`                                     |
-| Job status `PENDING → RUNNING → DONE/FAILED`             | Done   | `ProcessingJobService.startAsyncProcessExecution`            |
-| Output file written to disk                              | Done   | `ImageProcessor.execute` → `StorageService.storeLocalFile`   |
+| Job status `PENDING -> RUNNING -> DONE/FAILED`           | Done   | `ProcessingJobService.startAsyncProcessExecution`            |
+| Output file written to disk                              | Done   | `ImageProcessor.execute` -> `StorageService.storeLocalFile`  |
 | Output file path persisted in job (`targetStorageKey`)   | Done   | `ImageProcessor.execute` returns and sets `targetStorageKey` |
 | Download link for `DONE` jobs in dashboard               | Done   | `script.js` `downloadResult()`, `GET /api/jobs/{id}/result`  |
 | `HTTP 404` if job not `DONE` or has no result            | Done   | `ProcessingJobController.downloadJobResult` guard            |
-| `HTTP 404` if job ID does not exist                      | Done   | `GlobalExceptionHandler` → `ResourceNotFoundException`       |
+| `HTTP 404` if job ID does not exist                      | Done   | `GlobalExceptionHandler` -> `ResourceNotFoundException`      |
 | Architecture documented                                  | Done   | This document (Task 9)                                       |

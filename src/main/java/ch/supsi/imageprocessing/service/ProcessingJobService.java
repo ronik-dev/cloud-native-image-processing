@@ -47,10 +47,9 @@ public class ProcessingJobService {
 		}
 
 		@Async
-		@Transactional
 		public void startAsyncProcessExecution(Long jobId) {
-				ProcessingJob job = pjr.findById(jobId).orElseThrow();
-
+				ProcessingJob job = pjr.findById(jobId)
+						.orElseThrow(() -> new ResourceNotFoundException("Job not found with ID: " + jobId));
 				try {
 						job.setStatus(JobStatus.RUNNING);
 						pjr.save(job);
@@ -65,6 +64,11 @@ public class ProcessingJobService {
 				} finally {
 						pjr.save(job);
 				}
+		}
+
+		@Transactional
+		private void executeProcess(ProcessingJob job){
+
 		}
 
 		@Transactional(readOnly = true)

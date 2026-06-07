@@ -70,24 +70,6 @@ public class ImageService {
 		}
 
 
-		@Transactional(isolation = Isolation.READ_COMMITTED)
-		public Image submitUpload(Long userId, String filename, String storagePath, String format) {
-				if (format == null || format.strip().isEmpty()) {
-						throw new InvalidRequestException("Format cannot be empty.");
-				}
-
-				if (filename == null || filename.strip().isEmpty()) {
-						throw new InvalidRequestException("Filename cannot be empty.");
-				}
-
-				User user = ur.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found:"));
-
-				Image image = new Image(filename, storagePath, format, user);
-				Image savedImage = ir.save(image);
-
-				return savedImage;
-		}
-
 		@Transactional(readOnly = true)
 		public Image getImageData(Long imageId) {
 				return ir.findById(imageId)

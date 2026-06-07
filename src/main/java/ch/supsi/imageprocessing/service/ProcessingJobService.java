@@ -47,6 +47,7 @@ public class ProcessingJobService {
 		}
 
 		@Async
+		@Transactional
 		public void startAsyncProcessExecution(Long jobId) {
 				ProcessingJob job = pjr.findById(jobId).orElseThrow();
 

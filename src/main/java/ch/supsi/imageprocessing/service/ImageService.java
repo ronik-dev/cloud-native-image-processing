@@ -46,7 +46,7 @@ public class ImageService {
 				User user = ur.findById(userId)
 						.orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
 
-				String storageKey = UUID.randomUUID().toString() + "." + realFormat;
+				String storageKey = UUID.randomUUID().toString();
 				String originalFilename = file.getOriginalFilename() != null ? file.getOriginalFilename() : storageKey;
 
 				Image image = new Image(originalFilename, storageKey, realFormat, user);

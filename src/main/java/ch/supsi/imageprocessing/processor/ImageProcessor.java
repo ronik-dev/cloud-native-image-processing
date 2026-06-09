@@ -43,22 +43,16 @@ public class ImageProcessor {
 				Path tempOutputFile = Files.createTempFile("ffmpeg-output-"+UUID.randomUUID().toString(), "." + job.getTargetFormat());
 
 				try {
-						// Route based on job type definitions
 						switch(job.getType()){
 								case JobType.FORMAT_CONVERSION:
 										ffmpegConvert(sourceFile, tempOutputFile);
 										break;
 								case JobType.BACKGROUND_REMOVAL:
 										Thread.sleep(10000);
-										//Just copy the file, for now there is no ai background removal implementation
-										try (InputStream is = Files.newInputStream(sourceFile.toPath())) {
-												ss.storeLocalFile(is, job.getTargetStorageKey());
-										}
 										break;
 								default:
 										throw new UnsupportedOperationException("Job type " + job.getType() + " is not yet implemented.");
 						}
-						// Stream the processed temporary output file back into your centralized storage service structure
 						try (InputStream is = Files.newInputStream(tempOutputFile)) {
 								ss.storeLocalFile(is, job.getTargetStorageKey());
 						}

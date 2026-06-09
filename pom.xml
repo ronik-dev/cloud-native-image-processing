@@ -93,13 +93,6 @@
 		    <groupId>org.springframework.boot</groupId>
 		    <artifactId>spring-boot-starter-opentelemetry</artifactId>
 		</dependency>
-
-        <dependency>
-            <groupId>me.paulschwarz</groupId>
-            <artifactId>springboot4-dotenv</artifactId>
-        </dependency>
-
-
 	</dependencies>
 
 

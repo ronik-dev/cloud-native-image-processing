@@ -2,7 +2,6 @@ package ch.supsi.imageprocessing.service;
 
 import ch.supsi.imageprocessing.repository.ImageRepository;
 import ch.supsi.imageprocessing.repository.ProcessingJobRepository;
-import ch.supsi.imageprocessing.repository.UserRepository;
 import ch.supsi.imageprocessing.entity.ProcessingJob;
 import ch.supsi.imageprocessing.entity.Image;
 import ch.supsi.imageprocessing.entity.User;
@@ -30,23 +29,17 @@ public class ImageService {
 		private ProcessingJobRepository pjr;
 
 		@Autowired
-		private UserRepository ur;
-
-		@Autowired
 		private StorageService ss; 
 
 		@Transactional(isolation = Isolation.READ_COMMITTED)
-		public Image handleImageUpload(Long userId, MultipartFile file) {
+		public Image handleImageUpload(User user, MultipartFile file) {
 				if (file == null || file.isEmpty()) {
 						throw new InvalidRequestException("Upload payload contains no file data.");
 				}
 
 				String realFormat = ImageFormatValidator.validateAndExtractFormat(file);
 
-				User user = ur.findById(userId)
-						.orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
-
-				String storageKey = UUID.randomUUID().toString() + "." + realFormat;
+				String storageKey = UUID.randomUUID().toString();
 				String originalFilename = file.getOriginalFilename() != null ? file.getOriginalFilename() : storageKey;
 
 				Image image = new Image(originalFilename, storageKey, realFormat, user);
@@ -77,9 +70,8 @@ public class ImageService {
 		}
 
 		@Transactional(readOnly = true)
-		public List<Image> getImagesByUserId(Long userId){
-				if(!ur.existsById(userId)) throw new ResourceNotFoundException("not found with ID: " + userId);
-				return ir.findByUserId(userId);
+		public List<Image> getImagesByUser(User user){
+				return ir.findByUserId(user.getId());
 		}
 
 		@Transactional(readOnly = true)
@@ -106,5 +98,17 @@ public class ImageService {
 				}
 				ir.delete(i);
 				ss.deleteResource(i.getStorageKey());
+		}
+
+		@Transactional
+		public void deleteAllByUser(Long userId) {
+				for (Image image : ir.findByUserId(userId)) {
+						for (ProcessingJob job : pjr.findByImageId(image.getId())) {
+								if (job.getStatus() == JobStatus.DONE && job.getTargetStorageKey() != null) {
+										ss.deleteResource(job.getTargetStorageKey());
+								}
+						}
+						ss.deleteResource(image.getStorageKey());
+				}
 		}
 }

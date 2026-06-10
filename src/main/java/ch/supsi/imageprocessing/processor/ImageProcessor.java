@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
 @Component
@@ -43,26 +44,20 @@ public class ImageProcessor {
 				Path tempOutputFile = Files.createTempFile("ffmpeg-output-"+UUID.randomUUID().toString(), "." + job.getTargetFormat());
 
 				try {
-						// Route based on job type definitions
-						switch(job.getType()){
+						switch (job.getType()) {
 								case JobType.FORMAT_CONVERSION:
 										ffmpegConvert(sourceFile, tempOutputFile);
 										break;
 								case JobType.BACKGROUND_REMOVAL:
 										Thread.sleep(10000);
-										//Just copy the file, for now there is no ai background removal implementation
-										try (InputStream is = Files.newInputStream(sourceFile.toPath())) {
-												ss.storeLocalFile(is, job.getTargetStorageKey());
-										}
+										Files.copy(sourceFile.toPath(), tempOutputFile, StandardCopyOption.REPLACE_EXISTING);
 										break;
 								default:
 										throw new UnsupportedOperationException("Job type " + job.getType() + " is not yet implemented.");
 						}
-						// Stream the processed temporary output file back into your centralized storage service structure
 						try (InputStream is = Files.newInputStream(tempOutputFile)) {
 								ss.storeLocalFile(is, job.getTargetStorageKey());
 						}
-
 				} finally {
 						Files.deleteIfExists(tempOutputFile);
 				}
@@ -72,11 +67,11 @@ public class ImageProcessor {
 
 		private void ffmpegConvert(File input, Path output) throws IOException, InterruptedException {
 				ProcessBuilder pb = new ProcessBuilder(
-						"ffmpeg",
-						"-y", 
-						"-i", input.getAbsolutePath(),
-						output.toAbsolutePath().toString()
-				);
+								"ffmpeg",
+								"-y", 
+								"-i", input.getAbsolutePath(),
+								output.toAbsolutePath().toString()
+								);
 
 				pb.redirectErrorStream(true);
 				pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);

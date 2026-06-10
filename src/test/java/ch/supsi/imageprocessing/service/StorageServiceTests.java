@@ -1,6 +1,5 @@
 package ch.supsi.imageprocessing.service;
 
-
 import ch.supsi.imageprocessing.exception.InvalidRequestException;
 import ch.supsi.imageprocessing.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,119 +20,180 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class StorageServiceTest {
 
-    private StorageService storageService;
+		private StorageService storageService;
 
-    @TempDir
-    Path sharedDataTempDir; // Unified safe isolated sandbox directory
+		@TempDir
+		Path sharedDataTempDir;
 
-    @BeforeEach
-    void setUp() {
-        storageService = new StorageService();
-        // Dynamically inject the temporary directory into the NEW private string property 'dataDirStr'
-        ReflectionTestUtils.setField(storageService, "dataDirStr", sharedDataTempDir.toString());
-    }
+		@BeforeEach
+		void setUp() {
+				storageService = new StorageService();
+				ReflectionTestUtils.setField(storageService, "dataDirStr", sharedDataTempDir.toString());
+		}
 
-    // ==========================================
-    // TESTS: storeMultipartFile
-    // ==========================================
+		// ==========================================
+		// storeMultipartFile
+		// ==========================================
 
-    @Test
-    void storeMultipartFile_ShouldSaveFileToDisk_WhenPayloadIsValid() {
-        MockMultipartFile validFile = new MockMultipartFile(
-                "file", 
-                "test_image.png", 
-                "image/png", 
-                "fake-binary-data".getBytes()
-        );
+		@Test
+		void storeMultipartFile_ShouldSaveFileToDisk_WhenPayloadIsValid() {
+				MockMultipartFile validFile = new MockMultipartFile(
+								"file", "test_image.png", "image/png", "fake-binary-data".getBytes());
 
-        Path savedPath = storageService.storeMultipartFile(validFile, "kusebciuawbeo");
+				Path savedPath = storageService.storeMultipartFile(validFile, "kusebciuawbeo");
 
-        assertThat(savedPath).isNotNull();
-        assertThat(Files.exists(savedPath)).isTrue();
-        assertThat(savedPath.getFileName().toString()).isEqualTo("kusebciuawbeo");
-    }
+				assertThat(savedPath).isNotNull();
+				assertThat(Files.exists(savedPath)).isTrue();
+				assertThat(savedPath.getFileName().toString()).isEqualTo("kusebciuawbeo");
+		}
 
-    @Test
-    void storeMultipartFile_ShouldThrowInvalidRequestException_WhenFileIsEmpty() {
-        MockMultipartFile emptyFile = new MockMultipartFile("file", "empty.png", "image/png", new byte[0]);
+		@Test
+		void storeMultipartFile_ShouldThrowInvalidRequestException_WhenFileIsNull() {
+				assertThatThrownBy(() -> storageService.storeMultipartFile(null, "key"))
+						.isInstanceOf(InvalidRequestException.class)
+						.hasMessageContaining("Uploaded file cannot be empty.");
+		}
 
-        assertThatThrownBy(() -> storageService.storeMultipartFile(emptyFile, "kajsiuabcusbiue"))
-                .isInstanceOf(InvalidRequestException.class)
-                .hasMessageContaining("Uploaded file cannot be empty.");
-    }
+		@Test
+		void storeMultipartFile_ShouldThrowInvalidRequestException_WhenFileIsEmpty() {
+				MockMultipartFile emptyFile = new MockMultipartFile("file", "empty.png", "image/png", new byte[0]);
 
-    @Test
-    void storeMultipartFile_ShouldThrowInvalidRequestException_WhenKeyIsEmpty() {
-        MockMultipartFile validFile = new MockMultipartFile("file", "img.png", "image/png", "data".getBytes());
+				assertThatThrownBy(() -> storageService.storeMultipartFile(emptyFile, "kajsiuabcusbiue"))
+						.isInstanceOf(InvalidRequestException.class)
+						.hasMessageContaining("Uploaded file cannot be empty.");
+		}
 
-        assertThatThrownBy(() -> storageService.storeMultipartFile(validFile, "   "))
-                .isInstanceOf(InvalidRequestException.class)
-                .hasMessageContaining("Storage key cannot be empty.");
-    }
+		@Test
+		void storeMultipartFile_ShouldThrowInvalidRequestException_WhenKeyIsEmpty() {
+				MockMultipartFile validFile = new MockMultipartFile("file", "img.png", "image/png", "data".getBytes());
 
-    @Test
-    void storeMultipartFile_ShouldThrowInvalidRequestException_WhenDirectoryTraversalIsAttempted() {
-        MockMultipartFile validFile = new MockMultipartFile("file", "img.png", "image/png", "data".getBytes());
-        String maliciousKey = "../../../etc/passwd";
+				assertThatThrownBy(() -> storageService.storeMultipartFile(validFile, "   "))
+						.isInstanceOf(InvalidRequestException.class)
+						.hasMessageContaining("Storage key cannot be empty.");
+		}
 
-        assertThatThrownBy(() -> storageService.storeMultipartFile(validFile, maliciousKey))
-                .isInstanceOf(InvalidRequestException.class)
-                .hasMessageContaining("Invalid storage key path.");
-    }
+		@Test
+		void storeMultipartFile_ShouldThrowInvalidRequestException_WhenDirectoryTraversalIsAttempted() {
+				MockMultipartFile validFile = new MockMultipartFile("file", "img.png", "image/png", "data".getBytes());
 
-    // ==========================================
-    // TESTS: storeLocalFile
-    // ==========================================
+				assertThatThrownBy(() -> storageService.storeMultipartFile(validFile, "../../../etc/passwd"))
+						.isInstanceOf(InvalidRequestException.class)
+						.hasMessageContaining("Invalid storage key path.");
+		}
 
-    @Test
-    void storeLocalFile_ShouldSaveStreamToDisk_WhenValid() {
-        InputStream sourceStream = new ByteArrayInputStream("ai-workload-data".getBytes());
+		// ==========================================
+		// storeLocalFile
+		// ==========================================
 
-        Path savedPath = storageService.storeLocalFile(sourceStream, "processed/output.png");
+		@Test
+		void storeLocalFile_ShouldSaveStreamToDisk_WhenValid() {
+				InputStream sourceStream = new ByteArrayInputStream("ai-workload-data".getBytes());
 
-        assertThat(savedPath).isNotNull();
-        assertThat(Files.exists(savedPath)).isTrue();
-        assertThat(savedPath).startsWith(sharedDataTempDir); // Updated to check the unified directory
-    }
+				Path savedPath = storageService.storeLocalFile(sourceStream, "processed/output.png");
 
-    @Test
-    void storeLocalFile_ShouldThrowInvalidRequestException_WhenStreamIsNull() {
-        assertThatThrownBy(() -> storageService.storeLocalFile(null, "output.png"))
-                .isInstanceOf(InvalidRequestException.class)
-                .hasMessageContaining("Source input stream cannot be null.");
-    }
+				assertThat(savedPath).isNotNull();
+				assertThat(Files.exists(savedPath)).isTrue();
+				assertThat(savedPath).startsWith(sharedDataTempDir);
+		}
 
-    // ==========================================
-    // TESTS: getResource
-    // ==========================================
+		@Test
+		void storeLocalFile_ShouldThrowInvalidRequestException_WhenStreamIsNull() {
+				assertThatThrownBy(() -> storageService.storeLocalFile(null, "output.png"))
+						.isInstanceOf(InvalidRequestException.class)
+						.hasMessageContaining("Source input stream cannot be null.");
+		}
 
-    @Test
-    void getResource_ShouldReturnResource_WhenFileExistsAndIsReadable() throws IOException {
-        String storageKey = "results/target_image.png";
-        Path physicalFile = sharedDataTempDir.resolve(storageKey); // Updated to use the unified directory
+		@Test
+		void storeLocalFile_ShouldThrowInvalidRequestException_WhenKeyIsBlank() {
+				InputStream sourceStream = new ByteArrayInputStream("data".getBytes());
 
-        // Ensure parent directory and actual file exist inside the mock output folder
-        Files.createDirectories(physicalFile.getParent());
-        Files.writeString(physicalFile, "processed-pixels");
+				assertThatThrownBy(() -> storageService.storeLocalFile(sourceStream, "  "))
+						.isInstanceOf(InvalidRequestException.class)
+						.hasMessageContaining("Storage key cannot be empty.");
+		}
 
-        Resource resource = storageService.getResource(storageKey);
+		@Test
+		void storeLocalFile_ShouldThrowInvalidRequestException_WhenTraversalIsAttempted() {
+				InputStream sourceStream = new ByteArrayInputStream("data".getBytes());
 
-        assertThat(resource).isNotNull();
-        assertThat(resource.exists()).isTrue();
-        assertThat(resource.isReadable()).isTrue();
-    }
+				assertThatThrownBy(() -> storageService.storeLocalFile(sourceStream, "../escape.png"))
+						.isInstanceOf(InvalidRequestException.class)
+						.hasMessageContaining("Invalid storage key path.");
+		}
 
-    @Test
-    void getResource_ShouldThrowResourceNotFoundException_WhenFileDoesNotExist() {
-        assertThatThrownBy(() -> storageService.getResource("missing-file.png"))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Could not find physical file in uploads or outputs: missing-file.png");
-    }
+		// ==========================================
+		// deleteResource
+		// ==========================================
 
-    @Test
-    void getResource_ShouldThrowInvalidRequestException_WhenTraversalIsAttempted() {
-        assertThatThrownBy(() -> storageService.getResource("../outside.png"))
-                .isInstanceOf(InvalidRequestException.class)
-                .hasMessageContaining("Invalid storage key path.");
-    }
+		@Test
+		void deleteResource_ShouldRemoveFile_WhenItExists() throws IOException {
+				String storageKey = "to-delete.png";
+				Path file = sharedDataTempDir.resolve(storageKey);
+				Files.writeString(file, "bytes");
+				assertThat(Files.exists(file)).isTrue();
+
+				storageService.deleteResource(storageKey);
+
+				assertThat(Files.exists(file)).isFalse();
+		}
+
+		@Test
+		void deleteResource_ShouldThrowResourceNotFound_WhenFileMissing() {
+				assertThatThrownBy(() -> storageService.deleteResource("nope.png"))
+						.isInstanceOf(ResourceNotFoundException.class)
+						.hasMessageContaining("Could not find physical file to delete");
+		}
+
+		@Test
+		void deleteResource_ShouldThrowInvalidRequestException_WhenKeyIsBlank() {
+				assertThatThrownBy(() -> storageService.deleteResource("   "))
+						.isInstanceOf(InvalidRequestException.class)
+						.hasMessageContaining("Storage key cannot be empty.");
+		}
+
+		@Test
+		void deleteResource_ShouldThrowInvalidRequestException_WhenTraversalIsAttempted() {
+				assertThatThrownBy(() -> storageService.deleteResource("../../etc/passwd"))
+						.isInstanceOf(InvalidRequestException.class)
+						.hasMessageContaining("Invalid storage key path.");
+		}
+
+		// ==========================================
+		// getResource
+		// ==========================================
+
+		@Test
+		void getResource_ShouldReturnResource_WhenFileExistsAndIsReadable() throws IOException {
+				String storageKey = "results/target_image.png";
+				Path physicalFile = sharedDataTempDir.resolve(storageKey);
+				Files.createDirectories(physicalFile.getParent());
+				Files.writeString(physicalFile, "processed-pixels");
+
+				Resource resource = storageService.getResource(storageKey);
+
+				assertThat(resource).isNotNull();
+				assertThat(resource.exists()).isTrue();
+				assertThat(resource.isReadable()).isTrue();
+		}
+
+		@Test
+		void getResource_ShouldThrowResourceNotFoundException_WhenFileDoesNotExist() {
+				assertThatThrownBy(() -> storageService.getResource("missing-file.png"))
+						.isInstanceOf(ResourceNotFoundException.class)
+						.hasMessageContaining("Could not find physical file in uploads or outputs: missing-file.png");
+		}
+
+		@Test
+		void getResource_ShouldThrowInvalidRequestException_WhenKeyIsBlank() {
+				assertThatThrownBy(() -> storageService.getResource("  "))
+						.isInstanceOf(InvalidRequestException.class)
+						.hasMessageContaining("Storage key cannot be empty.");
+		}
+
+		@Test
+		void getResource_ShouldThrowInvalidRequestException_WhenTraversalIsAttempted() {
+				assertThatThrownBy(() -> storageService.getResource("../outside.png"))
+						.isInstanceOf(InvalidRequestException.class)
+						.hasMessageContaining("Invalid storage key path.");
+		}
 }

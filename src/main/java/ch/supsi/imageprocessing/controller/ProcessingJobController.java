@@ -37,7 +37,7 @@ public class ProcessingJobController{
 		}
 
 		@DeleteMapping("/{id}")
-		public ResponseEntity<Void> deleteJob(@PathVariable Long id) {
+		public ResponseEntity<Void> deleteJob(@PathVariable @Min(0) Long id) {
 		    pjs.deleteJob(id); 
 		    return ResponseEntity.noContent().build();
 		}

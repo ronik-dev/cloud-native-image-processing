@@ -6,6 +6,7 @@ import ch.supsi.imageprocessing.dto.JobRequest;
 import ch.supsi.imageprocessing.entity.ProcessingJob;
 import ch.supsi.imageprocessing.entity.Image;
 import ch.supsi.imageprocessing.service.ImageService;
+import ch.supsi.imageprocessing.service.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -29,12 +30,15 @@ public class ImageController {
     @Autowired
     private ImageService is;
 
+    @Autowired
+    private UserService us;
+
     @PostMapping()
     public ResponseEntity<Void> uploadFile(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "userId") Long userId) {
 
-        Image savedImage = is.handleImageUpload(userId, file);
+        Image savedImage = is.handleImageUpload(us.getUserById(userId), file);
 
         URI location = ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path("/api/images/{id}") // Point to the exact GET route

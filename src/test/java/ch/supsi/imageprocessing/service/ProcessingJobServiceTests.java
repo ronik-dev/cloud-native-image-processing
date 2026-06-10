@@ -1,10 +1,11 @@
 package ch.supsi.imageprocessing.service;
 
+import ch.supsi.imageprocessing.entity.Image;
 import ch.supsi.imageprocessing.entity.JobStatus;
 import ch.supsi.imageprocessing.entity.JobType;
 import ch.supsi.imageprocessing.entity.ProcessingJob;
-import ch.supsi.imageprocessing.entity.Image;
 import ch.supsi.imageprocessing.entity.User;
+import ch.supsi.imageprocessing.exception.ResourceNotFoundException;
 import ch.supsi.imageprocessing.processor.ImageProcessor;
 import ch.supsi.imageprocessing.repository.ProcessingJobRepository;
 import org.junit.jupiter.api.Test;
@@ -12,7 +13,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.Resource;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,82 +25,217 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class ProcessingJobServiceTest {
 
-    @Mock
-    private ProcessingJobRepository pjr;
+		@Mock
+		private ProcessingJobRepository pjr;
 
-    @Mock
-    private ImageProcessor ip;
+		@Mock
+		private ImageProcessor ip;
 
-    @Mock
-    private StorageService ss; // Added to match the new Service dependencies
+		@Mock
+		private StorageService ss;
 
-    @InjectMocks
-    private ProcessingJobService processingJobService;
+		@InjectMocks
+		private ProcessingJobService processingJobService;
 
-    // ==========================================
-    // TESTS: processJob (Synchronous Setup)
-    // ==========================================
+		private ProcessingJob newJob() {
+				User user = new User("nicola", "nicola@supsi.ch");
+				Image image = new Image("test.png", "/tmp/test.png", "png", user);
+				return new ProcessingJob(image, JobType.FORMAT_CONVERSION, "output.png", "png");
+		}
 
-    @Test
-    void processJob_ShouldSetupStorageKey_AndReturnJobInPendingState() {
-        Long jobId = 100L;
-        User mockUser = new User("nicola", "nicola@supsi.ch");
-        Image mockImage = new Image("test.png", "/tmp/test.png", "png", mockUser);
-        
-        // Assuming default constructor sets status to PENDING
-        ProcessingJob mockJob = new ProcessingJob(mockImage, JobType.FORMAT_CONVERSION, "output.png", "png");
-        
-        when(pjr.findById(jobId)).thenReturn(Optional.of(mockJob));
-        when(pjr.save(any(ProcessingJob.class))).thenAnswer(inv -> inv.getArgument(0));
+		// ==========================================
+		// getAllJobs
+		// ==========================================
 
-        ProcessingJob result = processingJobService.processJob(jobId);
+		@Test
+		void getAllJobs_ShouldDelegateToRepository() {
+				List<ProcessingJob> all = List.of(newJob());
+				when(pjr.findAll()).thenReturn(all);
+				assertEquals(all, processingJobService.getAllJobs());
+		}
 
-        assertNotNull(result);
-        assertNotNull(result.getTargetStorageKey(), "A new target storage key should have been generated.");
-        // The status should remain whatever it was initially (PENDING), because execution hasn't started
-    }
+		// ==========================================
+		// processJob
+		// ==========================================
 
-    // ==========================================
-    // TESTS: startAsyncProcessExecution (Async Logic)
-    // ==========================================
+		@Test
+		void processJob_ShouldGenerateStorageKey_WhenMissing() {
+				Long jobId = 100L;
+				ProcessingJob job = newJob();
+				when(pjr.findById(jobId)).thenReturn(Optional.of(job));
+				when(pjr.save(any(ProcessingJob.class))).thenAnswer(inv -> inv.getArgument(0));
 
-    @Test
-    void startAsyncProcessExecution_ShouldSetStatusToDone_WhenProcessorSucceeds() throws Exception {
-        Long jobId = 100L;
-        User mockUser = new User("nicola", "nicola@supsi.ch");
-        Image mockImage = new Image("test.png", "/tmp/test.png", "png", mockUser);
-        ProcessingJob mockJob = new ProcessingJob(mockImage, JobType.FORMAT_CONVERSION, "output.png", "png");
+				ProcessingJob result = processingJobService.processJob(jobId);
 
-        when(pjr.findById(jobId)).thenReturn(Optional.of(mockJob));
-        // Mock the processor to succeed
-        when(ip.execute(any(ProcessingJob.class))).thenReturn("/tmp/outputs/output.png");
+				assertNotNull(result.getTargetStorageKey(), "A new target storage key should have been generated.");
+				verify(pjr).save(job);
+		}
 
-        // Act
-        processingJobService.startAsyncProcessExecution(jobId);
+		@Test
+		void processJob_ShouldNotOverwriteExistingStorageKey() {
+				Long jobId = 100L;
+				ProcessingJob job = newJob();
+				job.setTargetStorageKey("existing-key");
+				when(pjr.findById(jobId)).thenReturn(Optional.of(job));
+				when(pjr.save(any(ProcessingJob.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        // Assert
-        assertEquals(JobStatus.DONE, mockJob.getStatus());
-        verify(ip, times(1)).execute(any(ProcessingJob.class));
-        verify(pjr, atLeastOnce()).save(mockJob); // Verifies the status saves were flushed to DB
-    }
+				ProcessingJob result = processingJobService.processJob(jobId);
 
-    @Test
-    void startAsyncProcessExecution_ShouldSetStatusToFailed_WhenProcessorThrowsException() throws Exception {
-        Long jobId = 100L;
-        User mockUser = new User("nicola", "nicola@supsi.ch");
-        Image mockImage = new Image("test.png", "/tmp/test.png", "png", mockUser);
-        ProcessingJob mockJob = new ProcessingJob(mockImage, JobType.FORMAT_CONVERSION, "output.png", "png");
+				assertEquals("existing-key", result.getTargetStorageKey());
+		}
 
-        when(pjr.findById(jobId)).thenReturn(Optional.of(mockJob));
-        // Mock the processor to crash
-        when(ip.execute(any(ProcessingJob.class))).thenThrow(new RuntimeException("Simulated FFmpeg crash"));
+		@Test
+		void processJob_ShouldThrow_WhenJobDoesNotExist() {
+				when(pjr.findById(100L)).thenReturn(Optional.empty());
+				assertThrows(ResourceNotFoundException.class, () -> processingJobService.processJob(100L));
+				verify(pjr, never()).save(any());
+		}
 
-        // Act
-        processingJobService.startAsyncProcessExecution(jobId);
+		// ==========================================
+		// startAsyncProcessExecution
+		// ==========================================
 
-        // Assert
-        assertEquals(JobStatus.FAILED, mockJob.getStatus());
-        verify(ip, times(1)).execute(any(ProcessingJob.class));
-        verify(pjr, atLeastOnce()).save(mockJob);
-    }
+		@Test
+		void startAsyncProcessExecution_ShouldSetStatusToDone_WhenProcessorSucceeds() throws Exception {
+				Long jobId = 100L;
+				ProcessingJob job = newJob();
+				when(pjr.findById(jobId)).thenReturn(Optional.of(job));
+				when(ip.execute(any(ProcessingJob.class))).thenReturn("/tmp/outputs/output.png");
+
+				processingJobService.startAsyncProcessExecution(jobId);
+
+				assertEquals(JobStatus.DONE, job.getStatus());
+				verify(ip, times(1)).execute(any(ProcessingJob.class));
+				verify(pjr, atLeastOnce()).save(job);
+		}
+
+		@Test
+		void startAsyncProcessExecution_ShouldSetStatusToFailed_WhenProcessorThrows() throws Exception {
+				Long jobId = 100L;
+				ProcessingJob job = newJob();
+				when(pjr.findById(jobId)).thenReturn(Optional.of(job));
+				when(ip.execute(any(ProcessingJob.class))).thenThrow(new RuntimeException("Simulated FFmpeg crash"));
+
+				processingJobService.startAsyncProcessExecution(jobId);
+
+				assertEquals(JobStatus.FAILED, job.getStatus());
+				verify(ip, times(1)).execute(any(ProcessingJob.class));
+				verify(pjr, atLeastOnce()).save(job);
+		}
+
+		@Test
+		void startAsyncProcessExecution_ShouldThrow_WhenJobDoesNotExist() {
+				when(pjr.findById(404L)).thenReturn(Optional.empty());
+				assertThrows(ResourceNotFoundException.class,
+								() -> processingJobService.startAsyncProcessExecution(404L));
+		}
+
+		// ==========================================
+		// getJobStatus
+		// ==========================================
+
+		@Test
+		void getJobStatus_ShouldReturnJob_WhenItExists() {
+				ProcessingJob job = newJob();
+				when(pjr.findById(1L)).thenReturn(Optional.of(job));
+				assertSame(job, processingJobService.getJobStatus(1L));
+		}
+
+		@Test
+		void getJobStatus_ShouldThrow_WhenJobDoesNotExist() {
+				when(pjr.findById(1L)).thenReturn(Optional.empty());
+				assertThrows(ResourceNotFoundException.class, () -> processingJobService.getJobStatus(1L));
+		}
+
+		// ==========================================
+		// deleteJob
+		// ==========================================
+
+		@Test
+		void deleteJob_ShouldDeleteOutputResource_WhenJobIsDone() {
+				ProcessingJob job = newJob();
+				job.setStatus(JobStatus.DONE);
+				job.setTargetStorageKey("output-key");
+				when(pjr.findById(1L)).thenReturn(Optional.of(job));
+
+				processingJobService.deleteJob(1L);
+
+				verify(ss, times(1)).deleteResource("output-key");
+				verify(pjr, times(1)).delete(job);
+		}
+
+		@Test
+		void deleteJob_ShouldNotTouchStorage_WhenJobIsNotDone() {
+				ProcessingJob job = newJob(); // PENDING
+				when(pjr.findById(1L)).thenReturn(Optional.of(job));
+
+				processingJobService.deleteJob(1L);
+
+				verifyNoInteractions(ss);
+				verify(pjr, times(1)).delete(job);
+		}
+
+		@Test
+		void deleteJob_ShouldThrow_WhenJobDoesNotExist() {
+				when(pjr.findById(1L)).thenReturn(Optional.empty());
+				assertThrows(ResourceNotFoundException.class, () -> processingJobService.deleteJob(1L));
+				verify(pjr, never()).delete(any());
+		}
+
+		// ==========================================
+		// getJobsByImage
+		// ==========================================
+
+		@Test
+		void getJobsByImage_ShouldDelegateToRepositoryByImageId() {
+				Image image = new Image("a", "k", "png", new User("u", "u@e.ch"));
+				List<ProcessingJob> jobs = List.of(newJob());
+				when(pjr.findByImageId(image.getId())).thenReturn(jobs);
+
+				assertEquals(jobs, processingJobService.getJobsByImage(image));
+		}
+
+		// ==========================================
+		// getJobResult
+		// ==========================================
+
+		@Test
+		void getJobResult_ShouldReturnResource_WhenJobIsDoneWithKey() {
+				ProcessingJob job = newJob();
+				job.setStatus(JobStatus.DONE);
+				job.setTargetStorageKey("result-key");
+				Resource resource = mock(Resource.class);
+				when(pjr.findById(1L)).thenReturn(Optional.of(job));
+				when(ss.getResource("result-key")).thenReturn(resource);
+
+				assertSame(resource, processingJobService.getJobResult(1L));
+		}
+
+		@Test
+		void getJobResult_ShouldThrow_WhenJobDoesNotExist() {
+				when(pjr.findById(1L)).thenReturn(Optional.empty());
+				assertThrows(ResourceNotFoundException.class, () -> processingJobService.getJobResult(1L));
+				verifyNoInteractions(ss);
+		}
+
+		@Test
+		void getJobResult_ShouldThrow_WhenJobIsNotDone() {
+				ProcessingJob job = newJob(); // PENDING
+				job.setTargetStorageKey("result-key");
+				when(pjr.findById(1L)).thenReturn(Optional.of(job));
+
+				assertThrows(ResourceNotFoundException.class, () -> processingJobService.getJobResult(1L));
+				verifyNoInteractions(ss);
+		}
+
+		@Test
+		void getJobResult_ShouldThrow_WhenStorageKeyIsBlank() {
+				ProcessingJob job = newJob();
+				job.setStatus(JobStatus.DONE);
+				job.setTargetStorageKey("   ");
+				when(pjr.findById(1L)).thenReturn(Optional.of(job));
+
+				assertThrows(ResourceNotFoundException.class, () -> processingJobService.getJobResult(1L));
+				verifyNoInteractions(ss);
+		}
 }

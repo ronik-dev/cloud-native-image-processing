@@ -35,9 +35,9 @@ The parent itself inherits from `spring-boot-starter-parent`, so the full inheri
 
 ```
 spring-boot-starter-parent
-        ↑
+        ^
 cloud-native-image-processing  (parent pom, packaging=pom)
-        ↑                ↑                ↑
+        ^                ^                ^
     common          orchestrator       gateway
 ```
 
@@ -170,6 +170,7 @@ uv init
 uv add fastapi
 uv add uvicorn
 uv add ffmpeg-python
+uv add python-dotenv
 ```
 
 > **Note on ffmpeg-python:** this library provides a fluent Python API over the FFmpeg binary, replacing raw `subprocess` calls. It must still be available as a system dependency:

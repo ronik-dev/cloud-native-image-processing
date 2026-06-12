@@ -1,7 +1,7 @@
 package ch.supsi.imageprocessing.processor;
 
 import ch.supsi.imageprocessing.entity.ProcessingJob;
-import ch.supsi.imageprocessing.entity.JobType;
+import ch.supsi.imageprocessing.common.enums.JobType;
 import ch.supsi.imageprocessing.service.StorageService;
 
 import org.springframework.stereotype.Component;

@@ -1,4 +1,4 @@
-package ch.supsi.imageprocessing.exception;
+package ch.supsi.imageprocessing.common.exception;
 
 public class UnsupportedFileFormatException extends RuntimeException {
     public UnsupportedFileFormatException(String message) {

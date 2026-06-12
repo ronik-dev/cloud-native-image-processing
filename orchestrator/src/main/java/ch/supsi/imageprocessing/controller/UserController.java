@@ -1,11 +1,13 @@
 package ch.supsi.imageprocessing.controller;
 
-import ch.supsi.imageprocessing.dto.UserResponse;
-import ch.supsi.imageprocessing.dto.UserRequest;
-import ch.supsi.imageprocessing.dto.ImageResponse;
+import ch.supsi.imageprocessing.common.dto.UserResponse;
+import ch.supsi.imageprocessing.common.dto.UserRequest;
+import ch.supsi.imageprocessing.common.dto.ImageResponse;
 import ch.supsi.imageprocessing.entity.User;
 import ch.supsi.imageprocessing.service.ImageService;
 import ch.supsi.imageprocessing.service.UserService;
+import ch.supsi.imageprocessing.mapper.UserMapper;
+import ch.supsi.imageprocessing.mapper.ImageMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;   
@@ -17,9 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.validation.annotation.Validated;   
-
-
 import org.springframework.web.bind.annotation.PathVariable;
+
 import jakarta.validation.constraints.Min;
 import jakarta.validation.Valid;   
 
@@ -39,13 +40,13 @@ public class UserController{
 		@PostMapping()
 		public ResponseEntity<UserResponse> newUser(@Valid @RequestBody UserRequest request) {
 				User u = us.createUser(request.username(),request.email());
-				return ResponseEntity.status(HttpStatus.CREATED).body(UserResponse.fromEntity(u));
+				return ResponseEntity.status(HttpStatus.CREATED).body(UserMapper.toResponse(u));
 		}
 
 		@GetMapping()
 		public ResponseEntity<List<UserResponse>> getAllUsers() {
 				List<UserResponse> responses = us.getAllUsers().stream()
-						.map(UserResponse::fromEntity)
+						.map(UserMapper::toResponse)
 						.toList();
 				return ResponseEntity.ok(responses);
 		}
@@ -53,7 +54,7 @@ public class UserController{
 		@GetMapping("/{id}/images")
 		public ResponseEntity<List<ImageResponse>> getImagesByUser(@PathVariable @Min(0) Long id) {
 				List<ImageResponse> responses = is.getImagesByUser(us.getUserById(id)).stream() 
-						.map(ImageResponse::fromEntity)
+						.map(ImageMapper::toResponse)
 						.toList();
 				return ResponseEntity.ok(responses);
 		}

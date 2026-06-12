@@ -1,7 +1,7 @@
 package ch.supsi.imageprocessing.utils;
 
-import ch.supsi.imageprocessing.exception.InvalidRequestException;
-import ch.supsi.imageprocessing.exception.UnsupportedFileFormatException;
+import ch.supsi.imageprocessing.common.exception.InvalidRequestException;
+import ch.supsi.imageprocessing.common.exception.UnsupportedFileFormatException;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.BufferedInputStream;
 import java.io.IOException;

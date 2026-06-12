@@ -2,7 +2,7 @@ package ch.supsi.imageprocessing.controller;
 
 import ch.supsi.imageprocessing.entity.Image;
 import ch.supsi.imageprocessing.entity.User;
-import ch.supsi.imageprocessing.exception.ResourceNotFoundException;
+import ch.supsi.imageprocessing.common.exception.ResourceNotFoundException;
 import ch.supsi.imageprocessing.service.ImageService;
 import ch.supsi.imageprocessing.service.UserService;
 import org.junit.jupiter.api.Test;

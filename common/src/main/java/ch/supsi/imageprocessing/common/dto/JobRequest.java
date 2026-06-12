@@ -1,5 +1,6 @@
-package ch.supsi.imageprocessing.dto;
-import ch.supsi.imageprocessing.entity.JobType;
+package ch.supsi.imageprocessing.common.dto;
+
+import ch.supsi.imageprocessing.common.enums.JobType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.NotEmpty;
 

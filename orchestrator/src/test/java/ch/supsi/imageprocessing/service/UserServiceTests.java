@@ -1,8 +1,8 @@
 package ch.supsi.imageprocessing.service;
 
 import ch.supsi.imageprocessing.entity.User;
-import ch.supsi.imageprocessing.exception.InvalidRequestException;
-import ch.supsi.imageprocessing.exception.ResourceNotFoundException;
+import ch.supsi.imageprocessing.common.exception.InvalidRequestException;
+import ch.supsi.imageprocessing.common.exception.ResourceNotFoundException;
 import ch.supsi.imageprocessing.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

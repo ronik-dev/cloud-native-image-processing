@@ -1,4 +1,8 @@
 package ch.supsi.imageprocessing.entity;
+
+import ch.supsi.imageprocessing.common.enums.JobStatus;
+import ch.supsi.imageprocessing.common.enums.JobType;
+
 import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;

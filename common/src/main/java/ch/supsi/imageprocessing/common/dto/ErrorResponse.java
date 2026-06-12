@@ -1,4 +1,4 @@
-package ch.supsi.imageprocessing.dto;
+package ch.supsi.imageprocessing.common.dto;
 
 import java.time.LocalDateTime;
 import java.util.Map;

@@ -1,6 +1,9 @@
 package ch.supsi.imageprocessing.exception;
 
-import ch.supsi.imageprocessing.dto.ErrorResponse;
+import ch.supsi.imageprocessing.common.dto.ErrorResponse;
+import ch.supsi.imageprocessing.common.exception.InvalidRequestException;
+import ch.supsi.imageprocessing.common.exception.ResourceNotFoundException;
+import ch.supsi.imageprocessing.common.exception.UnsupportedFileFormatException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;

@@ -1,12 +1,12 @@
 package ch.supsi.imageprocessing.controller;
 
-import ch.supsi.imageprocessing.dto.JobRequest;
+import ch.supsi.imageprocessing.common.dto.JobRequest;
 import ch.supsi.imageprocessing.entity.Image;
-import ch.supsi.imageprocessing.entity.JobType;
+import ch.supsi.imageprocessing.common.enums.JobType;
 import ch.supsi.imageprocessing.entity.ProcessingJob;
 import ch.supsi.imageprocessing.entity.User;
-import ch.supsi.imageprocessing.exception.ResourceNotFoundException;
-import ch.supsi.imageprocessing.exception.UnsupportedFileFormatException;
+import ch.supsi.imageprocessing.common.exception.ResourceNotFoundException;
+import ch.supsi.imageprocessing.common.exception.UnsupportedFileFormatException;
 import ch.supsi.imageprocessing.service.ImageService;
 import ch.supsi.imageprocessing.service.UserService;
 import org.junit.jupiter.api.Test;

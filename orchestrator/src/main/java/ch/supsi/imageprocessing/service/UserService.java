@@ -2,8 +2,8 @@ package ch.supsi.imageprocessing.service;
 
 import ch.supsi.imageprocessing.entity.User;
 import ch.supsi.imageprocessing.repository.UserRepository;
-import ch.supsi.imageprocessing.exception.ResourceNotFoundException;
-import ch.supsi.imageprocessing.exception.InvalidRequestException;
+import ch.supsi.imageprocessing.common.exception.ResourceNotFoundException;
+import ch.supsi.imageprocessing.common.exception.InvalidRequestException;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

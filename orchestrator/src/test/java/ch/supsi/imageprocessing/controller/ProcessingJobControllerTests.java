@@ -1,10 +1,10 @@
 package ch.supsi.imageprocessing.controller;
 
 import ch.supsi.imageprocessing.entity.Image;
-import ch.supsi.imageprocessing.entity.JobType;
+import ch.supsi.imageprocessing.common.enums.JobType;
 import ch.supsi.imageprocessing.entity.ProcessingJob;
 import ch.supsi.imageprocessing.entity.User;
-import ch.supsi.imageprocessing.exception.ResourceNotFoundException;
+import ch.supsi.imageprocessing.common.exception.ResourceNotFoundException;
 import ch.supsi.imageprocessing.service.ProcessingJobService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

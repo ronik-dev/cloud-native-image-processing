@@ -1,4 +1,4 @@
-package ch.supsi.imageprocessing.dto;
+package ch.supsi.imageprocessing.common.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

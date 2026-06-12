@@ -1,10 +1,10 @@
 package ch.supsi.imageprocessing.service;
 
 import ch.supsi.imageprocessing.entity.ProcessingJob;
-import ch.supsi.imageprocessing.entity.JobStatus;
+import ch.supsi.imageprocessing.common.enums.JobStatus;
 import ch.supsi.imageprocessing.entity.Image;
 import ch.supsi.imageprocessing.repository.ProcessingJobRepository;
-import ch.supsi.imageprocessing.exception.ResourceNotFoundException;
+import ch.supsi.imageprocessing.common.exception.ResourceNotFoundException;
 import ch.supsi.imageprocessing.processor.ImageProcessor;
 
 

@@ -1,16 +1,10 @@
-package ch.supsi.imageprocessing.dto;
+package ch.supsi.imageprocessing.mapper;
 
+import ch.supsi.imageprocessing.common.dto.ImageResponse;
 import ch.supsi.imageprocessing.entity.Image;
-import java.time.LocalDateTime;
 
-public record ImageResponse(
-    Long id,
-    String filename,
-    String format,
-    LocalDateTime uploadedAt,
-    Long userId
-) {
-    public static ImageResponse fromEntity(Image image) {
+public class ImageMapper {
+    public static ImageResponse toResponse(Image image) {
         return new ImageResponse(
             image.getId(),
             image.getName(),

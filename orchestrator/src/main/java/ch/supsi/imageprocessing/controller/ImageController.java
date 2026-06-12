@@ -1,12 +1,14 @@
 package ch.supsi.imageprocessing.controller;
 
-import ch.supsi.imageprocessing.dto.JobResponse;
-import ch.supsi.imageprocessing.dto.ImageResponse;
-import ch.supsi.imageprocessing.dto.JobRequest;
+import ch.supsi.imageprocessing.common.dto.JobResponse;
+import ch.supsi.imageprocessing.common.dto.ImageResponse;
+import ch.supsi.imageprocessing.common.dto.JobRequest;
 import ch.supsi.imageprocessing.entity.ProcessingJob;
 import ch.supsi.imageprocessing.entity.Image;
 import ch.supsi.imageprocessing.service.ImageService;
 import ch.supsi.imageprocessing.service.UserService;
+import ch.supsi.imageprocessing.mapper.ImageMapper;
+import ch.supsi.imageprocessing.mapper.JobMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -51,7 +53,7 @@ public class ImageController {
     @GetMapping("/{id}")
     public ResponseEntity<ImageResponse> getImage(@PathVariable @Min(0) Long id) {
         Image image = is.getImageData(id);
-        return ResponseEntity.ok(ImageResponse.fromEntity(image));
+        return ResponseEntity.ok(ImageMapper.toResponse(image));
     }
 
     @DeleteMapping("/{id}")
@@ -65,13 +67,13 @@ public class ImageController {
             @PathVariable @Min(0) Long id,
             @Valid @RequestBody JobRequest request) {
         ProcessingJob pj = is.createJob(id, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(JobResponse.fromEntity(pj));
+        return ResponseEntity.status(HttpStatus.CREATED).body(JobMapper.toResponse(pj));
     }
 
     @GetMapping("/{id}/jobs")
     public ResponseEntity<List<JobResponse>> getJobsByImage(@PathVariable @Min(0) Long id) {
         List<JobResponse> jobsr = is.getJobsByImage(id).stream()
-                .map(JobResponse::fromEntity)
+                .map(JobMapper::toResponse)
                 .toList(); 
         return ResponseEntity.ok(jobsr);
     }

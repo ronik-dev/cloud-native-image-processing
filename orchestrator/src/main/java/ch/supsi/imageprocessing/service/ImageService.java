@@ -5,11 +5,11 @@ import ch.supsi.imageprocessing.repository.ProcessingJobRepository;
 import ch.supsi.imageprocessing.entity.ProcessingJob;
 import ch.supsi.imageprocessing.entity.Image;
 import ch.supsi.imageprocessing.entity.User;
-import ch.supsi.imageprocessing.entity.JobStatus;
-import ch.supsi.imageprocessing.dto.JobRequest;
+import ch.supsi.imageprocessing.common.enums.JobStatus;
+import ch.supsi.imageprocessing.common.dto.JobRequest;
 import ch.supsi.imageprocessing.utils.ImageFormatValidator;
-import ch.supsi.imageprocessing.exception.InvalidRequestException;
-import ch.supsi.imageprocessing.exception.ResourceNotFoundException;
+import ch.supsi.imageprocessing.common.exception.InvalidRequestException;
+import ch.supsi.imageprocessing.common.exception.ResourceNotFoundException;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

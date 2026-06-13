@@ -45,7 +45,7 @@ class ProcessingJobControllerTest {
 		}
 
 		// ==========================================
-		// POST /api/jobs/{id}/process  (triggerProcessing)
+		// POST /jobs/{id}/process  (triggerProcessing)
 		// ==========================================
 
 		@Test
@@ -53,7 +53,7 @@ class ProcessingJobControllerTest {
 				ProcessingJob job = job(100L, "output.png");
 				when(pjs.processJob(100L)).thenReturn(job);
 
-				mockMvc.perform(post("/api/jobs/{id}/process", 100L))
+				mockMvc.perform(post("/jobs/{id}/process", 100L))
 						.andExpect(status().isAccepted())
 						.andExpect(jsonPath("$.id").value(100))
 						.andExpect(jsonPath("$.status").value("PENDING"));
@@ -66,7 +66,7 @@ class ProcessingJobControllerTest {
 		void triggerProcessing_ShouldReturn404_WhenJobDoesNotExist() throws Exception {
 				when(pjs.processJob(9L)).thenThrow(new ResourceNotFoundException("Job not found: 9"));
 
-				mockMvc.perform(post("/api/jobs/{id}/process", 9L))
+				mockMvc.perform(post("/jobs/{id}/process", 9L))
 						.andExpect(status().isNotFound());
 
 				verify(pjs, never()).startAsyncProcessExecution(any());
@@ -74,20 +74,20 @@ class ProcessingJobControllerTest {
 
 		@Test
 		void triggerProcessing_ShouldReturn400_WhenIdIsNegative() throws Exception {
-				mockMvc.perform(post("/api/jobs/-1/process"))
+				mockMvc.perform(post("/jobs/-1/process"))
 						.andExpect(status().isBadRequest());
 				verifyNoInteractions(pjs);
 		}
 
 		// ==========================================
-		// GET /api/jobs/{id}  (getJobStatus)
+		// GET /jobs/{id}  (getJobStatus)
 		// ==========================================
 
 		@Test
 		void getJobStatus_ShouldReturn200WithBody_WhenFound() throws Exception {
 				when(pjs.getJobStatus(100L)).thenReturn(job(100L, "output.png"));
 
-				mockMvc.perform(get("/api/jobs/{id}", 100L))
+				mockMvc.perform(get("/jobs/{id}", 100L))
 						.andExpect(status().isOk())
 						.andExpect(jsonPath("$.id").value(100))
 						.andExpect(jsonPath("$.outputName").value("output.png"));
@@ -97,26 +97,26 @@ class ProcessingJobControllerTest {
 		void getJobStatus_ShouldReturn404_WhenNotFound() throws Exception {
 				when(pjs.getJobStatus(9L)).thenThrow(new ResourceNotFoundException("Job not found with ID: 9"));
 
-				mockMvc.perform(get("/api/jobs/{id}", 9L))
+				mockMvc.perform(get("/jobs/{id}", 9L))
 						.andExpect(status().isNotFound());
 		}
 
 		@Test
 		void getJobStatus_ShouldReturn400_WhenIdIsNegative() throws Exception {
-				mockMvc.perform(get("/api/jobs/-1"))
+				mockMvc.perform(get("/jobs/-1"))
 						.andExpect(status().isBadRequest());
 				verifyNoInteractions(pjs);
 		}
 
 		// ==========================================
-		// DELETE /api/jobs/{id}  (deleteJob)  -- note: no @Min(0) on this endpoint
+		// DELETE /jobs/{id}  (deleteJob)  -- note: no @Min(0) on this endpoint
 		// ==========================================
 
 		@Test
 		void deleteJob_ShouldReturn204_WhenSuccessful() throws Exception {
 				doNothing().when(pjs).deleteJob(1L);
 
-				mockMvc.perform(delete("/api/jobs/{id}", 1L))
+				mockMvc.perform(delete("/jobs/{id}", 1L))
 						.andExpect(status().isNoContent());
 
 				verify(pjs, times(1)).deleteJob(1L);
@@ -126,12 +126,12 @@ class ProcessingJobControllerTest {
 		void deleteJob_ShouldReturn404_WhenNotFound() throws Exception {
 				doThrow(new ResourceNotFoundException("Job not found with ID: 9")).when(pjs).deleteJob(9L);
 
-				mockMvc.perform(delete("/api/jobs/{id}", 9L))
+				mockMvc.perform(delete("/jobs/{id}", 9L))
 						.andExpect(status().isNotFound());
 		}
 
 		// ==========================================
-		// GET /api/jobs/{id}/result  (downloadJobResult)
+		// GET /jobs/{id}/result  (downloadJobResult)
 		// ==========================================
 
 		@Test
@@ -141,7 +141,7 @@ class ProcessingJobControllerTest {
 				when(pjs.getJobResult(100L)).thenReturn(resource);
 				when(pjs.getJobStatus(100L)).thenReturn(job(100L, "result.png"));
 
-				mockMvc.perform(get("/api/jobs/{id}/result", 100L))
+				mockMvc.perform(get("/jobs/{id}/result", 100L))
 						.andExpect(status().isOk())
 						.andExpect(content().contentType(MediaType.APPLICATION_OCTET_STREAM))
 						.andExpect(header().string("Content-Disposition", containsString("result.png")))
@@ -153,7 +153,7 @@ class ProcessingJobControllerTest {
 				when(pjs.getJobResult(9L))
 						.thenThrow(new ResourceNotFoundException("Processed file output is not available for Job ID: 9"));
 
-				mockMvc.perform(get("/api/jobs/{id}/result", 9L))
+				mockMvc.perform(get("/jobs/{id}/result", 9L))
 						.andExpect(status().isNotFound());
 
 				verify(pjs, never()).getJobStatus(any());
@@ -161,7 +161,7 @@ class ProcessingJobControllerTest {
 
 		@Test
 		void downloadJobResult_ShouldReturn400_WhenIdIsNegative() throws Exception {
-				mockMvc.perform(get("/api/jobs/-1/result"))
+				mockMvc.perform(get("/jobs/-1/result"))
 						.andExpect(status().isBadRequest());
 				verifyNoInteractions(pjs);
 		}

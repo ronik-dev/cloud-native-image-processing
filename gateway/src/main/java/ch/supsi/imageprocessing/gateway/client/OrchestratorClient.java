@@ -19,7 +19,7 @@ public class OrchestratorClient {
 
     public UserResponse createUser(UserRequest request) {
         return webClient.post()
-                .uri("/api/users")
+                .uri("/users")
                 .bodyValue(request)
                 .retrieve()
                 .bodyToMono(UserResponse.class)
@@ -28,7 +28,7 @@ public class OrchestratorClient {
 
     public List<UserResponse> getUsers() {
         return webClient.get()
-                .uri("/api/users")
+                .uri("/users")
                 .retrieve()
                 .bodyToFlux(UserResponse.class)
                 .collectList()
@@ -37,7 +37,7 @@ public class OrchestratorClient {
 
     public List<ImageResponse> getUserImages(Long userId) {
         return webClient.get()
-                .uri("/api/users/{id}/images", userId)
+                .uri("/users/{id}/images", userId)
                 .retrieve()
                 .bodyToFlux(ImageResponse.class)
                 .collectList()
@@ -46,7 +46,7 @@ public class OrchestratorClient {
 
     public void deleteUser(Long userId) {
         webClient.delete()
-                .uri("/api/users/{id}", userId)
+                .uri("/users/{id}", userId)
                 .retrieve()
                 .toBodilessEntity()
                 .block();
@@ -56,7 +56,7 @@ public class OrchestratorClient {
 
     public ImageResponse getImage(Long imageId) {
         return webClient.get()
-                .uri("/api/images/{id}", imageId)
+                .uri("/images/{id}", imageId)
                 .retrieve()
                 .bodyToMono(ImageResponse.class)
                 .block();
@@ -64,7 +64,7 @@ public class OrchestratorClient {
 
     public void deleteImage(Long imageId) {
         webClient.delete()
-                .uri("/api/images/{id}", imageId)
+                .uri("/images/{id}", imageId)
                 .retrieve()
                 .toBodilessEntity()
                 .block();
@@ -72,7 +72,7 @@ public class OrchestratorClient {
 
     public List<JobResponse> getImageJobs(Long imageId) {
         return webClient.get()
-                .uri("/api/images/{id}/jobs", imageId)
+                .uri("/images/{id}/jobs", imageId)
                 .retrieve()
                 .bodyToFlux(JobResponse.class)
                 .collectList()
@@ -81,7 +81,7 @@ public class OrchestratorClient {
 
     public JobResponse createJob(Long imageId, JobRequest request) {
         return webClient.post()
-                .uri("/api/images/{id}/jobs", imageId)
+                .uri("/images/{id}/jobs", imageId)
                 .bodyValue(request)
                 .retrieve()
                 .bodyToMono(JobResponse.class)
@@ -92,7 +92,7 @@ public class OrchestratorClient {
 
     public JobResponse getJob(Long jobId) {
         return webClient.get()
-                .uri("/api/jobs/{id}", jobId)
+                .uri("/jobs/{id}", jobId)
                 .retrieve()
                 .bodyToMono(JobResponse.class)
                 .block();
@@ -100,7 +100,7 @@ public class OrchestratorClient {
 
     public JobResponse processJob(Long jobId) {
         return webClient.post()
-                .uri("/api/jobs/{id}/process", jobId)
+                .uri("/jobs/{id}/process", jobId)
                 .retrieve()
                 .bodyToMono(JobResponse.class)
                 .block();
@@ -108,7 +108,7 @@ public class OrchestratorClient {
 
     public void deleteJob(Long jobId) {
         webClient.delete()
-                .uri("/api/jobs/{id}", jobId)
+                .uri("/jobs/{id}", jobId)
                 .retrieve()
                 .toBodilessEntity()
                 .block();

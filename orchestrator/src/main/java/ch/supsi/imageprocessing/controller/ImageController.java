@@ -15,17 +15,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.validation.annotation.Validated;   
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 
-import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/images")
+@RequestMapping("/images")
 @Validated
 public class ImageController {
 
@@ -35,20 +33,13 @@ public class ImageController {
     @Autowired
     private UserService us;
 
-    @PostMapping()
-    public ResponseEntity<Void> uploadFile(
-            @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "userId") Long userId) {
-
-        Image savedImage = is.handleImageUpload(us.getUserById(userId), file);
-
-        URI location = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/api/images/{id}") // Point to the exact GET route
-                .buildAndExpand(savedImage.getId())
-                .toUri();
-
-        return ResponseEntity.created(location).build();
-    }
+		@PostMapping
+		public ResponseEntity<ImageResponse> uploadFile(
+		        @RequestParam("file") MultipartFile file,
+		        @RequestParam("userId") Long userId) {
+		    Image savedImage = is.handleImageUpload(us.getUserById(userId), file);
+		    return ResponseEntity.status(HttpStatus.CREATED).body(ImageMapper.toResponse(savedImage));
+		}
 
     @GetMapping("/{id}")
     public ResponseEntity<ImageResponse> getImage(@PathVariable @Min(0) Long id) {

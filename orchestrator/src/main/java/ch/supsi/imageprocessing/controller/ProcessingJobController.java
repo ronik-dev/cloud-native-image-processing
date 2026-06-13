@@ -16,7 +16,7 @@ import org.springframework.validation.annotation.Validated;
 import jakarta.validation.constraints.Min;
 
 @RestController
-@RequestMapping("/api/jobs")
+@RequestMapping("/jobs")
 @Validated
 public class ProcessingJobController{
 

@@ -55,7 +55,7 @@ class ImageControllerTest {
 		}
 
 		// ==========================================
-		// POST /api/images  (uploadFile)
+		// POST /images  (uploadFile)
 		// ==========================================
 
 		@Test
@@ -66,9 +66,11 @@ class ImageControllerTest {
 
 				MockMultipartFile file = new MockMultipartFile("file", "test.png", "image/png", "bytes".getBytes());
 
-				mockMvc.perform(multipart("/api/images").file(file).param("userId", "1"))
-						.andExpect(status().isCreated())
-						.andExpect(header().string("Location", endsWith("/api/images/100")));
+				mockMvc.perform(multipart("/images")
+				        .file(file)
+				        .param("userId", "1"))
+				    .andExpect(status().isCreated())
+				    .andExpect(jsonPath("$.id").value(100));
 
 				verify(is, times(1)).handleImageUpload(any(User.class), any());
 		}
@@ -79,7 +81,7 @@ class ImageControllerTest {
 
 				MockMultipartFile file = new MockMultipartFile("file", "test.png", "image/png", "bytes".getBytes());
 
-				mockMvc.perform(multipart("/api/images").file(file).param("userId", "2"))
+				mockMvc.perform(multipart("/images").file(file).param("userId", "2"))
 						.andExpect(status().isNotFound());
 
 				verify(is, never()).handleImageUpload(any(), any());
@@ -93,19 +95,19 @@ class ImageControllerTest {
 
 				MockMultipartFile file = new MockMultipartFile("file", "bad.txt", "text/plain", "nope".getBytes());
 
-				mockMvc.perform(multipart("/api/images").file(file).param("userId", "1"))
+				mockMvc.perform(multipart("/images").file(file).param("userId", "1"))
 						.andExpect(status().isUnsupportedMediaType());
 		}
 
 		// ==========================================
-		// GET /api/images/{id}  (getImage)
+		// GET /images/{id}  (getImage)
 		// ==========================================
 
 		@Test
 		void getImage_ShouldReturn200WithBody_WhenFound() throws Exception {
 				when(is.getImageData(1L)).thenReturn(image(1L));
 
-				mockMvc.perform(get("/api/images/{id}", 1L))
+				mockMvc.perform(get("/images/{id}", 1L))
 						.andExpect(status().isOk())
 						.andExpect(jsonPath("$.id").value(1))
 						.andExpect(jsonPath("$.filename").value("test.png"))
@@ -116,26 +118,26 @@ class ImageControllerTest {
 		void getImage_ShouldReturn404_WhenNotFound() throws Exception {
 				when(is.getImageData(9L)).thenThrow(new ResourceNotFoundException("Image not found with ID: 9"));
 
-				mockMvc.perform(get("/api/images/{id}", 9L))
+				mockMvc.perform(get("/images/{id}", 9L))
 						.andExpect(status().isNotFound());
 		}
 
 		@Test
 		void getImage_ShouldReturn400_WhenIdIsNegative() throws Exception {
-				mockMvc.perform(get("/api/images/-1"))
+				mockMvc.perform(get("/images/-1"))
 						.andExpect(status().isBadRequest());
 				verifyNoInteractions(is);
 		}
 
 		// ==========================================
-		// DELETE /api/images/{id}  (deleteImage)
+		// DELETE /images/{id}  (deleteImage)
 		// ==========================================
 
 		@Test
 		void deleteImage_ShouldReturn204_WhenSuccessful() throws Exception {
 				doNothing().when(is).deleteImage(1L);
 
-				mockMvc.perform(delete("/api/images/{id}", 1L))
+				mockMvc.perform(delete("/images/{id}", 1L))
 						.andExpect(status().isNoContent());
 
 				verify(is, times(1)).deleteImage(1L);
@@ -145,12 +147,12 @@ class ImageControllerTest {
 		void deleteImage_ShouldReturn404_WhenNotFound() throws Exception {
 				doThrow(new ResourceNotFoundException("Image not found with ID: 9")).when(is).deleteImage(9L);
 
-				mockMvc.perform(delete("/api/images/{id}", 9L))
+				mockMvc.perform(delete("/images/{id}", 9L))
 						.andExpect(status().isNotFound());
 		}
 
 		// ==========================================
-		// POST /api/images/{id}/jobs  (createJob)
+		// POST /images/{id}/jobs  (createJob)
 		// ==========================================
 
 		@Test
@@ -164,7 +166,7 @@ class ImageControllerTest {
 				{"type":"FORMAT_CONVERSION","outputName":"output_file","targetFormat":"png"}
 				""";
 
-				mockMvc.perform(post("/api/images/{id}/jobs", imageId)
+				mockMvc.perform(post("/images/{id}/jobs", imageId)
 								.contentType(MediaType.APPLICATION_JSON)
 								.content(payload))
 						.andExpect(status().isCreated())
@@ -178,7 +180,7 @@ class ImageControllerTest {
 				{"type":"FORMAT_CONVERSION","outputName":"output","targetFormat":"png"}
 				""";
 
-				mockMvc.perform(post("/api/images/-1/jobs")
+				mockMvc.perform(post("/images/-1/jobs")
 								.contentType(MediaType.APPLICATION_JSON)
 								.content(payload))
 						.andExpect(status().isBadRequest());
@@ -193,7 +195,7 @@ class ImageControllerTest {
 				{"type":"FORMAT_CONVERSION","outputName":"","targetFormat":"png"}
 				""";
 
-				mockMvc.perform(post("/api/images/{id}/jobs", 1L)
+				mockMvc.perform(post("/images/{id}/jobs", 1L)
 								.contentType(MediaType.APPLICATION_JSON)
 								.content(payload))
 						.andExpect(status().isBadRequest());
@@ -210,14 +212,14 @@ class ImageControllerTest {
 				{"type":"FORMAT_CONVERSION","outputName":"out","targetFormat":"png"}
 				""";
 
-				mockMvc.perform(post("/api/images/{id}/jobs", 9L)
+				mockMvc.perform(post("/images/{id}/jobs", 9L)
 								.contentType(MediaType.APPLICATION_JSON)
 								.content(payload))
 						.andExpect(status().isNotFound());
 		}
 
 		// ==========================================
-		// GET /api/images/{id}/jobs  (getJobsByImage)
+		// GET /images/{id}/jobs  (getJobsByImage)
 		// ==========================================
 
 		@Test
@@ -227,7 +229,7 @@ class ImageControllerTest {
 				setField(job, "id", 200L);
 				when(is.getJobsByImage(imageId)).thenReturn(List.of(job));
 
-				mockMvc.perform(get("/api/images/{id}/jobs", imageId))
+				mockMvc.perform(get("/images/{id}/jobs", imageId))
 						.andExpect(status().isOk())
 						.andExpect(jsonPath("$[0].id").value(200))
 						.andExpect(jsonPath("$[0].type").value("BACKGROUND_REMOVAL"));
@@ -237,7 +239,7 @@ class ImageControllerTest {
 		void getJobsByImage_ShouldReturn404_WhenImageDoesNotExist() throws Exception {
 				when(is.getJobsByImage(9L)).thenThrow(new ResourceNotFoundException("Image not found with ID: 9"));
 
-				mockMvc.perform(get("/api/images/{id}/jobs", 9L))
+				mockMvc.perform(get("/images/{id}/jobs", 9L))
 						.andExpect(status().isNotFound());
 		}
 }

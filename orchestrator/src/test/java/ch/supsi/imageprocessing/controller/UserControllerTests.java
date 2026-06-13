@@ -46,7 +46,7 @@ class UserControllerTest {
 		}
 
 		// ==========================================
-		// POST /api/users  (newUser)
+		// POST /users  (newUser)
 		// ==========================================
 
 		@Test
@@ -57,7 +57,7 @@ class UserControllerTest {
 				{"username":"nicola","email":"nicola@supsi.ch"}
 				""";
 
-				mockMvc.perform(post("/api/users")
+				mockMvc.perform(post("/users")
 								.contentType(MediaType.APPLICATION_JSON)
 								.content(payload))
 						.andExpect(status().isCreated())
@@ -73,7 +73,7 @@ class UserControllerTest {
 				{"username":"","email":"nicola@supsi.ch"}
 				""";
 
-				mockMvc.perform(post("/api/users")
+				mockMvc.perform(post("/users")
 								.contentType(MediaType.APPLICATION_JSON)
 								.content(payload))
 						.andExpect(status().isBadRequest());
@@ -88,7 +88,7 @@ class UserControllerTest {
 				{"username":"nicola","email":"not-an-email"}
 				""";
 
-				mockMvc.perform(post("/api/users")
+				mockMvc.perform(post("/users")
 								.contentType(MediaType.APPLICATION_JSON)
 								.content(payload))
 						.andExpect(status().isBadRequest());
@@ -105,21 +105,21 @@ class UserControllerTest {
 				{"username":"nicola","email":"nicola@supsi.ch"}
 				""";
 
-				mockMvc.perform(post("/api/users")
+				mockMvc.perform(post("/users")
 								.contentType(MediaType.APPLICATION_JSON)
 								.content(payload))
 						.andExpect(status().isConflict());
 		}
 
 		// ==========================================
-		// GET /api/users  (getAllUsers)
+		// GET /users  (getAllUsers)
 		// ==========================================
 
 		@Test
 		void getAllUsers_ShouldReturn200AndList() throws Exception {
 				when(us.getAllUsers()).thenReturn(List.of(user(1L), user(2L)));
 
-				mockMvc.perform(get("/api/users"))
+				mockMvc.perform(get("/users"))
 						.andExpect(status().isOk())
 						.andExpect(jsonPath("$.length()").value(2))
 						.andExpect(jsonPath("$[0].id").value(1))
@@ -127,7 +127,7 @@ class UserControllerTest {
 		}
 
 		// ==========================================
-		// GET /api/users/{id}/images  (getImagesByUser)
+		// GET /users/{id}/images  (getImagesByUser)
 		// ==========================================
 
 		@Test
@@ -139,7 +139,7 @@ class UserControllerTest {
 				when(us.getUserById(1L)).thenReturn(targetUser);
 				when(is.getImagesByUser(targetUser)).thenReturn(List.of(targetImage));
 
-				mockMvc.perform(get("/api/users/{id}/images", 1L))
+				mockMvc.perform(get("/users/{id}/images", 1L))
 						.andExpect(status().isOk())
 						.andExpect(jsonPath("$.length()").value(1))
 						.andExpect(jsonPath("$[0].id").value(100))
@@ -151,7 +151,7 @@ class UserControllerTest {
 		void getImagesByUser_ShouldReturn404_WhenUserDoesNotExist() throws Exception {
 				when(us.getUserById(9L)).thenThrow(new ResourceNotFoundException("User not found with ID: 9"));
 
-				mockMvc.perform(get("/api/users/{id}/images", 9L))
+				mockMvc.perform(get("/users/{id}/images", 9L))
 						.andExpect(status().isNotFound());
 
 				verify(is, never()).getImagesByUser(any());
@@ -159,21 +159,21 @@ class UserControllerTest {
 
 		@Test
 		void getImagesByUser_ShouldReturn400_WhenUserIdIsNegative() throws Exception {
-				mockMvc.perform(get("/api/users/-5/images"))
+				mockMvc.perform(get("/users/-5/images"))
 						.andExpect(status().isBadRequest());
 
 				verifyNoInteractions(is);
 		}
 
 		// ==========================================
-		// DELETE /api/users/{id}  (deleteUser)
+		// DELETE /users/{id}  (deleteUser)
 		// ==========================================
 
 		@Test
 		void deleteUser_ShouldReturn204_WhenSuccessful() throws Exception {
 				doNothing().when(us).deleteUser(1L);
 
-				mockMvc.perform(delete("/api/users/{id}", 1L))
+				mockMvc.perform(delete("/users/{id}", 1L))
 						.andExpect(status().isNoContent());
 
 				verify(us, times(1)).deleteUser(1L);
@@ -183,13 +183,13 @@ class UserControllerTest {
 		void deleteUser_ShouldReturn404_WhenUserDoesNotExist() throws Exception {
 				doThrow(new ResourceNotFoundException("User not found with ID: 9")).when(us).deleteUser(9L);
 
-				mockMvc.perform(delete("/api/users/{id}", 9L))
+				mockMvc.perform(delete("/users/{id}", 9L))
 						.andExpect(status().isNotFound());
 		}
 
 		@Test
 		void deleteUser_ShouldReturn400_WhenIdIsNegative() throws Exception {
-				mockMvc.perform(delete("/api/users/-1"))
+				mockMvc.perform(delete("/users/-1"))
 						.andExpect(status().isBadRequest());
 
 				verifyNoInteractions(us);

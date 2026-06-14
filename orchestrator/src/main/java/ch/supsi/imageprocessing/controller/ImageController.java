@@ -27,45 +27,45 @@ import java.util.List;
 @Validated
 public class ImageController {
 
-    @Autowired
-    private ImageService is;
+		@Autowired
+		private ImageService is;
 
-    @Autowired
-    private UserService us;
+		@Autowired
+		private UserService us;
 
 		@PostMapping
 		public ResponseEntity<ImageResponse> uploadFile(
-		        @RequestParam("file") MultipartFile file,
-		        @RequestParam("userId") Long userId) {
-		    Image savedImage = is.handleImageUpload(us.getUserById(userId), file);
-		    return ResponseEntity.status(HttpStatus.CREATED).body(ImageMapper.toResponse(savedImage));
+						@RequestParam("file") MultipartFile file,
+						@RequestParam("userId") Long userId) {
+						Image savedImage = is.handleImageUpload(us.getUserById(userId), file);
+						return ResponseEntity.status(HttpStatus.CREATED).body(ImageMapper.toResponse(savedImage));
+						}
+
+		@GetMapping("/{id}")
+		public ResponseEntity<ImageResponse> getImage(@PathVariable @Min(0) Long id) {
+				Image image = is.getImageData(id);
+				return ResponseEntity.ok(ImageMapper.toResponse(image));
 		}
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ImageResponse> getImage(@PathVariable @Min(0) Long id) {
-        Image image = is.getImageData(id);
-        return ResponseEntity.ok(ImageMapper.toResponse(image));
-    }
+		@DeleteMapping("/{id}")
+		public ResponseEntity<Void> deleteImage(@PathVariable @Min(0) Long id) {
+				is.deleteImage(id); 
+				return ResponseEntity.noContent().build();
+		}
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteImage(@PathVariable @Min(0) Long id) {
-        is.deleteImage(id); 
-        return ResponseEntity.noContent().build();
-    }
+		@PostMapping("/{id}/jobs")
+		public ResponseEntity<JobResponse> createJob(
+						@PathVariable @Min(0) Long id,
+						@Valid @RequestBody JobRequest request) {
+						ProcessingJob pj = is.createJob(id, request);
+						return ResponseEntity.status(HttpStatus.CREATED).body(JobMapper.toResponse(pj));
+						}
 
-    @PostMapping("/{id}/jobs")
-    public ResponseEntity<JobResponse> createJob(
-            @PathVariable @Min(0) Long id,
-            @Valid @RequestBody JobRequest request) {
-        ProcessingJob pj = is.createJob(id, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(JobMapper.toResponse(pj));
-    }
-
-    @GetMapping("/{id}/jobs")
-    public ResponseEntity<List<JobResponse>> getJobsByImage(@PathVariable @Min(0) Long id) {
-        List<JobResponse> jobsr = is.getJobsByImage(id).stream()
-                .map(JobMapper::toResponse)
-                .toList(); 
-        return ResponseEntity.ok(jobsr);
-    }
+		@GetMapping("/{id}/jobs")
+		public ResponseEntity<List<JobResponse>> getJobsByImage(@PathVariable @Min(0) Long id) {
+				List<JobResponse> jobsr = is.getJobsByImage(id).stream()
+						.map(JobMapper::toResponse)
+						.toList(); 
+				return ResponseEntity.ok(jobsr);
+		}
 }

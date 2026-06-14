@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.MultipartBodyBuilder;   
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 
 import java.io.IOException;
@@ -36,8 +37,7 @@ public class OrchestratorClient {
 				return webClient.get()
 						.uri("/users")
 						.retrieve()
-						.bodyToFlux(UserResponse.class)
-						.collectList()
+						.bodyToMono(new ParameterizedTypeReference<List<UserResponse>>() {})
 						.block();
 		}
 
@@ -45,8 +45,7 @@ public class OrchestratorClient {
 				return webClient.get()
 						.uri("/users/{id}/images", userId)
 						.retrieve()
-						.bodyToFlux(ImageResponse.class)
-						.collectList()
+						.bodyToMono(new ParameterizedTypeReference<List<ImageResponse>>() {})
 						.block();
 		}
 
@@ -80,8 +79,7 @@ public class OrchestratorClient {
 				return webClient.get()
 						.uri("/images/{id}/jobs", imageId)
 						.retrieve()
-						.bodyToFlux(JobResponse.class)
-						.collectList()
+						.bodyToMono(new ParameterizedTypeReference<List<JobResponse>>() {})
 						.block();
 		}
 

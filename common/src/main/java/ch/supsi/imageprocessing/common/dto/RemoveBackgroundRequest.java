@@ -1,4 +1,7 @@
 package ch.supsi.imageprocessing.common.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public record RemoveBackgroundRequest(
-    String sourceSk, String targetSk) {}
+    @JsonProperty("source_sk") String sourceSk,
+    @JsonProperty("target_sk") String targetSk) {}

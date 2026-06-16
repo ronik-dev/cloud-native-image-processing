@@ -7,9 +7,9 @@ import ch.supsi.imageprocessing.common.dto.ConvertFormatRequest;
 import ch.supsi.imageprocessing.common.dto.RemoveBackgroundRequest;
 import ch.supsi.imageprocessing.common.dto.WorkerResponse;
 import ch.supsi.imageprocessing.entity.Image;
+import ch.supsi.imageprocessing.client.WorkerClient;
 import ch.supsi.imageprocessing.repository.ProcessingJobRepository;
 import ch.supsi.imageprocessing.common.exception.ResourceNotFoundException;
-import ch.supsi.imageprocessing.processor.ImageProcessor;
 
 
 import org.slf4j.Logger;
@@ -68,7 +68,7 @@ public class ProcessingJobService {
 						pjr.save(job);
 
 						WorkerResponse result = switch (job.getType()) {
-								case JobType.FORMAT_CONVERSION -> wc.ConvertFormat(
+								case JobType.FORMAT_CONVERSION -> wc.convertFormat(
 												new ConvertFormatRequest(
 														job.getImage().getStorageKey(),
 														job.getImage().getFormat(),
@@ -82,6 +82,7 @@ public class ProcessingJobService {
 														job.getTargetStorageKey()
 														)
 												);
+								default -> throw new IllegalArgumentException("Undefined JobType: " + job.getType());
 						};
 
 						job.setStatus(JobStatus.DONE);

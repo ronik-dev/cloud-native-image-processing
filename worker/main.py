@@ -59,9 +59,9 @@ def safe_path(sk: str) -> str:
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     return JSONResponse(
-            status_code=422,
-            content=jsonable_encoder({"errors": exc.errors()})
-            )
+        status_code=422,
+        content=jsonable_encoder({"errors": exc.errors()})
+    )
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -79,8 +79,12 @@ async def health():
 @app.post("/convert_format")
 def convert_format(request: ProcessRequest):
     try:
-        ffmpeg.input(safe_path(request.source_sk), format=request.input_format) \
-                .output(safe_path(request.target_sk), format=request.output_format) \
+        src = safe_path(request.source_sk)
+        tgt = safe_path(request.target_sk)
+        print(f"Converting: {src} -> {tgt}")
+        print(f"Source exists: {os.path.exists(src)}")
+        ffmpeg.input(src, format=request.input_format) \
+                .output(tgt, format=request.output_format) \
                 .run(capture_stdout=True, capture_stderr=True)
         logger.info(f'converted {safe_path(request.source_sk)} to {safe_path(request.target_sk)}')
         return JSONResponse(content={"target_sk": request.target_sk}, status_code=200)

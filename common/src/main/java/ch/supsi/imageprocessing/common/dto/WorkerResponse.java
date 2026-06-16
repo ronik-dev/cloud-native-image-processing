@@ -1,3 +1,6 @@
 package ch.supsi.imageprocessing.common.dto;
 
-public record WorkerResponse(String targetSk) {}
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record WorkerResponse(
+    @JsonProperty("target_sk") String targetSk) {}

@@ -11,12 +11,13 @@ public class WorkerClient{
 
 		private final WebClient webClient;
 
-		public WorkerClient(WebClient workerClient) {
-				this.webClient= workerClient;
+		public WorkerClient(WebClient workerWebClient) {
+				this.webClient = workerWebClient;
 		}
 
 
 		public WorkerResponse convertFormat(ConvertFormatRequest request) {
+				System.out.println("Sending to worker: " + request.toString());
 				return webClient.post()
 						.uri("/convert_format")
 						.bodyValue(request)

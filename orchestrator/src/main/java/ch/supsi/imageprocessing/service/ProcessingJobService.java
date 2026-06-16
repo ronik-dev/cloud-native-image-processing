@@ -2,6 +2,10 @@ package ch.supsi.imageprocessing.service;
 
 import ch.supsi.imageprocessing.entity.ProcessingJob;
 import ch.supsi.imageprocessing.common.enums.JobStatus;
+import ch.supsi.imageprocessing.common.enums.JobType;
+import ch.supsi.imageprocessing.common.dto.ConvertFormatRequest;
+import ch.supsi.imageprocessing.common.dto.RemoveBackgroundRequest;
+import ch.supsi.imageprocessing.common.dto.WorkerResponse;
 import ch.supsi.imageprocessing.entity.Image;
 import ch.supsi.imageprocessing.repository.ProcessingJobRepository;
 import ch.supsi.imageprocessing.common.exception.ResourceNotFoundException;
@@ -29,7 +33,7 @@ public class ProcessingJobService {
 		private ProcessingJobRepository pjr;
 
 		@Autowired
-		private ImageProcessor ip;
+		private WorkerClient wc;
 
 		@Autowired
 		private StorageService ss;
@@ -58,19 +62,33 @@ public class ProcessingJobService {
 		@Async
 		public void startAsyncProcessExecution(Long jobId) {
 				ProcessingJob job = pjr.findById(jobId)
-						.orElseThrow(() -> new ResourceNotFoundException("Job not found with ID: " + jobId));
+						.orElseThrow(() -> new ResourceNotFoundException("Job not found: " + jobId));
 				try {
 						job.setStatus(JobStatus.RUNNING);
 						pjr.save(job);
 
-						ip.execute(job);
+						WorkerResponse result = switch (job.getType()) {
+								case JobType.FORMAT_CONVERSION -> wc.ConvertFormat(
+												new ConvertFormatRequest(
+														job.getImage().getStorageKey(),
+														job.getImage().getFormat(),
+														job.getTargetStorageKey(),
+														job.getTargetFormat()
+														)
+												);
+								case JobType.BACKGROUND_REMOVAL -> wc.removeBackground(
+												new RemoveBackgroundRequest(
+														job.getImage().getStorageKey(),
+														job.getTargetStorageKey()
+														)
+												);
+						};
 
 						job.setStatus(JobStatus.DONE);
 
 				} catch (Exception e) {
 						log.error("Processing failed for job {}: {}", jobId, e.getMessage(), e);
 						job.setStatus(JobStatus.FAILED);
-
 				} finally {
 						pjr.save(job);
 				}

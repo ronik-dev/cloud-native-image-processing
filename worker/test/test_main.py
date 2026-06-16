@@ -15,7 +15,6 @@ def mock_rembg_session(monkeypatch):
     """
     Replace the real rembg session with a mock before every test.
     This prevents the model from being loaded/downloaded during tests.
-    The mock's remove() returns fake PNG bytes by default.
     """
     mock_session = MagicMock()
     monkeypatch.setitem(ml_models, "rembg", mock_session)
@@ -36,29 +35,28 @@ def storage_dir(tmp_path, monkeypatch):
 def client():
     """
     FastAPI TestClient — calls endpoints without running a real server.
-    httpx is used under the hood; no network traffic is involved.
     """
-    return TestClient(app)
+    return TestClient(app, raise_server_exceptions=False)
 
 
 @pytest.fixture
 def source_image(storage_dir):
     """
     Write a minimal fake image file to the temp storage directory.
-    Returns the full path so tests can reference it as a storage key.
+    Returns only the key (filename), not the full path.
     """
-    path = storage_dir / "source-uuid"
-    path.write_bytes(b"fake-image-bytes")
-    return str(path)
+    key = "source-uuid"
+    (storage_dir / key).write_bytes(b"fake-image-bytes")
+    return key
 
 
 @pytest.fixture
 def target_path(storage_dir):
     """
-    Return a path inside the temp storage directory for output files.
+    Return a key for the output file inside the temp storage directory.
     The file does not exist yet — endpoints are expected to create it.
     """
-    return str(storage_dir / "target-uuid")
+    return "target-uuid"
 
 
 # ---------------------------------------------------------------------------
@@ -122,7 +120,8 @@ class TestConvertFormat:
         assert response.status_code == 200
         assert response.json()["target_sk"] == target_path
 
-    def test_calls_ffmpeg_with_correct_formats(self, client, source_image, target_path):
+    def test_calls_ffmpeg_with_correct_formats(self, client, storage_dir, source_image, target_path):
+        # storage_dir is required here so we can compute the expected resolved paths
         with patch("main.ffmpeg") as mock_ffmpeg:
             mock_input = MagicMock()
             mock_output = MagicMock()
@@ -137,15 +136,20 @@ class TestConvertFormat:
                 "output_format": "jpg"
             })
 
-            mock_ffmpeg.input.assert_called_once_with(source_image, format="png")
-            mock_input.output.assert_called_once_with(target_path, format="jpg")
+            mock_ffmpeg.input.assert_called_once_with(
+                str(storage_dir / source_image), format="png"
+            )
+            mock_input.output.assert_called_once_with(
+                str(storage_dir / target_path), format="jpg"
+            )
 
-    def test_returns_500_when_ffmpeg_raises(self, client, source_image, target_path):
+    def test_returns_500_when_ffmpeg_raises(self, client, storage_dir, source_image, target_path):
+        # storage_dir ensures safe_path resolves correctly before ffmpeg is called
         with patch("main.ffmpeg") as mock_ffmpeg:
-            mock_error = MagicMock()
-            mock_error.stderr = b"ffmpeg: invalid data"
             mock_ffmpeg.Error = Exception
-            mock_ffmpeg.input.return_value.output.return_value.run.side_effect = Exception("ffmpeg: invalid data")
+            mock_ffmpeg.input.return_value.output.return_value.run.side_effect = Exception(
+                "ffmpeg: invalid data"
+            )
 
             response = client.post("/convert_format", json={
                 "source_sk": source_image,
@@ -168,7 +172,13 @@ class TestConvertFormat:
         assert response.status_code == 422
 
     def test_returns_422_when_content_type_is_wrong(self, client):
-        response = client.post("/convert_format", data="not-json")
+        # Send raw bytes with no JSON content-type — FastAPI returns 422
+        # but the error body may contain bytes; we only assert the status code
+        response = client.post(
+            "/convert_format",
+            content=b"not-json",
+            headers={"Content-Type": "application/octet-stream"}
+        )
         assert response.status_code == 422
 
 
@@ -193,7 +203,7 @@ class TestRemoveBackground:
         assert response.json()["target_sk"] == target_path
 
     def test_output_file_is_written_to_disk(
-            self, client, source_image, target_path, mock_rembg_session):
+            self, client, source_image, storage_dir, target_path, mock_rembg_session):
 
         fake_output = b"processed-image-bytes"
         with patch("main.remove") as mock_remove:
@@ -204,8 +214,9 @@ class TestRemoveBackground:
                 "target_sk": target_path
             })
 
-        assert os.path.exists(target_path)
-        with open(target_path, "rb") as f:
+        full_target = storage_dir / target_path
+        assert os.path.exists(full_target)
+        with open(full_target, "rb") as f:
             assert f.read() == fake_output
 
     def test_calls_remove_with_correct_session(
@@ -221,9 +232,11 @@ class TestRemoveBackground:
 
             mock_remove.assert_called_once_with(b"fake-image-bytes", session=mock_rembg_session)
 
-    def test_returns_500_when_source_file_not_found(self, client, target_path):
+    def test_returns_500_when_source_file_not_found(self, client, storage_dir, target_path):
+        # storage_dir fixture is needed so safe_path resolves inside the temp dir
+        # "nonexistent-uuid" is a valid key format but the file does not exist
         response = client.post("/remove_background", json={
-            "source_sk": "/nonexistent/path/uuid",
+            "source_sk": "nonexistent-uuid",
             "target_sk": target_path
         })
         assert response.status_code == 500

@@ -5,6 +5,7 @@ import logging
 from pydantic import BaseModel
 from fastapi import FastAPI, Request 
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from dotenv import load_dotenv
 from rembg import remove, new_session
@@ -49,8 +50,9 @@ class BackgroundRemovalRequest(BaseModel):
 # HELPERS
 
 def safe_path(sk: str) -> str:
-    path = os.path.realpath(os.path.join(STORAGE_DIR, sk))
-    if not path.startswith(os.path.realpath(STORAGE_DIR)):
+    storage_dir = os.getenv("STORAGE_DATA_DIR", "/tmp/imageprocessing/data")
+    path = os.path.realpath(os.path.join(storage_dir, sk))
+    if not path.startswith(os.path.realpath(storage_dir)):
         raise ValueError(f"Invalid storage key: {sk}")
     return path
 
@@ -58,8 +60,8 @@ def safe_path(sk: str) -> str:
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     return JSONResponse(
             status_code=422,
-            content={"errors": exc.errors()}
-            )   
+            content=jsonable_encoder({"errors": exc.errors()})
+            )
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -81,9 +83,13 @@ def convert_format(request: ProcessRequest):
                 .output(safe_path(request.target_sk), format=request.output_format) \
                 .run(capture_stdout=True, capture_stderr=True)
         logger.info(f'converted {safe_path(request.source_sk)} to {safe_path(request.target_sk)}')
-        return JSONResponse(content={"target_sk": safe_path(request.target_sk)}, status_code=200)
-    except ffmpeg.Error as e:
-        logger.error(f'ffmpeg failed: {e.stderr.decode()}')
+        return JSONResponse(content={"target_sk": request.target_sk}, status_code=200)
+    except Exception as e:
+        stderr = getattr(e, 'stderr', b'')
+        if stderr:
+            logger.error(f'ffmpeg failed: {stderr.decode()}')
+        else:
+            logger.error(f'ffmpeg failed: {e}')
         raise
 
 @app.post("/remove_background")
@@ -95,9 +101,9 @@ def remove_background(request: BackgroundRemovalRequest):
                 input_data = i.read()
                 output = remove(input_data, session=session)
                 o.write(output)
-        return JSONResponse(content={"target_sk": safe_path(request.target_sk)}, status_code=200)
+        return JSONResponse(content={"target_sk": request.target_sk}, status_code=200)
     except FileNotFoundError:
-        logger.error(f'source file not found: {safe_path(request.source_sk)}')
+        logger.error(f'source file not found: {request.source_sk}')
         raise
     except Exception as e:
         logger.error(f'background removal failed: {e}')

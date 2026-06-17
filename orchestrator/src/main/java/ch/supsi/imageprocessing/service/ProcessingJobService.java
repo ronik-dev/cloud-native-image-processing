@@ -5,7 +5,6 @@ import ch.supsi.imageprocessing.common.enums.JobStatus;
 import ch.supsi.imageprocessing.common.enums.JobType;
 import ch.supsi.imageprocessing.common.dto.ConvertFormatRequest;
 import ch.supsi.imageprocessing.common.dto.RemoveBackgroundRequest;
-import ch.supsi.imageprocessing.common.dto.WorkerResponse;
 import ch.supsi.imageprocessing.entity.Image;
 import ch.supsi.imageprocessing.client.WorkerClient;
 import ch.supsi.imageprocessing.repository.ProcessingJobRepository;
@@ -67,22 +66,24 @@ public class ProcessingJobService {
 						job.setStatus(JobStatus.RUNNING);
 						pjr.save(job);
 
-						WorkerResponse result = switch (job.getType()) {
-								case JobType.FORMAT_CONVERSION -> wc.convertFormat(
-												new ConvertFormatRequest(
-														job.getImage().getStorageKey(),
-														job.getImage().getFormat(),
-														job.getTargetStorageKey(),
-														job.getTargetFormat()
-														)
-												);
-								case JobType.BACKGROUND_REMOVAL -> wc.removeBackground(
-												new RemoveBackgroundRequest(
-														job.getImage().getStorageKey(),
-														job.getTargetStorageKey()
-														)
-												);
-								default -> throw new IllegalArgumentException("Undefined JobType: " + job.getType());
+						switch (job.getType()) {
+								case JobType.FORMAT_CONVERSION :wc.convertFormat(
+										new ConvertFormatRequest(
+												job.getImage().getStorageKey(),
+												job.getImage().getFormat(),
+												job.getTargetStorageKey(),
+												job.getTargetFormat()
+												)
+										);
+										break;
+								case JobType.BACKGROUND_REMOVAL :wc.removeBackground(
+									   	new RemoveBackgroundRequest(
+												job.getImage().getStorageKey(),
+												job.getTargetStorageKey()
+												)
+									   	);
+										break;
+								default :throw new IllegalArgumentException("Undefined JobType: " + job.getType());
 						};
 
 						job.setStatus(JobStatus.DONE);

@@ -26,12 +26,14 @@ orchestrator can remain at one replica while worker replicas are added independe
 ```
 Orchestrator
   |
-  |`- HTTP POST (port 8082)
+  |-- HTTP POST /convert_format    (port 8082)
+  |-- HTTP POST /remove_background (port 8082)
+  |-- HTTP POST /detect_objects    (port 8082)
   v
 AI Worker
-  |
-  |`- FFmpeg (system binary, format conversion)
-  |`- rembg / HuggingFace model (background removal)
+  |-- FFmpeg          (format conversion)
+  |-- rembg           (background removal, isnet-general-use model)
+  |-- Deformable DETR (object detection, SenseTime/deformable-detr-with-box-refine)
   v
 Shared storage directory (read source, write output)
 ```
@@ -63,6 +65,23 @@ Chosen over direct HuggingFace `transformers` integration for its simplicity: a 
 function call handles model inference, pre-processing, and post-processing. The
 underlying model weights are downloaded on first run and cached locally.
 
+**Deformable DETR** — object detection model from SenseTime, accessed via the
+HuggingFace `transformers` library. An encoder-decoder transformer with a ResNet-50
+backbone and box refinement, trained on COCO 2017 (118k images, 80 object classes).
+Chosen for its strong detection accuracy, well-maintained HuggingFace integration,
+and structured output (bounding boxes + class labels + confidence scores). The model
+runs on CPU — inference takes 5–15 seconds per image on CPU, which makes the async
+job processing pattern visually demonstrable in the UI.
+
+**torch + torchvision** — required by the `transformers` library for model inference.
+Installed from the PyTorch CPU index to avoid pulling in GPU-specific binaries.
+The `explicit = true` flag in `pyproject.toml` ensures only `torch` and `torchvision`
+are fetched from the PyTorch index; all other packages including `tqdm` resolve from
+PyPI, avoiding version conflicts with `rembg`.
+
+**Pillow** — used to open images for DETR inference and to draw annotated bounding
+boxes on the output image.
+
 **uv** — Python package manager used instead of pip/poetry. Faster dependency
 resolution, built-in virtual environment management, and support for dependency
 groups (separating production from development dependencies).
@@ -71,21 +90,39 @@ groups (separating production from development dependencies).
 
 ## Startup and model loading
 
-The rembg model session is loaded once at application startup using FastAPI's
-`lifespan` context manager, which replaced the deprecated `@app.on_event("startup")`
-pattern in recent FastAPI versions. The session is stored in a module-level dictionary
+All models are loaded once at application startup using FastAPI's `lifespan` context
+manager, which replaced the deprecated `@app.on_event("startup")` pattern in recent
+FastAPI versions. Sessions and model objects are stored in a module-level dictionary
 (`ml_models`) and accessed from endpoint handlers.
+
+```python
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    ml_models["rembg"] = new_session("isnet-general-use")
+    processor = AutoImageProcessor.from_pretrained("SenseTime/deformable-detr-with-box-refine")
+    model = DeformableDetrForObjectDetection.from_pretrained("SenseTime/deformable-detr-with-box-refine")
+    model.eval()
+    ml_models["detr_processor"] = processor
+    ml_models["detr_model"] = model
+    yield
+    ml_models.clear()
+```
+
+The structure is flat — no nested context managers, a single `yield` after all models
+are loaded. This is important: nesting `async with` blocks inside `lifespan` produces
+a `TypeError` at startup because the inner context manager is not a valid async
+iterator in this context.
 
 Loading at startup rather than on first request means:
 - The first request is not penalised by model load time
-- The application is not ready to serve until the model is loaded
+- The application is not ready to serve until all models are loaded
 - In Kubernetes, the readiness probe will not pass until startup completes,
   naturally preventing traffic from reaching an unready pod
 
-On first run the model weights are downloaded from HuggingFace (~200MB). On subsequent
-runs they are loaded from the local cache (`~/.cache/huggingface`). In Docker this
-cache path should be mounted as a named volume to avoid re-downloading on every
-container restart.
+On first run model weights are downloaded from HuggingFace (~200MB for rembg,
+~164MB for DETR). On subsequent runs they are loaded from the local cache
+(`~/.cache/huggingface`). In Docker this cache path should be mounted as a named
+volume to avoid re-downloading on every container restart.
 
 ---
 
@@ -116,7 +153,7 @@ the value being captured at import.
 
 Returns the application status and the list of loaded models. Used by the orchestrator
 and later by Kubernetes liveness and readiness probes to verify the service is
-operational and models are loaded.
+operational and all models are loaded.
 
 ### `POST /convert_format`
 
@@ -141,19 +178,37 @@ target path.
 Returns `{"target_sk": "<key>"}` on success. On file not found or model failure
 the exception is re-raised and the global handler returns 500.
 
+### `POST /detect_objects`
+
+Accepts an `ObjectDetectionRequest` body with `source_sk` and `target_sk`. Reads
+the source image, runs Deformable DETR inference, draws annotated bounding boxes on
+the image using Pillow, and writes the annotated PNG to the target path.
+
+The detection confidence threshold defaults to `0.5` and is configurable via the
+`DETECTION_THRESHOLD` environment variable. The output is always PNG regardless of
+the input format since the annotation step produces a new image via Pillow.
+
+Returns `{"target_sk": "<key>"}` on success. On file not found or model failure
+the exception is re-raised and the global handler returns 500.
+
 ---
 
 ## Request models
 
-Two separate Pydantic models are defined rather than reusing one model for all
-endpoints. This makes the contract explicit per endpoint and prevents the gateway
-from accidentally sending format fields to background removal requests or vice versa.
+Three separate Pydantic models are defined, one per endpoint. This makes the contract
+explicit per operation and prevents accidentally sending format fields to endpoints
+that do not need them.
 
 `ProcessRequest` — used by `/convert_format`. Fields: `source_sk`, `input_format`,
 `target_sk`, `output_format`.
 
 `BackgroundRemovalRequest` — used by `/remove_background`. Fields: `source_sk`,
 `target_sk` only.
+
+`ObjectDetectionRequest` — used by `/detect_objects`. Fields: `source_sk`,
+`target_sk` only. No format fields since the output is always PNG.
+
+---
 
 ## Format normalization
 
@@ -177,9 +232,9 @@ canonical names and FFmpeg-specific codec/muxer identifiers.
 ## Error handling
 
 **Endpoint-level** — specific exceptions are caught and logged with context before
-being re-raised. `FfmpegError` (or plain `Exception` when ffmpeg is mocked) is
-caught in `convert_format` and logged with stderr output. `FileNotFoundError` and
-general `Exception` are caught in `remove_background` with appropriate log messages.
+being re-raised. FFmpeg failures are logged with the decoded stderr output.
+`FileNotFoundError` is caught separately in endpoints that read source files.
+General `Exception` is caught as a fallback with the error message logged.
 
 **Application-level** — two global exception handlers are registered:
 
@@ -200,33 +255,58 @@ actual HTTP response instead, enabling 500 assertions to work correctly.
 
 ## Endpoint design decisions
 
-**Synchronous handlers** — both endpoint functions are plain `def`, not `async def`.
-FFmpeg invocation and file I/O are blocking operations that would block the event loop
-if run in an `async` function. FastAPI automatically runs plain `def` functions in a
-thread pool executor, keeping the event loop free for other requests.
+**Synchronous handlers** — all endpoint functions are plain `def`, not `async def`.
+FFmpeg invocation, file I/O, and model inference are all blocking operations that
+would block the event loop if run in an `async` function. FastAPI automatically runs
+plain `def` functions in a thread pool executor, keeping the event loop free for
+other requests.
 
-**CPU-only inference** — the rembg model runs on CPU. No GPU is required or configured.
+**CPU-only inference** — all models run on CPU. No GPU is required or configured.
 This keeps the Docker image and Kubernetes pod spec simple and avoids GPU quota
-constraints on cloud providers.
+constraints on cloud providers. The `torch.no_grad()` context manager is used during
+DETR inference to disable gradient computation, reducing memory usage.
 
-**Return original key not resolved path** — endpoints return `request.source_sk` /
-`request.target_sk` (the original UUID key) rather than the full resolved filesystem
-path from `safe_path()`. The orchestrator already knows the storage key and uses it
-to update the database; returning the full path would leak internal filesystem structure.
+**Return original key not resolved path** — endpoints return `request.target_sk`
+(the original UUID key) rather than the full resolved filesystem path from
+`safe_path()`. The orchestrator already knows the storage key and uses it to update
+the database; returning the full path would leak internal filesystem structure.
+
+**Object detection output is always PNG** — the annotated image produced by
+`draw_boxes` is always saved as PNG via Pillow, regardless of the input format.
+This is a deliberate simplification: the annotation step creates a new image rather
+than converting the original, and PNG is a lossless format suitable for annotated
+output.
 
 ---
 
 ## Dependency management
 
-Production and development dependencies are separated using uv dependency groups:
+Production and development dependencies are separated using uv dependency groups.
+The PyTorch CPU index is registered as an explicit source so it is only used for
+`torch` and `torchvision`, preventing version conflicts with other packages:
 
-```
-[project.dependencies]       <- installed in production (Docker)
-fastapi, uvicorn, ffmpeg-python, rembg, python-dotenv
+```toml
+[project.dependencies]
+fastapi, uvicorn, ffmpeg-python, rembg, torch, torchvision,
+transformers, timm, pillow, python-dotenv
 
-[dependency-groups.dev]      <- only installed locally and in CI
+[dependency-groups.dev]
 pytest, httpx
+
+[[tool.uv.index]]
+url = "https://download.pytorch.org/whl/cpu"
+name = "pytorch-cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]
+torchvision = [{ index = "pytorch-cpu" }]
 ```
+
+The `explicit = true` flag is critical — without it uv uses the PyTorch index as a
+primary source for all packages including `tqdm`, which conflicts with rembg's version
+requirement. With `explicit = true` only torch and torchvision are fetched from the
+PyTorch index and everything else resolves from PyPI normally.
 
 The Docker image uses `uv sync --no-dev` to exclude test dependencies from the
 production image, reducing image size and attack surface.
@@ -236,13 +316,13 @@ production image, reducing image size and attack surface.
 ## Testing
 
 Unit and integration tests use FastAPI's `TestClient` backed by `httpx`. The rembg
-model session is replaced with a `MagicMock` via `monkeypatch.setitem` before every
-test, preventing any model download or load during the test suite. The storage
-directory is redirected to a `tmp_path` fixture directory via `monkeypatch.setenv`,
-isolating test file I/O from the real storage path.
+model session and DETR model/processor are replaced with `MagicMock` instances via
+`monkeypatch.setitem` before every test, preventing any model download or load during
+the test suite. The storage directory is redirected to a `tmp_path` fixture directory
+via `monkeypatch.setenv`, isolating test file I/O from the real storage path.
 
 Test coverage includes health check responses, `safe_path` traversal protection,
-successful format conversion and background removal, FFmpeg and model failures
+successful format conversion, background removal and object detection, model failures
 producing 500, missing source files producing 500, and malformed request bodies
 producing 422.
 
@@ -259,16 +339,23 @@ uv sync
 uv run python main.py
 ```
 
-| Variable          | Default                        | Purpose                                |
-|-------------------|--------------------------------|----------------------------------------|
-| `WORKER_PORT`     | `8082`                         | Port the uvicorn server binds to       |
-| `STORAGE_DATA_DIR`| `/tmp/imageprocessing/data`    | Shared file storage base path          |
-| `WORKER_URL`      | `http://localhost:8082`        | Configured in orchestrator, not worker |
+| Variable             | Default                        | Purpose                                |
+|----------------------|--------------------------------|----------------------------------------|
+| `WORKER_PORT`        | `8082`                         | Port the uvicorn server binds to       |
+| `STORAGE_DATA_DIR`   | `/tmp/imageprocessing/data`    | Shared file storage base path          |
+| `DETECTION_THRESHOLD`| `0.5`                          | Minimum confidence for object detection|
+| `WORKER_URL`         | `http://localhost:8082`        | Configured in orchestrator, not worker |
 
-The health endpoint confirms the service is running and the model is loaded:
+The health endpoint confirms the service is running and all models are loaded:
 
 ```
 curl http://localhost:8082/health
+```
+
+Expected response when fully initialised:
+
+```json
+{"status": "ok", "models": ["rembg", "detr_processor", "detr_model"]}
 ```
 
 To run the test suite:
@@ -276,5 +363,3 @@ To run the test suite:
 ```
 uv run pytest test/ -v
 ```
-
----

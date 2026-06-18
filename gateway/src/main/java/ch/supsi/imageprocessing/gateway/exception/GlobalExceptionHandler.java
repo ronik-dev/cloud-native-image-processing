@@ -24,6 +24,10 @@ public class GlobalExceptionHandler {
 		public ResponseEntity<ErrorResponse> handleWebClientException(
 						WebClientResponseException ex, HttpServletRequest request) {
 
+				System.out.println("WebClientResponseException caught");
+				System.out.println("Status: " + ex.getStatusCode());
+				System.out.println("Body: " + ex.getResponseBodyAsString());
+				ex.printStackTrace();
 				String rawBody = ex.getResponseBodyAsString();
 
 				if (rawBody != null && !rawBody.isBlank()) {
@@ -56,7 +60,7 @@ public class GlobalExceptionHandler {
 										null
 										)
 								);
-						}
+		}
 
 		@ExceptionHandler(UncheckedIOException.class)
 		public ResponseEntity<ErrorResponse> handleUncheckedIO(
@@ -69,11 +73,15 @@ public class GlobalExceptionHandler {
 										request.getRequestURI(),
 										null
 										));
-						}
+		}
 
 		@ExceptionHandler(Exception.class)
 		public ResponseEntity<ErrorResponse> handleGeneral(
 						Exception ex, HttpServletRequest request) {
+
+				System.out.println("General exception caught: " + ex.getClass().getName());
+				System.out.println("Message: " + ex.getMessage());
+				ex.printStackTrace();
 				return ResponseEntity.status(500).body(new ErrorResponse(
 										LocalDateTime.now().toString(),
 										500,
@@ -82,5 +90,5 @@ public class GlobalExceptionHandler {
 										request.getRequestURI(),
 										null
 										));
-						}
+		}
 }

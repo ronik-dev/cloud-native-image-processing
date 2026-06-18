@@ -9,9 +9,12 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 
+import java.nio.charset.StandardCharsets;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
+
+import reactor.core.publisher.Mono;
 
 @Component
 public class OrchestratorClient {
@@ -119,11 +122,11 @@ public class OrchestratorClient {
 		}
 
 		public ResponseEntity<byte[]> downloadJobResult(Long jobId) {
-				return webClient.get()
-						.uri("/jobs/{id}/result", jobId)
-						.retrieve()
-						.toEntity(byte[].class)
-						.block();
+		    return webClient.get()
+		            .uri("/jobs/{id}/result", jobId)
+		            .retrieve()
+		            .toEntity(byte[].class)
+		            .block();
 		}
 
 		public ImageResponse uploadImage(MultipartFile file, Long userId) {

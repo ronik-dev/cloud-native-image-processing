@@ -5,6 +5,7 @@ import ch.supsi.imageprocessing.common.enums.JobStatus;
 import ch.supsi.imageprocessing.common.enums.JobType;
 import ch.supsi.imageprocessing.common.dto.ConvertFormatRequest;
 import ch.supsi.imageprocessing.common.dto.RemoveBackgroundRequest;
+import ch.supsi.imageprocessing.common.dto.DetectObjectsRequest;
 import ch.supsi.imageprocessing.entity.Image;
 import ch.supsi.imageprocessing.client.WorkerClient;
 import ch.supsi.imageprocessing.repository.ProcessingJobRepository;
@@ -78,6 +79,13 @@ public class ProcessingJobService {
 										break;
 								case JobType.BACKGROUND_REMOVAL :wc.removeBackground(
 									   	new RemoveBackgroundRequest(
+												job.getImage().getStorageKey(),
+												job.getTargetStorageKey()
+												)
+									   	);
+										break;
+								case JobType.OBJECT_DETECTION:wc.detectObjects(
+									   	new DetectObjectsRequest(
 												job.getImage().getStorageKey(),
 												job.getTargetStorageKey()
 												)

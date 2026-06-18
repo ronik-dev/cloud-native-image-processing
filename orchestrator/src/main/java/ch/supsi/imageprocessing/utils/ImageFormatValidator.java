@@ -9,10 +9,19 @@ import java.io.InputStream;
 import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class ImageFormatValidator {
 
 		private static final List<String> ALLOWED_MIME_TYPES = Arrays.asList("image/jpeg", "image/png", "image/gif", "image/webp", "image/bmp");
+
+		private static final Map<String, String> MIME_TO_FORMAT = Map.of(
+		    "image/jpeg", "jpg",
+		    "image/png",  "png",
+		    "image/gif",  "gif",
+		    "image/webp", "webp",
+		    "image/bmp",  "bmp"
+		);
 
 		public static String validateAndExtractFormat(MultipartFile file) {
 				if (file == null || file.isEmpty()) 
@@ -24,10 +33,11 @@ public class ImageFormatValidator {
 						if (actualMimeType == null || !ALLOWED_MIME_TYPES.contains(actualMimeType.toLowerCase())) 
 								throw new UnsupportedFileFormatException("Invalid file type. Only standard images (JPEG, PNG, WEBP, GIF, BMP) are allowed.");
 
-						return actualMimeType.substring(actualMimeType.indexOf("/") + 1).toLowerCase();
+						return MIME_TO_FORMAT.getOrDefault(actualMimeType.toLowerCase(), actualMimeType.substring(actualMimeType.indexOf("/") + 1).toLowerCase());
 
 				} catch (IOException e) {
 						throw new RuntimeException("Failed to analyze file stream signatures.", e);
 				}
 		}
+
 }

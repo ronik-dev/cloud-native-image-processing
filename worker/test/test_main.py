@@ -136,12 +136,14 @@ class TestConvertFormat:
                 "output_format": "jpg"
             })
 
-            mock_ffmpeg.input.assert_called_once_with(
-                str(storage_dir / source_image), format="png"
-            )
-            mock_input.output.assert_called_once_with(
-                str(storage_dir / target_path), format="jpg"
-            )
+        mock_ffmpeg.input.assert_called_once_with(
+            str(storage_dir / source_image)
+        )
+        mock_input.output.assert_called_once_with(
+            str(storage_dir / target_path),
+            vcodec="mjpeg",
+            f="image2"
+        )
 
     def test_returns_500_when_ffmpeg_raises(self, client, storage_dir, source_image, target_path):
         # storage_dir ensures safe_path resolves correctly before ffmpeg is called

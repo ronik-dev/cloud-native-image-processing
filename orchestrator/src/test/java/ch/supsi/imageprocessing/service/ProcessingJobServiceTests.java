@@ -3,10 +3,13 @@ package ch.supsi.imageprocessing.service;
 import ch.supsi.imageprocessing.entity.Image;
 import ch.supsi.imageprocessing.common.enums.JobStatus;
 import ch.supsi.imageprocessing.common.enums.JobType;
+import ch.supsi.imageprocessing.common.dto.ConvertFormatRequest;
+import ch.supsi.imageprocessing.common.dto.RemoveBackgroundRequest;
+import ch.supsi.imageprocessing.common.dto.WorkerResponse;
 import ch.supsi.imageprocessing.entity.ProcessingJob;
 import ch.supsi.imageprocessing.entity.User;
 import ch.supsi.imageprocessing.common.exception.ResourceNotFoundException;
-import ch.supsi.imageprocessing.processor.ImageProcessor;
+import ch.supsi.imageprocessing.client.WorkerClient;
 import ch.supsi.imageprocessing.repository.ProcessingJobRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,7 +32,7 @@ class ProcessingJobServiceTest {
 		private ProcessingJobRepository pjr;
 
 		@Mock
-		private ImageProcessor ip;
+		private WorkerClient wc;
 
 		@Mock
 		private StorageService ss;
@@ -96,30 +99,32 @@ class ProcessingJobServiceTest {
 		// ==========================================
 
 		@Test
-		void startAsyncProcessExecution_ShouldSetStatusToDone_WhenProcessorSucceeds() throws Exception {
-				Long jobId = 100L;
-				ProcessingJob job = newJob();
+		void startAsyncProcessExecution_ShouldSetStatusToDone_WhenProcessorSucceeds() {
+				Long jobId = 42L;
+				ProcessingJob job = newJob(); // assumes FORMAT_CONVERSION type
 				when(pjr.findById(jobId)).thenReturn(Optional.of(job));
-				when(ip.execute(any(ProcessingJob.class))).thenReturn("/tmp/outputs/output.png");
+				when(wc.convertFormat(any(ConvertFormatRequest.class)))
+						.thenReturn(new WorkerResponse(job.getTargetStorageKey()));
 
 				processingJobService.startAsyncProcessExecution(jobId);
 
 				assertEquals(JobStatus.DONE, job.getStatus());
-				verify(ip, times(1)).execute(any(ProcessingJob.class));
+				verify(wc, times(1)).convertFormat(any(ConvertFormatRequest.class));
 				verify(pjr, atLeastOnce()).save(job);
 		}
 
 		@Test
-		void startAsyncProcessExecution_ShouldSetStatusToFailed_WhenProcessorThrows() throws Exception {
-				Long jobId = 100L;
+		void startAsyncProcessExecution_ShouldSetStatusToFailed_WhenProcessorThrows() {
+				Long jobId = 42L;
 				ProcessingJob job = newJob();
 				when(pjr.findById(jobId)).thenReturn(Optional.of(job));
-				when(ip.execute(any(ProcessingJob.class))).thenThrow(new RuntimeException("Simulated FFmpeg crash"));
+				when(wc.convertFormat(any(ConvertFormatRequest.class)))
+						.thenThrow(new RuntimeException("Simulated worker failure"));
 
 				processingJobService.startAsyncProcessExecution(jobId);
 
 				assertEquals(JobStatus.FAILED, job.getStatus());
-				verify(ip, times(1)).execute(any(ProcessingJob.class));
+				verify(wc, times(1)).convertFormat(any(ConvertFormatRequest.class));
 				verify(pjr, atLeastOnce()).save(job);
 		}
 

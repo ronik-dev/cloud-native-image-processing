@@ -1,10 +1,9 @@
 package ch.supsi.imageprocessing.common.dto;
 
-import java.time.LocalDateTime;
 import java.util.Map;
 
 public record ErrorResponse(
-    LocalDateTime timestamp,
+    String timestamp,
     int status,
     String error,
     String message,

@@ -122,9 +122,12 @@ operational and models are loaded.
 
 Accepts a `ProcessRequest` body with `source_sk`, `input_format`, `target_sk`, and
 `output_format`. Invokes FFmpeg to convert the source file to the target format.
-FFmpeg is called with explicit `format` arguments on both input and output sides,
-so no file extension is required on the storage keys — format information comes from
-the database, not from filenames.
+FFmpeg auto-detects the input format from the file's magic bytes — no `-f` flag is
+passed on the input side since storage keys have no file extension. On the output
+side, `vcodec` and `f` (muxer) are specified explicitly via `FFMPEG_CODEC_MAP`,
+which translates canonical format names (`jpg`, `png`) to FFmpeg-specific codec and
+container names (`mjpeg`/`image2`, `png`/`image2`). This translation is the only
+place in the system where FFmpeg internals are referenced.
 
 Returns `{"target_sk": "<key>"}` on success. On FFmpeg failure the exception is
 re-raised and caught by the global exception handler, which returns 500.
@@ -151,6 +154,23 @@ from accidentally sending format fields to background removal requests or vice v
 
 `BackgroundRemovalRequest` — used by `/remove_background`. Fields: `source_sk`,
 `target_sk` only.
+
+## Format normalization
+
+A single canonical format name flows through the entire system. `ImageFormatValidator`
+in the orchestrator maps MIME types to canonical names at upload time
+(`image/jpeg` → `jpg`). The UI sends the same canonical names as target format
+values. The worker's `FFMPEG_CODEC_MAP` is the only translation point between
+canonical names and FFmpeg-specific codec/muxer identifiers.
+
+| Layer                   | Value stored/sent          |
+|-------------------------|----------------------------|
+| Database (format col)   | `jpg`                      |
+| JobRequest.targetFormat | `jpg`                      |
+| ConvertFormatRequest    | `jpg`                      |
+| FFMPEG_CODEC_MAP input  | `jpg` → `mjpeg` + `image2` |
+
+`jpeg` never appears outside the worker's codec map defensive fallback.
 
 ---
 
@@ -239,10 +259,11 @@ uv sync
 uv run python main.py
 ```
 
-| Variable          | Default                        | Purpose                          |
-|-------------------|--------------------------------|----------------------------------|
-| `WORKER_PORT`     | `8082`                         | Port the uvicorn server binds to |
-| `STORAGE_DATA_DIR`| `/tmp/imageprocessing/data`    | Shared file storage base path    |
+| Variable          | Default                        | Purpose                                |
+|-------------------|--------------------------------|----------------------------------------|
+| `WORKER_PORT`     | `8082`                         | Port the uvicorn server binds to       |
+| `STORAGE_DATA_DIR`| `/tmp/imageprocessing/data`    | Shared file storage base path          |
+| `WORKER_URL`      | `http://localhost:8082`        | Configured in orchestrator, not worker |
 
 The health endpoint confirms the service is running and the model is loaded:
 

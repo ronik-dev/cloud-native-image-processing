@@ -188,3 +188,8 @@ button:hover { background-color: var(--btn-def-hover); }
 .status-running { background-color: var(--status-running-bg); color: var(--status-running-text); }
 .status-done { background-color: var(--status-done-bg); color: var(--status-done-text); }
 .status-failed { background-color: var(--status-failed-bg); color: var(--status-failed-text); }
+
+
+#operationSelect:has(option[value="BACKGROUND_REMOVAL"]:checked) ~ #targetFormatSelect {
+    display: none!important;
+}

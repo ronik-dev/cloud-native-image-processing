@@ -59,9 +59,9 @@ sub-packages:
 
 ```
 common/src/main/java/ch/supsi/imageprocessing/common/
-├── dto/
-├── enums/
-└── exception/
+|-- dto/
+|-- enums/
+`-- exception/
 ```
 
 The directory path on disk must exactly mirror the package name — Java will not compile

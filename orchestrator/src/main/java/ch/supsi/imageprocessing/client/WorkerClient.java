@@ -3,6 +3,7 @@ package ch.supsi.imageprocessing.client;
 import ch.supsi.imageprocessing.common.dto.ConvertFormatRequest;
 import ch.supsi.imageprocessing.common.dto.WorkerResponse;
 import ch.supsi.imageprocessing.common.dto.RemoveBackgroundRequest;
+import ch.supsi.imageprocessing.common.dto.DetectObjectsRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -35,4 +36,12 @@ public class WorkerClient{
 						.block();
 		}
 
+		public WorkerResponse detectObjects(DetectObjectsRequest request) {
+				return webClient.post()
+						.uri("/detect_objects")
+						.bodyValue(request)
+						.retrieve()
+						.bodyToMono(WorkerResponse.class)
+						.block();
+		}
 }

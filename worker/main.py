@@ -1,7 +1,9 @@
 import uvicorn
+
 import os
 import ffmpeg
 import logging
+import io
 from pydantic import BaseModel
 from fastapi import FastAPI, Request 
 from fastapi.responses import JSONResponse
@@ -9,6 +11,9 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from dotenv import load_dotenv
 from rembg import remove, new_session
+from PIL import Image, ImageDraw
+from transformers import AutoImageProcessor, DeformableDetrForObjectDetection
+import torch
 from contextlib import asynccontextmanager
 
 # CONFIGS
@@ -23,8 +28,13 @@ ml_models = {}
 async def lifespan(app: FastAPI):
     # startup
     ml_models["rembg"] = new_session("isnet-general-use")
+    processor = AutoImageProcessor.from_pretrained("SenseTime/deformable-detr-with-box-refine")
+    model = DeformableDetrForObjectDetection.from_pretrained("SenseTime/deformable-detr-with-box-refine")
+    model.eval()
+    ml_models["detr_processor"] = processor
+    ml_models["detr_model"] = model
     yield
-    # shutdown 
+    # shutdown
     ml_models.clear()
 
 app = FastAPI(lifespan=lifespan)
@@ -46,6 +56,10 @@ class ProcessRequest(BaseModel):
 class BackgroundRemovalRequest(BaseModel):
     source_sk: str 
     target_sk: str 
+
+class ObjectDetectionRequest(BaseModel):
+    source_sk: str
+    target_sk: str
 
 FFMPEG_CODEC_MAP = {
     "jpg":  ("mjpeg", "image2"),
@@ -78,6 +92,18 @@ async def global_exception_handler(request: Request, exc: Exception):
             status_code=500,
             content={"message": f'An internal server error occurred {exc}'}
             )   
+
+
+def draw_boxes(image_bytes, results, id2label):
+    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    draw = ImageDraw.Draw(image)
+    for score, label, box in zip(results["scores"], results["labels"], results["boxes"]):
+        box = [round(i, 2) for i in box.tolist()]
+        draw.rectangle(box, outline="red", width=3)
+        draw.text((box[0], box[1]), f"{id2label[label.item()]} {round(score.item(), 2)}", fill="red")
+    output = io.BytesIO()
+    image.save(output, format="PNG")
+    return output.getvalue()
 
 # ENDPOINTS
 @app.get("/health")
@@ -123,6 +149,48 @@ def remove_background(request: BackgroundRemovalRequest):
         raise
     except Exception as e:
         logger.error(f'background removal failed: {e}')
+        raise
+
+
+@app.post("/detect_objects")
+def detect_objects(request: ObjectDetectionRequest):
+    try:
+        src = safe_path(request.source_sk)
+        tgt = safe_path(request.target_sk)
+
+        processor = ml_models["detr_processor"]
+        model = ml_models["detr_model"]
+
+        with open(src, "rb") as f:
+            image_bytes = f.read()
+
+        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        inputs = processor(images=image, return_tensors="pt")
+
+        with torch.no_grad():
+            outputs = model(**inputs)
+
+        target_sizes = torch.tensor([image.size[::-1]])
+        threshold = float(os.getenv("DETECTION_THRESHOLD", "0.5"))
+        results = processor.post_process_object_detection(
+            outputs,
+            target_sizes=target_sizes,
+            threshold=threshold
+        )[0]
+
+        annotated = draw_boxes(image_bytes, results, model.config.id2label)
+
+        with open(tgt, "wb") as f:
+            f.write(annotated)
+
+        logger.info(f'detected objects in {src}, output written to {tgt}')
+        return JSONResponse(content={"target_sk": request.target_sk}, status_code=200)
+
+    except FileNotFoundError:
+        logger.error(f'source file not found: {request.source_sk}')
+        raise
+    except Exception as e:
+        logger.error(f'object detection failed: {e}')
         raise
 
 if __name__ == "__main__":

@@ -20,6 +20,10 @@ public class WebClientConfig {
 		public WebClient orchestratorWebClient() {
 				return WebClient.builder()
 						.baseUrl(orchestratorUrl)
+						.codecs(configurer -> configurer
+            			    .defaultCodecs()
+            			    .maxInMemorySize(10 * 1024 * 1024) // 10MB
+            			)
 						.defaultStatusHandler(
 								HttpStatusCode::isError,
 								response -> response.bodyToMono(String.class)

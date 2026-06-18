@@ -190,6 +190,6 @@ button:hover { background-color: var(--btn-def-hover); }
 .status-failed { background-color: var(--status-failed-bg); color: var(--status-failed-text); }
 
 
-#operationSelect:has(option[value="BACKGROUND_REMOVAL"]:checked) ~ #targetFormatSelect {
+#operationSelect:has(option[value="FORMAT_CONVERSION"]:not(:checked)) ~ #targetFormatSelect {
     display: none!important;
 }

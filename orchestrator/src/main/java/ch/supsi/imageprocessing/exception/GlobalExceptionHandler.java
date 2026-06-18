@@ -126,7 +126,7 @@ public class GlobalExceptionHandler {
 
 
 		private ResponseEntity<ErrorResponse> buildResponse(HttpStatus status, String error, String message, String path, Map<String, String> validationErrors) {
-				ErrorResponse response = new ErrorResponse(LocalDateTime.now(), status.value(), error, message, path, validationErrors);
+				ErrorResponse response = new ErrorResponse(LocalDateTime.now().toString(), status.value(), error, message, path, validationErrors);
 				return new ResponseEntity<>(response, status);
 		}
 }

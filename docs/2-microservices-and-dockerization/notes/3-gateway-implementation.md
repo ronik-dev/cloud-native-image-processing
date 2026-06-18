@@ -110,14 +110,25 @@ the browser as 500.
 The solution has two parts:
 
 A `defaultStatusHandler` in `WebClientConfig` intercepts error responses from the
-orchestrator and wraps them in `WebClientResponseException`, preserving the original
-status code and response body.
+orchestrator, reads the raw response body as a `String`, and wraps it in a
+`WebClientResponseException` preserving the original status code and body bytes. Reading
+the body as raw `String` rather than deserializing it directly is important —
+`WebClient`'s internal `ObjectMapper` does not share the Spring-managed instance and
+would fail on certain field types. The raw bytes are attached to the exception so the
+handler can access them later.
 
-A `GlobalExceptionHandler` in the gateway catches `WebClientResponseException` and
-attempts to deserialize the response body as `ErrorResponse`. If successful, it
-re-stamps the path with the gateway's request URI (not the internal orchestrator path)
-and forwards the error to the browser with the original status code. If deserialization
-fails (unexpected response shape), a generic fallback error is returned.
+A `GlobalExceptionHandler` in the gateway catches `WebClientResponseException`,
+deserializes the raw body into `ErrorResponse` using the Spring-managed `ObjectMapper`,
+re-stamps the `path` field with the gateway's request URI (not the internal orchestrator
+path), and forwards the error to the browser with the original status code. If
+deserialization fails (empty body or unexpected response shape), a generic fallback
+error is returned.
+
+This works cleanly because `ErrorResponse` uses `String` for the timestamp field
+rather than `LocalDateTime` — a deliberate design decision to avoid a `JavaTimeModule`
+dependency in the gateway. The orchestrator serializes `LocalDateTime.now().toString()`
+before constructing the response, producing an ISO string that is JSON-serializable with
+a plain `ObjectMapper` and equally readable to the browser.
 
 This means a 404 from the orchestrator arrives at the browser as a 404, a 409 as a 409,
 and so on — the gateway is transparent for errors as well as successes.
@@ -189,3 +200,4 @@ be up before it can serve any requests, but it starts independently regardless.
 The orchestrator URL is configured in `gateway/src/main/resources/application.properties`
 and reads from the `ORCHESTRATOR_URL` environment variable with `http://localhost:8081/internal`
 as the local default. No `.env` file is required for the gateway in local development.
+

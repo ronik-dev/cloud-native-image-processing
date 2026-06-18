@@ -47,6 +47,15 @@ class BackgroundRemovalRequest(BaseModel):
     source_sk: str 
     target_sk: str 
 
+FFMPEG_CODEC_MAP = {
+    "jpg":  ("mjpeg", "image2"),
+    "jpeg": ("mjpeg", "image2"),
+    "png":  ("png",   "image2"),
+    "gif":  ("gif",   "gif"),
+    "webp": ("libwebp", "webp"),
+    "bmp":  ("bmp",   "image2"),
+}
+
 # HELPERS
 
 def safe_path(sk: str) -> str:
@@ -59,9 +68,9 @@ def safe_path(sk: str) -> str:
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     return JSONResponse(
-            status_code=422,
-            content=jsonable_encoder({"errors": exc.errors()})
-            )
+        status_code=422,
+        content=jsonable_encoder({"errors": exc.errors()})
+    )
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -76,13 +85,20 @@ async def health():
     logger.info("health request")
     return JSONResponse(content={"status": "ok", "models": list(ml_models.keys())}, status_code=200)
 
+
 @app.post("/convert_format")
 def convert_format(request: ProcessRequest):
     try:
-        ffmpeg.input(safe_path(request.source_sk), format=request.input_format) \
-                .output(safe_path(request.target_sk), format=request.output_format) \
-                .run(capture_stdout=True, capture_stderr=True)
-        logger.info(f'converted {safe_path(request.source_sk)} to {safe_path(request.target_sk)}')
+        src = safe_path(request.source_sk)
+        tgt = safe_path(request.target_sk)
+        codec, container = FFMPEG_CODEC_MAP.get(
+            request.output_format.lower(),
+            (request.output_format.lower(), request.output_format.lower())
+        )
+        ffmpeg.input(src) \
+              .output(tgt, vcodec=codec, f=container) \
+              .run(capture_stdout=True, capture_stderr=True)
+        logger.info(f'converted {src} to {tgt}')
         return JSONResponse(content={"target_sk": request.target_sk}, status_code=200)
     except Exception as e:
         stderr = getattr(e, 'stderr', b'')

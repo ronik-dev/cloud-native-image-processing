@@ -1,75 +1,86 @@
 package ch.supsi.imageprocessing.gateway.exception;
 
+import ch.supsi.imageprocessing.common.dto.ErrorResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-import ch.supsi.imageprocessing.common.dto.ErrorResponse;
-import jakarta.servlet.http.HttpServletRequest;
-import java.io.UncheckedIOException;
 
+import java.io.UncheckedIOException;
 import java.time.LocalDateTime;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(WebClientResponseException.class)
-    public ResponseEntity<ErrorResponse> handleWebClientException(
-            WebClientResponseException ex, HttpServletRequest request) {
-        
-        try {
-            ErrorResponse orchestratorError = ex.getResponseBodyAs(ErrorResponse.class);
-            if (orchestratorError != null) {
-                ErrorResponse gatewayError = new ErrorResponse(
-                    orchestratorError.timestamp(),
-                    orchestratorError.status(),
-                    orchestratorError.error(),
-                    orchestratorError.message(),
-                    request.getRequestURI(),
-                    orchestratorError.validationErrors()
-                );
-                return ResponseEntity.status(ex.getStatusCode()).body(gatewayError);
-            }
-        } catch (Exception ignored) {
-            // orchestrator did not return an ErrorResponse body, fall through
-        }
+		private final ObjectMapper objectMapper;
 
-        ErrorResponse fallback = new ErrorResponse(
-            LocalDateTime.now(),
-            ex.getStatusCode().value(),
-            ex.getStatusCode().toString(),
-            "Upstream service error",
-            request.getRequestURI(),
-            null
-        );
-        return ResponseEntity.status(ex.getStatusCode()).body(fallback);
-    }
+		public GlobalExceptionHandler(ObjectMapper objectMapper) {
+				this.objectMapper = objectMapper;
+		}
 
-    @ExceptionHandler(UncheckedIOException.class)
-    public ResponseEntity<ErrorResponse> handleUncheckedIO(
-            UncheckedIOException ex, HttpServletRequest request) {
-        ErrorResponse error = new ErrorResponse(
-            LocalDateTime.now(),
-            500,
-            "Internal Server Error",
-            "Failed to process uploaded file",
-            request.getRequestURI(),
-            null
-        );
-        return ResponseEntity.status(500).body(error);
-    }
+		@ExceptionHandler(WebClientResponseException.class)
+		public ResponseEntity<ErrorResponse> handleWebClientException(
+						WebClientResponseException ex, HttpServletRequest request) {
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGeneral(
-            Exception ex, HttpServletRequest request) {
-        ErrorResponse error = new ErrorResponse(
-            LocalDateTime.now(),
-            500,
-            "Internal Server Error",
-            "An unexpected error occurred",
-            request.getRequestURI(),
-            null
-        );
-        return ResponseEntity.status(500).body(error);
-    }
+				String rawBody = ex.getResponseBodyAsString();
+
+				if (rawBody != null && !rawBody.isBlank()) {
+						try {
+								ErrorResponse orchestratorError = objectMapper.readValue(
+												rawBody, ErrorResponse.class
+												);
+								return ResponseEntity.status(ex.getStatusCode()).body(
+												new ErrorResponse(
+														orchestratorError.timestamp(),
+														orchestratorError.status(),
+														orchestratorError.error(),
+														orchestratorError.message(),
+														request.getRequestURI(),
+														orchestratorError.validationErrors()
+														)
+												);
+						} catch (Exception ignored) {
+								// body was not a valid ErrorResponse, fall through to fallback
+						}
+				}
+
+				return ResponseEntity.status(ex.getStatusCode()).body(
+								new ErrorResponse(
+										LocalDateTime.now().toString(),
+										ex.getStatusCode().value(),
+										ex.getStatusCode().toString(),
+										"Upstream service error",
+										request.getRequestURI(),
+										null
+										)
+								);
+						}
+
+		@ExceptionHandler(UncheckedIOException.class)
+		public ResponseEntity<ErrorResponse> handleUncheckedIO(
+						UncheckedIOException ex, HttpServletRequest request) {
+				return ResponseEntity.status(500).body(new ErrorResponse(
+										LocalDateTime.now().toString(),
+										500,
+										"Internal Server Error",
+										"Failed to process uploaded file",
+										request.getRequestURI(),
+										null
+										));
+						}
+
+		@ExceptionHandler(Exception.class)
+		public ResponseEntity<ErrorResponse> handleGeneral(
+						Exception ex, HttpServletRequest request) {
+				return ResponseEntity.status(500).body(new ErrorResponse(
+										LocalDateTime.now().toString(),
+										500,
+										"Internal Server Error",
+										"An unexpected error occurred",
+										request.getRequestURI(),
+										null
+										));
+						}
 }

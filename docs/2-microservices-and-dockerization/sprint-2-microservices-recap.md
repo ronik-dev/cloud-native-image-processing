@@ -210,34 +210,37 @@ Exhaustive switch on enum — no `default` arm. If a new `JobType` is added with
 
 ```
 orchestrator/src/main/java/ch/supsi/imageprocessing/
-├── client/
-│   └── WorkerClient.java
-├── config/
-│   ├── WorkerWebClientConfig.java
-│   ├── AsyncConfig.java
-│   └── ObservationConfig.java
-├── controller/
-│   ├── UserController.java
-│   ├── ImageController.java
-│   └── ProcessingJobController.java
-├── entity/
-│   ├── User.java
-│   ├── Image.java
-│   └── ProcessingJob.java
-├── mapper/
-│   ├── UserMapper.java
-│   ├── ImageMapper.java
-│   └── JobMapper.java
-├── repository/
-│   ├── UserRepository.java
-│   ├── ImageRepository.java
-│   └── ProcessingJobRepository.java
-├── service/
-│   ├── UserService.java
-│   ├── ImageService.java
-│   ├── ProcessingJobService.java
-│   └── StorageService.java
-└── utils/
+├── client
+│   └── WorkerClient.java
+├── CloudNativeImageProcessingApplication.java
+├── config
+│   ├── AsyncConfig.java
+│   ├── ObservationConfig.java
+│   └── WorkerWebClientConfig.java
+├── controller
+│   ├── ImageController.java
+│   ├── ProcessingJobController.java
+│   └── UserController.java
+├── entity
+│   ├── Image.java
+│   ├── ProcessingJob.java
+│   └── User.java
+├── exception
+│   └── GlobalExceptionHandler.java
+├── mapper
+│   ├── ImageMapper.java
+│   ├── JobMapper.java
+│   └── UserMapper.java
+├── repository
+│   ├── ImageRepository.java
+│   ├── ProcessingJobRepository.java
+│   └── UserRepository.java
+├── service
+│   ├── ImageService.java
+│   ├── ProcessingJobService.java
+│   ├── StorageService.java
+│   └── UserService.java
+└── utils
     └── ImageFormatValidator.java
 ```
 
@@ -500,7 +503,7 @@ uv run pytest test/ -v
 
 ---
 
-## 11. Sprint 2 Completion Status
+## 11. Sprint 2 Completion Status (first half: microservices)
 
 | Task | Acceptance Criterion | Status | Notes |
 |---|---|---|---|
@@ -518,13 +521,3 @@ uv run pytest test/ -v
 | Background removal end-to-end | rembg pipeline working via UI, output downloadable | Done | |
 | Object detection end-to-end | DETR annotation pipeline working via UI, output downloadable | Done | |
 
-### What is not yet done (planned for next sprints)
-
-| Item | Planned Sprint |
-|---|---|
-| Dockerfiles for all services | Sprint 3 |
-| `docker-compose.yml` for local orchestration | Sprint 3 |
-| Kubernetes manifests (Deployments, Services, Ingress, HPA, PVCs) | Sprint 4 |
-| CI/CD pipeline (GitLab CI) | Sprint 5 |
-| Authentication and authorisation (Keycloak + JWT) | Sprint 6 |
-| Service mesh (Istio) | Sprint 7 |

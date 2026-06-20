@@ -1,0 +1,72 @@
+services:
+  gateway:
+    container_name: gateway 
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    image: imageprocessing/gateway:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - ORCHESTRATOR_URL=http://orchestrator:8081/internal
+    depends_on:
+      - orchestrator
+
+  orchestrator:
+    container_name: orchestrator 
+    build:
+      context: .
+      dockerfile: orchestrator/Dockerfile
+    image: imageprocessing/orchestrator:latest
+    environment:
+      - postgres_host=postgres
+      - postgres_user_name=${POSTGRES_USER}
+      - postgres_user_password=${POSTGRES_PASSWORD}
+      - postgres_db_name=${POSTGRES_DB}
+      - worker_url=http://worker:8082
+      - STORAGE_DATA_DIR=${STORAGE_DATA_DIR}
+    volumes:
+      - data:${STORAGE_DATA_DIR}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      worker:
+        condition: service_started
+
+  worker:
+    container_name: worker 
+    build:
+      context: .
+      dockerfile: worker/Dockerfile
+    image: imageprocessing/worker:latest
+    environment:
+      - STORAGE_DATA_DIR=${STORAGE_DATA_DIR}
+    volumes:
+      - data:${STORAGE_DATA_DIR}
+      - model_cache:/root/.cache/huggingface
+      - rembg_cache:/root/.u2net
+
+  postgres:
+    container_name: postgres
+    image: postgres:18-alpine
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck: 
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  data:
+    name: image_processing_data
+  model_cache:
+    name: ai-models-cache
+  rembg_cache:
+    name: rembg_cache
+  postgres_data:
+    name: postgres_data

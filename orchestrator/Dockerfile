@@ -15,5 +15,10 @@ WORKDIR /app
 
 COPY --from=build /build/orchestrator/target/orchestrator-*.jar app.jar
 
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+RUN mkdir -p /tmp/imageprocessing/data && \
+    chown -R appuser:appgroup /app /tmp/imageprocessing/data
+USER appuser
+
 EXPOSE 8081
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]

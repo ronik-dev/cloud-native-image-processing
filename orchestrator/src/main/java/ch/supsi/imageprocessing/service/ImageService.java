@@ -58,7 +58,7 @@ public class ImageService {
 				Image image = ir.findById(imageId)
 						.orElseThrow(() -> new ResourceNotFoundException("Image not found with ID: " + imageId));
 
-				String fullOutputName = request.outputName()+ "." + request.targetFormat().toLowerCase().strip();
+				String fullOutputName = request.outputName()+ "." + request.getOrDefaultTargetFormat().toLowerCase().strip();
 				return pjr.save(new ProcessingJob(image, request.type(), fullOutputName, request.getOrDefaultTargetFormat()));
 		}
 

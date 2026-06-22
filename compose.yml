@@ -31,7 +31,7 @@ services:
       postgres:
         condition: service_healthy
       worker:
-        condition: service_started
+        condition: service_healthy
 
   worker:
     container_name: worker 
@@ -41,10 +41,17 @@ services:
     image: imageprocessing/worker:latest
     environment:
       - STORAGE_DATA_DIR=${STORAGE_DATA_DIR}
+      - HF_HOME=/home/appuser/.cache/huggingface
+      - U2NET_HOME=/home/appuser/.u2net
     volumes:
       - data:${STORAGE_DATA_DIR}
-      - model_cache:/root/.cache/huggingface
-      - rembg_cache:/root/.u2net
+      - rembg_cache:/home/appuser/.u2net
+      - model_cache:/home/appuser/.cache/huggingface
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/health"]
+      interval: 15s 
+      timeout: 5s
+      retries: 10
 
   postgres:
     container_name: postgres

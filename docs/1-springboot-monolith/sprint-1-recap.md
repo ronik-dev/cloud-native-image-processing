@@ -6,13 +6,7 @@
 
 ## Table of Contents
 
-[[#1. Architecture Overview]]
-[[#2. Local Development Environment]]
-[[#3. Entity-Relationship Model]]
-[[#4. Processing Pipeline]]
-[[#5 REST API Reference]]
-[[#6. Cross-Cutting Design Decisions]]
-[[#7.Sprint 1 Completion Status]]
+[[ _TOC_ ]]
 
 ---
 

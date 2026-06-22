@@ -6,17 +6,7 @@
 
 ## Table of Contents
 
-1. [Architecture Overview](#1-architecture-overview)
-2. [Repository and Build Structure](#2-repository-and-build-structure)
-3. [Common Module](#3-common-module)
-4. [Orchestrator Service](#4-orchestrator-service)
-5. [Gateway Service](#5-gateway-service)
-6. [AI Worker Service](#6-ai-worker-service)
-7. [Inter-Service Communication](#7-inter-service-communication)
-8. [Cross-Cutting Design Decisions](#8-cross-cutting-design-decisions)
-9. [REST API Reference](#9-rest-api-reference)
-10. [Local Development](#10-local-development)
-11. [Sprint 2 Completion Status](#11-sprint-2-completion-status)
+[[ _TOC_ ]]
 
 ---
 

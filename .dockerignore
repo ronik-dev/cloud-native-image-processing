@@ -11,3 +11,4 @@ worker/.venv/
 .DS_Store
 .git/
 **/application-local.properties
+archive/

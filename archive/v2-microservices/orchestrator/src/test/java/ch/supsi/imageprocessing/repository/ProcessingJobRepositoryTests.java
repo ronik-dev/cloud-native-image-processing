@@ -1,0 +1,63 @@
+package ch.supsi.imageprocessing.repository;
+
+import ch.supsi.imageprocessing.entity.User;
+import ch.supsi.imageprocessing.entity.Image;
+import ch.supsi.imageprocessing.entity.ProcessingJob;
+import ch.supsi.imageprocessing.common.enums.JobType;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.dao.DataIntegrityViolationException;
+
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+@DataJpaTest
+class ProcessingJobRepositoryTests{
+
+		@Autowired
+		private ImageRepository imageRepository;
+
+		@Autowired
+		private UserRepository userRepository;
+
+		@Autowired
+		private ProcessingJobRepository processingJobRepository;
+
+		@Test
+		void shouldPersistAndRetrieveProcessingJob() {
+				User user = new User("username", "example@mail.example");
+				userRepository.save(user);
+
+				Image image = new Image("imageName", ".example/path/", "png", user);
+				imageRepository.save(image);
+
+				// FIX: Removed positional string argument "./example/path/" from instantiation parameters
+				ProcessingJob pj = new ProcessingJob(image, JobType.FORMAT_CONVERSION, "outputName", "targetFormat");
+				ProcessingJob saved = processingJobRepository.save(pj);
+
+				assertThat(saved.getId()).isNotNull();
+
+				Optional<ProcessingJob> found = processingJobRepository.findById(saved.getId());
+				assertThat(found).isPresent();
+				assertThat(found.get().getOutputName()).isEqualTo("outputName");
+		}
+
+		@Test
+		void shouldEnforceUniqueOutputName() {
+				User user = new User("username", "example@mail.example");
+				userRepository.save(user);
+				Image image = new Image("imageName", ".example/path/", "png", user); 
+				imageRepository.save(image);
+
+				ProcessingJob pj = new ProcessingJob(image, JobType.FORMAT_CONVERSION, "outputName", "targetFormat");
+				processingJobRepository.save(pj);
+
+				assertThatThrownBy(() ->
+								processingJobRepository.saveAndFlush(new ProcessingJob(image, JobType.FORMAT_CONVERSION, "outputName", "targetFormat"))
+								).isInstanceOf(DataIntegrityViolationException.class);
+		}
+}

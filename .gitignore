@@ -56,3 +56,4 @@ application-local.properties
 
 # Python
 __pycache__/
+*.py[cod]

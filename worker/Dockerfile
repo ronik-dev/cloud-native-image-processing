@@ -22,8 +22,8 @@ COPY --from=builder /build/.venv /app/.venv
 COPY worker/src/ .
 
 RUN addgroup --system appgroup && adduser --system --group --home /home/appuser appuser
-RUN mkdir -p /tmp/imageprocessing/data /home/appuser/.cache/huggingface /home/appuser/.u2net &&\
-    chown -R appuser:appgroup /app /tmp/imageprocessing/data /home/appuser
+RUN mkdir -p /data/imageprocessing /home/appuser/.cache/huggingface /home/appuser/.u2net &&\
+    chown -R appuser:appgroup /app /data/imageprocessing /home/appuser
 USER appuser
 
 EXPOSE 8082

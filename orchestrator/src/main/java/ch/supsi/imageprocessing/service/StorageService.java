@@ -22,7 +22,7 @@ import java.nio.file.StandardCopyOption;
 @Service
 public class StorageService {
 
-		@Value("${storage.data-dir:/tmp/imageprocessing/data}")
+		@Value("${STORAGE_DATA_DIR:/tmp/imageprocessing/data}")
 		private String dataDirStr;
 
 

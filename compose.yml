@@ -19,14 +19,15 @@ services:
       dockerfile: orchestrator/Dockerfile
     image: imageprocessing/orchestrator:latest
     environment:
-      - postgres_host=postgres
-      - postgres_user_name=${POSTGRES_USER}
-      - postgres_user_password=${POSTGRES_PASSWORD}
-      - postgres_db_name=${POSTGRES_DB}
-      - worker_url=http://worker:8082
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER_NAME=${POSTGRES_USER}
+      - POSTGRES_USER_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB_NAME=${POSTGRES_DB}
+      - WORKER_URL=http://worker:8082
       - STORAGE_DATA_DIR=${STORAGE_DATA_DIR}
+      - LOCAL_DATA_DIR=${LOCAL_DATA_DIR}
     volumes:
-      - data:${STORAGE_DATA_DIR}
+      - ${LOCAL_DATA_DIR}:${STORAGE_DATA_DIR}
     depends_on:
       postgres:
         condition: service_healthy
@@ -41,10 +42,11 @@ services:
     image: imageprocessing/worker:latest
     environment:
       - STORAGE_DATA_DIR=${STORAGE_DATA_DIR}
+      - LOCAL_DATA_DIR=${LOCAL_DATA_DIR}
       - HF_HOME=/home/appuser/.cache/huggingface
       - U2NET_HOME=/home/appuser/.u2net
     volumes:
-      - data:${STORAGE_DATA_DIR}
+      - ${LOCAL_DATA_DIR}:${STORAGE_DATA_DIR}
       - rembg_cache:/home/appuser/.u2net
       - model_cache:/home/appuser/.cache/huggingface
     healthcheck:
@@ -69,8 +71,6 @@ services:
       retries: 5
 
 volumes:
-  data:
-    name: image_processing_data
   model_cache:
     name: ai-models-cache
   rembg_cache:

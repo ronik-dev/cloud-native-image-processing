@@ -159,3 +159,20 @@ uv run pytest test_e2e.py -v -s
 | External Models | ML caches mapped to persistent host volumes | Done | Bypasses 400MB re-downloads per build |
 | Infrastructure Test | Automated script checking user isolation and exposed ports | Done | Validates `.sh` execution context |
 | E2E Concurrency | Python `pytest` suite hitting Gateway and polling async Jobs | Done | Fixed Exif parsing crashes with valid PNG |
+
+## 10. Alternative Build Strategy: Cloud Native BuildPacks (Experimental)
+
+As a supplementary experiment, the Java services were also built using **Cloud Native Buildpacks (CNB)** via the `spring-boot:build-image` Maven goal — an alternative to hand-authored Dockerfiles. Since `spring-boot-maven-plugin` is already declared in both `gateway` and `orchestrator` modules, no additional plugins or dependencies are required.
+
+```bash
+# Build OCI-compliant images without a Dockerfile
+mvn -pl gateway     spring-boot:build-image -DskipTests
+mvn -pl orchestrator spring-boot:build-image -DskipTests
+```
+
+The plugin delegates to the **Paketo Buildpacks** provider, which automatically detects the Java 21 runtime, resolves dependencies, and produces a layered OCI image. The approach runs non-root by default and requires no explicit user configuration, but offers significantly less transparency and control over the final image layers compared to the multi-stage Dockerfiles described in Section 3.
+
+The Python AI Worker is explicitly excluded: Paketo's Java buildpack does not cover Python runtimes, and the Worker's `glibc`/PyTorch constraints mandate the hand-authored `python:3.13-slim` Dockerfile regardless.
+
+> This strategy is not carried forward into the thesis. The manual Dockerfiles remain the canonical build path due to their minimal Alpine-based image sizes, explicit `appuser` privilege hardening, and full cross-runtime coverage. Refer to the dedicated BuildPacks note (./notes/9-buildpacks.md) for a full trade-off analysis.
+

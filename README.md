@@ -10,10 +10,11 @@ monolith to a microservices architecture deployed on Kubernetes with a service m
 
 ## What it does
 
-Users upload images through a web dashboard and trigger two categories of processing:
+Users upload images through a web dashboard and trigger three categories of processing:
 
-- **Deterministic processing** - format conversion, thumbnail generation (FFmpeg)
-- **AI-driven analysis** - image classification, background removal (Hugging Face pre-trained models)
+- **Format conversion** — convert between image formats (JPG, PNG, GIF, WebP, BMP) via FFmpeg
+- **Background removal** — AI-driven background removal using the `isnet-general-use` model via rembg
+- **Object detection** — detect and annotate objects with bounding boxes using Deformable DETR (SenseTime, COCO 2017)
 
 The focus of the project is not the processing logic itself, but the **architectural
 orchestration** around it: service decomposition, container lifecycle management,
@@ -27,22 +28,36 @@ The system evolves progressively across six sprints:
 
 ```
 Sprint 1  Spring Boot monolith        --> single JVM, Spring MVC, REST API
-Sprint 2  Microservices + Docker      --> Gateway / Image Service / Python Worker
-Sprint 3  Kubernetes                  --> Minikube, HPA, Ingress, PersistentVolumes
-Sprint 4  CI/CD + Security            --> GitLab CI/CD pipeline, Keycloak, JWT
-Sprint 5  Service Mesh                --> Istio, mTLS, Prometheus, Grafana, Kiali, Jaeger
-Sprint 6  Cloud + Helm                --> GKE, Helm charts, multi-environment deploy
+Sprint 2  Microservices               --> Gateway / Orchestrator / Python Worker
+Sprint 3  Containerisation            --> Docker, docker-compose
+Sprint 4  Kubernetes                  --> Minikube, HPA, Ingress, PersistentVolumes
+Sprint 5  CI/CD + Security            --> GitLab CI/CD pipeline, Keycloak, JWT
+Sprint 6  Service Mesh                --> Istio, mTLS, Prometheus, Grafana, Kiali, Jaeger
 ```
 
-### Services (from Sprint 2 onwards)
+### Services (Sprint 2 onwards)
 
-| Service | Language | Responsibility |
-|---|---|---|
-| Gateway Service | Java / Spring Boot | UI, routing, authentication |
-| Image Service | Java / Spring Boot | Domain model, REST API, job coordination |
-| Python Worker | Python (FastAPI) | FFmpeg processing, HuggingFace inference |
-| PostgreSQL | - | Persistence for all domain entities |
-| Keycloak | - | OAuth 2.0 identity provider (from Sprint 4) |
+| Service | Language | Port | Responsibility |
+|---|---|---|---|
+| Gateway | Java / Spring Boot | 8080 | Public API (`/api/*`), UI serving, error forwarding, BFF pattern |
+| Orchestrator | Java / Spring Boot | 8081 | Domain model, job lifecycle, storage, worker dispatch |
+| AI Worker | Python / FastAPI | 8082 | FFmpeg processing, rembg inference, Deformable DETR inference |
+| PostgreSQL | — | 5432 | Persistence, owned exclusively by orchestrator |
+
+### Traffic flow
+
+```
+Browser
+  |  HTTP :8080
+  v
+Gateway (/api/*)
+  |  HTTP :8081/internal
+  v
+Orchestrator --> shared storage directory
+  |  HTTP :8082
+  v
+AI Worker --> shared storage directory
+```
 
 ### Domain model
 
@@ -52,8 +67,8 @@ User --< Image --< ProcessingJob
 
 - `User` owns many `Image` records
 - Each `Image` can have many `ProcessingJob` records (one per processing request)
-- `ProcessingJob` tracks type (`FORMAT_CONVERSION`, `BACKGROUND_REMOVAL`, `AI_CLASSIFICATION`),
-  status (`PENDING` --> `RUNNING` --> `DONE` / `FAILED`), and output storage key
+- `ProcessingJob` tracks type (`FORMAT_CONVERSION`, `BACKGROUND_REMOVAL`, `OBJECT_DETECTION`),
+  status (`PENDING` -> `RUNNING` -> `DONE` / `FAILED`), and output storage key
 
 ---
 
@@ -61,21 +76,24 @@ User --< Image --< ProcessingJob
 
 | Layer | Technology |
 |---|---|
-| Backend | Java 21, Spring Boot 4.0.6, Spring Data JPA, Spring MVC, Spring Validation |
-| Processing | FFmpeg, Hugging Face Transformers (Python) |
-| Containerisation | Docker, Docker Compose |
-| Orchestration | Kubernetes (Minikube --> GKE), Helm |
-| CI/CD | GitLab CI/CD |
-| Auth | Keycloak, OAuth 2.0, JWT |
-| Service mesh | Istio, Envoy |
+| Backend (Java) | Java 21, Spring Boot 4.0.6, Spring Data JPA, Spring MVC, Spring WebFlux (WebClient) |
+| Backend (Python) | Python 3.13, FastAPI, Uvicorn, uv |
+| Processing | FFmpeg, ffmpeg-python, rembg, Deformable DETR (HuggingFace transformers), Pillow |
+| ML runtime | PyTorch CPU, torchvision |
+| Containerisation | Docker, Docker Compose (Sprint 3) |
+| Orchestration | Kubernetes (Minikube -> GKE), Helm (Sprint 4+) |
+| CI/CD | GitLab CI/CD (Sprint 5) |
+| Auth | Keycloak, OAuth 2.0, JWT (Sprint 5) |
+| Service mesh | Istio, Envoy (Sprint 6) |
 | Observability | Micrometer, OpenTelemetry, Prometheus, Grafana, Kiali, Jaeger |
-| IaC (bonus) | Terraform, Ansible |
 
 ---
 
-## Getting started (Sprint 1 - monolith)
+## Getting started
 
-### Prerequisites
+### Sprint 1 — Monolith
+
+#### Prerequisites
 
 - Java 21
 - Maven 3.9+
@@ -85,44 +103,17 @@ User --< Image --< ProcessingJob
 > These instructions are written for **Arch Linux**. The same tools apply on other
 > operating systems but installation commands will differ.
 
-### 1. Install dependencies
+**Install dependencies**
 
-**Java 21**
 ```bash
-sudo pacman -S jdk21-openjdk
-java -version
+sudo pacman -S jdk21-openjdk maven postgresql ffmpeg
 ```
 
-**Maven**
-```bash
-sudo pacman -S maven
-mvn -version
-```
+**Configure the database**
 
-**PostgreSQL**
 ```bash
-sudo pacman -S postgresql
-
-# Initialise the data directory
-sudo mkdir -p /var/lib/postgres
-sudo chown -R postgres:postgres /var/lib/postgres
 sudo -u postgres initdb -D /var/lib/postgres/data
-
-# Enable and start the service
 sudo systemctl enable --now postgresql
-```
-
-**FFmpeg**
-```bash
-sudo pacman -S ffmpeg
-ffmpeg -version
-```
-
-### 2. Configure the database
-
-Open a `psql` session and create the application user and database:
-
-```bash
 sudo -i -u postgres psql
 ```
 
@@ -158,23 +149,87 @@ so no extra flags are needed at runtime.
 mvn clean spring-boot:run
 ```
 
-Hibernate creates or updates the schema automatically on startup (`ddl-auto=update`).
+Dashboard at `http://localhost:8080`, API at `http://localhost:8080/api`.
 
-The dashboard is available at `http://localhost:8080` and the REST API at
-`http://localhost:8080/api`.
+---
 
-### 5. API quick reference
+### Sprint 2 — Microservices
+
+#### Additional prerequisites
+
+- Python 3.13
+- uv (`sudo pacman -S uv`)
+
+#### Install Python worker dependencies
+
+```bash
+cd worker
+uv sync
+```
+
+On first startup the worker downloads model weights from HuggingFace (~364MB total).
+These are cached in `~/.cache/huggingface` and not re-downloaded on subsequent runs.
+
+#### Run all services
+
+Each service requires its own terminal:
+
+| Service | Command | Port |
+|---|---|---|
+| PostgreSQL | `sudo systemctl start postgresql` | 5432 |
+| Orchestrator | `mvn spring-boot:run -pl orchestrator` | 8081 |
+| Gateway | `mvn spring-boot:run -pl gateway` | 8080 |
+| Worker | `cd worker && uv run python main.py` | 8082 |
+
+Dashboard at `http://localhost:8080`.
+
+#### Environment variables
+
+| Variable | Service | Default | Purpose |
+|---|---|---|---|
+| `ORCHESTRATOR_URL` | Gateway | `http://localhost:8081/internal` | Orchestrator base URL |
+| `WORKER_URL` | Orchestrator | `http://localhost:8082` | Worker base URL |
+| `STORAGE_DATA_DIR` | Orchestrator + Worker | `/tmp/imageprocessing/data` | Shared file storage |
+| `DETECTION_THRESHOLD` | Worker | `0.5` | Min confidence for object detection |
+
+#### Build commands
+
+```bash
+# Build common module and install to local Maven repository
+mvn clean install -pl common --also-make
+
+# Build all Java modules
+mvn clean package
+
+# Run worker tests
+cd worker && uv run pytest test/ -v
+```
+
+---
+
+## API quick reference
+
+All endpoints are served by the gateway at `http://localhost:8080`.
 
 | Method | Path | Description |
 |---|---|---|
 | `POST` | `/api/users` | Register a user |
-| `POST` | `/api/images?userId={id}` | Upload an image |
+| `GET` | `/api/users` | List all users |
+| `DELETE` | `/api/users/{id}` | Delete a user |
+| `POST` | `/api/images` | Upload an image (`multipart/form-data`) |
+| `GET` | `/api/images/{id}` | Get image metadata |
+| `DELETE` | `/api/images/{id}` | Delete an image |
+| `GET` | `/api/users/{id}/images` | List images for a user |
 | `POST` | `/api/images/{id}/jobs` | Create a processing job |
+| `GET` | `/api/images/{id}/jobs` | List jobs for an image |
 | `POST` | `/api/jobs/{id}/process` | Trigger async execution |
 | `GET` | `/api/jobs/{id}` | Poll job status |
-| `GET` | `/api/jobs/{id}/result` | Download the result |
+| `GET` | `/api/jobs/{id}/result` | Download the processed result |
+| `DELETE` | `/api/jobs/{id}` | Delete a job |
 
-Full API documentation is in [`sprint1_architecture.md`](./sprint1_architecture.md).
+Supported job types: `FORMAT_CONVERSION`, `BACKGROUND_REMOVAL`, `OBJECT_DETECTION`.
+
+Full API and architecture documentation is in `docs/`.
 
 ---
 
@@ -182,22 +237,17 @@ Full API documentation is in [`sprint1_architecture.md`](./sprint1_architecture.
 
 ```
 cloud-native-image-processing/
-|-- .gitlab/
-|   |-- issue_templates/
-|   `-- merge_request_templates/
-|-- src/
-|   `-- main/
-|       `-- java/ch/supsi/imageprocessing/
-|           |-- controller/
-|           |-- service/
-|           |-- processor/
-|           |-- entity/
-|           |-- repository/
-|           |-- dto/
-|           |-- exception/
-|           `-- utils/
-|-- pom.xml
-`-- README.md
+├── pom.xml                  <- parent Maven POM
+├── common/                  <- shared DTOs, enums, exceptions (plain JAR, no Spring)
+├── orchestrator/            <- domain service (Spring Boot)
+├── gateway/                 <- BFF service (Spring Boot)
+├── worker/                  <- AI worker (Python / FastAPI)
+├── docs/
+│   ├── 1-monolith/
+│   └── 2-microservices-and-dockerization/
+│       ├── notes/
+│       └── sprint-2-microservices-recap.md
+└── README.md
 ```
 
 ---
@@ -207,22 +257,20 @@ cloud-native-image-processing/
 See the [Contributing Guide](https://gitlab-edu.supsi.ch/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/-/wikis/Contributing-Guide) for the full workflow,
 label taxonomy, branch naming convention, and Definition of Done.
 
-The short version:
-
 ```bash
 # 1. Pick an issue from the board and move it to In Progress
 # 2. Create a branch
-git checkout -b feature/16-file-upload-endpoint
+git checkout -b feature/26-python-worker
 
 # 3. Implement, commit
-git commit -m "feat(#16): add POST /upload endpoint"
+git commit -m "feat(#26): add /detect_objects endpoint"
 
 # 4. Open an MR targeting dev (use the MR template)
-# 5. MR merged --> issue closed automatically via 'Closes #16'
+# 5. MR merged -> issue closed automatically via 'Closes #26'
 ```
 
-Branch naming: `type/issue-id-short-description`  
-Target branch for MRs: always `dev` - never `main` directly.
+Branch naming: `type/issue-id-short-description`
+Target branch for MRs: always `dev` — never `main` directly.
 
 ---
 
@@ -231,16 +279,17 @@ Target branch for MRs: always `dev` - never `main` directly.
 | Sprint | Milestone | Status |
 |---|---|---|
 | 1 | Spring Boot monolith | Complete |
-| 2 | Microservices + Docker | Planned |
+| 2.1 | Microservices | Complete |
+| 2.2 | Containerisation (Docker + docker-compose) | Planned |
 | 3 | Kubernetes | Planned |
 | 4 | CI/CD + Security | Planned |
 | 5 | Service Mesh | Planned |
-| 6 | Helm + Cloud + Polish | Planned |
+| 6 | Helm + Cloud + Polish| Planned |
 
 ---
 
 ## Author
 
-**Nicola Romano** - nicola.romano@student.supsi.ch  
-Supervisors: Massimo Coluzzi, Roberto Guidi  
-SUPSI - DTI / ISIN, May 2026
+**Nicola Romano** — nicola.romano@student.supsi.ch
+Supervisors: Massimo Coluzzi, Roberto Guidi
+SUPSI — DTI / ISIN, June 2026

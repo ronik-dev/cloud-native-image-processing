@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+		<head>
+				<meta charset="UTF-8">
+				<meta name="viewport" content="width=device-width, initial-scale=1.0">
+				<link href="style.css" rel="stylesheet">
+				<title>Cloud-Native Image Processing Pipeline</title>
+		</head>
+		<body>
+				<div class="container">
+
+						<div class="column">
+								<div class="row header-row">
+										<h2>User Management</h2>
+								</div>
+
+								<div class="row form-row">
+										<h3>Create New User</h3>
+										<div class="input-group">
+												<input type="text" id="usernameInput" placeholder="Username" required>
+												<input type="email" id="emailInput" placeholder="example@mail.ch" required>
+												<button onclick="createUser()">Register User</button>
+										</div>
+								</div>  
+
+								<div class="row list-row">
+										<h3>Active Users</h3>
+										<div class="column list-box" id="usersList">
+										</div>
+								</div>  
+						</div>  
+
+						<div class="column">
+								<div class="row header-row">
+										<h2>Media Operations</h2>
+								</div>
+
+								<div class="row form-row">
+										<h3>Select Operation</h3>
+										<div class="input-group">
+												<select id="operationSelect">
+														<option value="FORMAT_CONVERSION">Format Conversion</option>
+														<option value="BACKGROUND_REMOVAL">Remove Background (AI)</option>
+														<option value="OBJECT_DETECTION">Detect Objects (AI)</option>
+												</select>
+												<select id="targetFormatSelect">
+														<option value="png">PNG</option>
+														<option value="jpg">JPEG</option>
+														<option value="gif">GIF</option>
+												</select>
+										</div>
+								</div>  
+
+								<div class="row list-row">
+										<h3>Select or Upload Image Assets</h3>
+										<div class="input-group file-upload-box">
+												<input type="file" id="imageFileInput" accept="image/*">
+												<button onclick="uploadImage()">Upload New Asset</button>
+										</div>
+										<div class="column list-box" id="imagesList">
+										</div>
+								</div>  
+
+								<div class="row action-row">
+										<input type="text" id="outputNameInput" placeholder="Enter output name (e.g. hero_banner)" />
+										<button onclick="triggerPipelineJob()">Start Processing Job</button>
+								</div>  
+						</div>  
+
+						<div class="column">
+								<div class="row header-row">
+										<h2>Pipeline Progress Tracker</h2>
+								</div>
+
+								<div class="row list-row half-height">
+										<h3>Active Workers / Jobs</h3>
+										<div class="column list-box tracking-box" id="runningJobsList">
+										</div>
+								</div>  
+
+								<div class="row list-row half-height">
+										<h3>Completed Executions</h3>
+										<div class="column list-box tracking-box" id="finishedJobsList">
+										</div>
+								</div>  
+						</div>  
+
+				</div>  
+				<script src="script.js"></script>
+		</body>
+</html>

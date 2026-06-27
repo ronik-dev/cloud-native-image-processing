@@ -54,3 +54,6 @@ storage/
 # Local property overrides, never commit credentials
 application-local.properties
 
+# Python
+__pycache__/
+*.py[cod]

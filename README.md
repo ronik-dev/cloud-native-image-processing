@@ -122,9 +122,10 @@ CREATE USER my_app_user WITH PASSWORD 'my_secure_password';
 CREATE DATABASE cloud_native_db OWNER my_app_user;
 ```
 
-**Configure the application**
+### 3. Configure the application
 
-Create `src/main/resources/application-local.properties` (git-ignored):
+Create an `application-local.properties` file at `src/main/resources/`
+(this file is git-ignored and must never be committed):
 
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/cloud_native_db
@@ -132,7 +133,17 @@ spring.datasource.username=my_app_user
 spring.datasource.password=my_secure_password
 ```
 
-**Run**
+Optionally, override the storage directory for uploaded and processed files
+(defaults to `/tmp/imageprocessing/data`):
+
+```properties
+storage.data-dir=/your/preferred/path
+```
+
+The `local` profile is already set as the active profile in `application.properties`,
+so no extra flags are needed at runtime.
+
+### 4. Run the application
 
 ```bash
 mvn clean spring-boot:run

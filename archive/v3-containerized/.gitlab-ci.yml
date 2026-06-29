@@ -1,0 +1,13 @@
+# CI/CD Pipeline
+# Full implementation planned for Sprint 4 — CI/CD + Security milestone
+# Pipeline disabled until proper runner and image are configured
+
+stages:
+  - test
+
+test-job:
+  stage: test
+  rules:
+    - when: never
+  script:
+    - mvn test

@@ -34,6 +34,7 @@ build/
 
 ### Env variables and secrets###
 .env
+k8s/**/secret.yaml
 
 ### Project specific ###
 # Logs
@@ -57,3 +58,5 @@ application-local.properties
 # Python
 __pycache__/
 *.py[cod]
+
+

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orchestrator-config
+  namespace: imageprocessing
+data:
+  POSTGRES_DB: cloud_native_db
+  POSTGRES_HOST: postgres
+  WORKER_URL: http://worker:8082
+  STORAGE_DATA_DIR: /data/imageprocessing
+  LOCAL_DATA_DIR: /tmp/imageprocessing/data
+

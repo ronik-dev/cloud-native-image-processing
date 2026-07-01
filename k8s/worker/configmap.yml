@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: worker-config
+  namespace: imageprocessing
+data:
+  STORAGE_DATA_DIR: /tmp/imageprocessing/data
+  LOCAL_DATA_DIR: /data/imageprocessing
+  HF_HOME: /home/appuser/.cache/huggingface
+  U2NET_HOME: /home/appuser/.u2net

@@ -2,8 +2,12 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: worker 
+  namespace: imageprocessing
 spec:
   containers:
     - name: worker
       image: imageprocessing/worker:latest
       imagePullPolicy: Never
+      envFrom:
+        - configMapRef:
+            name: worker-config

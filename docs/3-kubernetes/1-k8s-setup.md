@@ -1,4 +1,4 @@
-# 3 K8s Setup
+# 1 K8s Setup
 > This guide is OS specific for Arch Linux, as this project is developed on this os
 > It is perfectly possible to execute the same task on a different OS, but instructions will not be provided.
 > This guide assumes you have Docker installed and running, and pacman available.

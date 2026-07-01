@@ -2,8 +2,15 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: orchestrator 
+  namespace: imageprocessing
 spec:
   containers:
     - name: orchestrator
       image: imageprocessing/orchestrator:latest
       imagePullPolicy: Never
+      envFrom:
+        - secretRef:
+            name: postgres-secret
+        - configMapRef:
+            name: orchestrator-config
+

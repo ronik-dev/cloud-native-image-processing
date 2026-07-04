@@ -3,6 +3,9 @@ kind: Pod
 metadata:
   name: worker 
   namespace: imageprocessing
+  labels:
+    app: worker
+    layer: backend
 spec:
   containers:
     - name: worker

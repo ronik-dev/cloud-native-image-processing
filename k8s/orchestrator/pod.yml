@@ -3,14 +3,26 @@ kind: Pod
 metadata:
   name: orchestrator 
   namespace: imageprocessing
+  labels:
+    app: orchestrator  
+    layer: backend
 spec:
   containers:
     - name: orchestrator
       image: imageprocessing/orchestrator:latest
       imagePullPolicy: Never
+      env:
+        - name: POSTGRES_USER_NAME
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_USER
+        - name: POSTGRES_USER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_PASSWORD
       envFrom:
-        - secretRef:
-            name: postgres-secret
         - configMapRef:
             name: orchestrator-config
 

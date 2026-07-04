@@ -3,6 +3,9 @@ kind: Pod
 metadata:
   name: gateway
   namespace: imageprocessing
+  labels:
+    app: gateway
+    layer: web
 spec:
   containers:
     - name: gateway

@@ -3,6 +3,9 @@ kind: Pod
 metadata:
   name: postgres
   namespace: imageprocessing
+  labels:
+    app: postgres 
+    layer: data
 spec:
   containers:
     - name: postgres

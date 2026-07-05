@@ -49,9 +49,6 @@ Thumbs.db
 # Local temp files
 temp/
 
-# Uploaded and processed images (if storage path ever points inside the repo)
-storage/
-
 # Local property overrides, never commit credentials
 application-local.properties
 

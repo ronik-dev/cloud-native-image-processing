@@ -11,6 +11,9 @@ spec:
     - name: orchestrator
       image: imageprocessing/orchestrator:latest
       imagePullPolicy: Never
+      volumeMounts:
+        - mountPath: "data/imageprocessing"
+          name: pvc-shared-storage
       env:
         - name: POSTGRES_USER_NAME
           valueFrom:
@@ -25,4 +28,8 @@ spec:
       envFrom:
         - configMapRef:
             name: orchestrator-config
+  volumes:
+    - name: pvc-shared-storage
+      persistentVolumeClaim:
+        claimName: pvc-shared-storage
 

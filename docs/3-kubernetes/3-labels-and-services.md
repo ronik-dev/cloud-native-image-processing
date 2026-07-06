@@ -1,4 +1,4 @@
-# 5 K8s Labels and Services
+# 3 K8s Labels and Services
 
 > This guide assumes you have completed the namespace and ConfigMap setup described in `2-namespaces-configmaps-secrets.md`.
 

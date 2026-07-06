@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: gateway
+  namespace: imageprocessing
+  labels:
+    app: gateway
+    layer: web
+spec:
+  replicas: 1 #(default: 1)
+  minReadySeconds: 0 #(default: 0)
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: imageprocessing/gateway:latest
+          imagePullPolicy: Never
+          envFrom:
+            - configMapRef:
+                name: gateway-config

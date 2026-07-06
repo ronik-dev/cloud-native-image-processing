@@ -1,4 +1,4 @@
-# 6 K8s Volumes
+# 4 K8s Volumes
 
 > This guide assumes you have completed the labels and services setup described in `3-labels-and-services.md`.
 

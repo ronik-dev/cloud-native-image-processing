@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: worker 
+  namespace: imageprocessing
+  labels:
+    app: worker
+    layer: backend
+spec:
+  replicas: 1 #(default: 1)
+  minReadySeconds: 0 #(default: 0)
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+    spec:
+      containers:
+        - name: worker
+          image: imageprocessing/worker:latest
+          imagePullPolicy: Never
+          volumeMounts:
+            - mountPath: "/home/appuser/.cache/huggingface"
+              name: pvc-model-cache
+            - mountPath: "/home/appuser/.u2net"
+              name: pvc-rembg-cache
+            - mountPath: "/data/imageprocessing"
+              name: pvc-shared-storage
+          envFrom:
+            - configMapRef:
+                name: worker-config
+      volumes:
+        - name: pvc-model-cache
+          persistentVolumeClaim:
+            claimName: pvc-model-cache
+        - name: pvc-rembg-cache
+          persistentVolumeClaim:
+            claimName: pvc-rembg-cache
+        - name: pvc-shared-storage
+          persistentVolumeClaim:
+            claimName: pvc-shared-storage
+

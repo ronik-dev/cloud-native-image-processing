@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orchestrator 
+  namespace: imageprocessing
+  labels:
+    app: orchestrator  
+    layer: backend
+spec:
+  replicas: 1 #(default: 1)
+  minReadySeconds: 0 #(default: 0)
+  selector:
+    matchLabels:
+      app: orchestrator
+  template:
+    metadata:
+      labels:
+        app : orchestrator
+    spec:
+      containers:
+        - name: orchestrator
+          image: imageprocessing/orchestrator:latest
+          imagePullPolicy: Never
+          volumeMounts:
+            - mountPath: "/data/imageprocessing"
+              name: pvc-shared-storage
+          env:
+            - name: POSTGRES_USER_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+          envFrom:
+            - configMapRef:
+                name: orchestrator-config
+      volumes:
+        - name: pvc-shared-storage
+          persistentVolumeClaim:
+            claimName: pvc-shared-storage
+

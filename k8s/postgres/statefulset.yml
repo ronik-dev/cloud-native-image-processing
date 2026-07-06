@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: imageprocessing
+  labels:
+    app: postgres 
+    layer: data
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  serviceName: "postgres"
+  replicas: 1 #(default: 1)
+  minReadySeconds: 0 #(default: 0)
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      terminationGracePeriodSeconds: 60
+      containers:
+      - name: postgres
+        image: postgres:18-alpine
+        imagePullPolicy: Never
+        envFrom:
+          - secretRef:
+              name: postgres-secret
+          - configMapRef:
+              name: postgres-config
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 2Gi

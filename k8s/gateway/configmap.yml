@@ -4,4 +4,4 @@ metadata:
   name: gateway-config
   namespace: imageprocessing
 data:
-  ORCHESTRATOR_URL: http://orchestrator:8081/internal
+  ORCHESTRATOR_URL: http://orchestrator:8080/internal

@@ -8,3 +8,4 @@ data:
   LOCAL_DATA_DIR: /tmp/imageprocessing/data
   HF_HOME: /home/appuser/.cache/huggingface
   U2NET_HOME: /home/appuser/.u2net
+  WORKER_PORT: 8080

@@ -1,4 +1,4 @@
-## 6. Layer 7 Routing: NGINX Ingress Controller
+# 6. Layer 7 Routing: NGINX Ingress Controller
 
 ### Context & Decision
 To expose the Cloud-Native Image Processing application to external clients, a robust Layer 7 load balancing solution is required. Relying on `NodePort` or temporary port-forwarding is insufficient for a production-grade architecture. 

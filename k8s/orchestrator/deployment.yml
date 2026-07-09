@@ -24,6 +24,22 @@ spec:
           volumeMounts:
             - mountPath: "/data/imageprocessing"
               name: pvc-shared-storage
+          readinessProbe:
+            httpGet:
+              path: /internal/actuator/health
+              port: 8080
+            initialDelaySeconds: 15  
+            periodSeconds: 10        
+            timeoutSeconds: 5        
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /internal/actuator/health
+              port: 8080
+            initialDelaySeconds: 60  
+            periodSeconds: 10        
+            timeoutSeconds: 5        
+            failureThreshold: 3
           env:
             - name: POSTGRES_USER_NAME
               valueFrom:

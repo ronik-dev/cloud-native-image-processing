@@ -31,6 +31,22 @@ spec:
           envFrom:
             - configMapRef:
                 name: worker-config
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 120  
+            periodSeconds: 5        
+            timeoutSeconds: 3        
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 150  
+            periodSeconds: 5        
+            timeoutSeconds: 3        
+            failureThreshold: 3
       volumes:
         - name: pvc-model-cache
           persistentVolumeClaim:

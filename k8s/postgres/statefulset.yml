@@ -23,6 +23,29 @@ spec:
       - name: postgres
         image: postgres:18-alpine
         imagePullPolicy: Never
+        volumeMounts:
+          - name: postgres-data
+            mountPath: /var/lib/postgresql
+        readinessProbe:
+          exec:
+            command:
+              - sh
+              - -c 
+              - "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
+          initialDelaySeconds: 10  
+          periodSeconds: 10        
+          timeoutSeconds: 5        
+          failureThreshold: 3
+        livenessProbe:
+          exec:
+            command:
+              - sh
+              - -c 
+              - "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
+          initialDelaySeconds: 60  
+          periodSeconds: 10        
+          timeoutSeconds: 5        
+          failureThreshold: 3
         envFrom:
           - secretRef:
               name: postgres-secret

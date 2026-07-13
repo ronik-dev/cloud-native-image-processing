@@ -9,3 +9,4 @@ data:
   HF_HOME: /home/appuser/.cache/huggingface
   U2NET_HOME: /home/appuser/.u2net
   WORKER_PORT: "8080"
+  KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"

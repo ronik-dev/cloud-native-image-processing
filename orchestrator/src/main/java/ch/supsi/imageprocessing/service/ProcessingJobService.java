@@ -2,41 +2,37 @@ package ch.supsi.imageprocessing.service;
 
 import ch.supsi.imageprocessing.entity.ProcessingJob;
 import ch.supsi.imageprocessing.common.enums.JobStatus;
-import ch.supsi.imageprocessing.common.enums.JobType;
-import ch.supsi.imageprocessing.common.dto.ConvertFormatRequest;
-import ch.supsi.imageprocessing.common.dto.RemoveBackgroundRequest;
-import ch.supsi.imageprocessing.common.dto.DetectObjectsRequest;
+import ch.supsi.imageprocessing.common.dto.JobRequestMessage;
 import ch.supsi.imageprocessing.entity.Image;
-import ch.supsi.imageprocessing.client.WorkerClient;
 import ch.supsi.imageprocessing.repository.ProcessingJobRepository;
 import ch.supsi.imageprocessing.common.exception.ResourceNotFoundException;
-
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
-
-
+import org.springframework.kafka.core.KafkaTemplate;   
+import org.springframework.beans.factory.annotation.Value;   
 
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class ProcessingJobService {
-
 
 		@Autowired
 		private ProcessingJobRepository pjr;
 
 		@Autowired
-		private WorkerClient wc;
+		private StorageService ss;
+
 
 		@Autowired
-		private StorageService ss;
+		private KafkaTemplate<String, JobRequestMessage> jobRequestKafkaTemplate;
+
+		@Value("${kafka.topics.job-requests}")
+		private String jobRequestsTopic;
 
 		private static final Logger log = LoggerFactory.getLogger(ProcessingJobService.class);
 
@@ -50,63 +46,39 @@ public class ProcessingJobService {
 		public ProcessingJob processJob(Long jobId) {
 				ProcessingJob job = pjr.findById(jobId)
 						.orElseThrow(() -> new ResourceNotFoundException("Job not found: " + jobId));
-
-				if (job.getTargetStorageKey() == null || job.getTargetStorageKey().isBlank()) {
-						String newStorageKey = UUID.randomUUID().toString();
-						job.setTargetStorageKey(newStorageKey);
-				}
-
-				return pjr.save(job);
+				job.setStatus(JobStatus.RUNNING);
+				pjr.save(job);
+				publishJobRequest(job);
+				// Returned immediately with status RUNNING — the controller still
+				// responds 202 Accepted, same contract as before. The client polls
+				// GET /api/jobs/{id} as usual; JobResultListener is what eventually
+				// flips it to DONE/FAILED.
+				return job;
 		}
 
-		@Async
-		public void startAsyncProcessExecution(Long jobId) {
-				ProcessingJob job = pjr.findById(jobId)
-						.orElseThrow(() -> new ResourceNotFoundException("Job not found: " + jobId));
-				try {
-						job.setStatus(JobStatus.RUNNING);
-						pjr.save(job);
-
-						switch (job.getType()) {
-								case JobType.FORMAT_CONVERSION :wc.convertFormat(
-										new ConvertFormatRequest(
-												job.getImage().getStorageKey(),
-												job.getImage().getFormat(),
-												job.getTargetStorageKey(),
-												job.getTargetFormat()
-												)
-										);
-										break;
-								case JobType.BACKGROUND_REMOVAL :wc.removeBackground(
-									   	new RemoveBackgroundRequest(
-												job.getImage().getStorageKey(),
-												job.getTargetStorageKey()
-												)
-									   	);
-										break;
-								case JobType.OBJECT_DETECTION:wc.detectObjects(
-									   	new DetectObjectsRequest(
-												job.getImage().getStorageKey(),
-												job.getTargetStorageKey()
-												)
-									   	);
-										break;
-								default :throw new IllegalArgumentException("Undefined JobType: " + job.getType());
-						};
-
-						job.setStatus(JobStatus.DONE);
-
-				} catch (Exception e) {
-						log.error("Processing failed for job {}: {}", jobId, e.getMessage(), e);
-						job.setStatus(JobStatus.FAILED);
-				} finally {
-						pjr.save(job);
-				}
-		}
-
-		@Transactional
-		private void executeProcess(ProcessingJob job){
-
+		private void publishJobRequest(ProcessingJob job) {
+				JobRequestMessage message = new JobRequestMessage(
+								job.getId(),
+								job.getType(),
+								job.getImage().getStorageKey(),
+								job.getTargetStorageKey(),
+								job.getImage().getFormat(),
+								job.getTargetFormat()
+								);
+		// Key by jobId so every message for this job lands on the same partition, in order, even if a job is ever re-submitted.
+		jobRequestKafkaTemplate.send(jobRequestsTopic, String.valueOf(job.getId()), message)
+				.whenComplete((result, ex) -> {
+						if (ex != null) {
+								log.error("Failed to publish job request for job {}: {}", job.getId(), ex.getMessage(), ex);
+								// Best-effort compensation: the worker will never see this
+								// job, so flip it back to FAILED rather than leaving it
+								// stuck in RUNNING forever. A transactional outbox is the
+								// more robust fix if this gap matters for your thesis
+								// scope — worth a line in the "limitations" section.
+								job.setStatus(JobStatus.FAILED);
+								pjr.save(job);
+						}
+				});
 		}
 
 		@Transactional(readOnly = true)
@@ -136,10 +108,10 @@ public class ProcessingJobService {
 						.orElseThrow(() -> new ResourceNotFoundException("Job not found with ID: " + jobId));
 
 				if (job.getStatus() != JobStatus.DONE
-								|| job.getTargetStorageKey() == null
-								|| job.getTargetStorageKey().isBlank()) {
+				    || job.getTargetStorageKey() == null
+					|| job.getTargetStorageKey().isBlank()) {
 						throw new ResourceNotFoundException("Processed file output is not available for Job ID: " + jobId);
-								}
+				}
 
 				return ss.getResource(job.getTargetStorageKey());
 		}

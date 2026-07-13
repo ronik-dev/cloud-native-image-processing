@@ -1,0 +1,23 @@
+# One-shot Job to create topics explicitly with a deliberate partition count,
+# instead of relying on auto-create. Re-running is safe: --if-not-exists is a
+# no-op on topics that already exist.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kafka-create-topics
+  namespace: imageprocessing
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: create-topics
+          image: apache/kafka:3.9.0
+          command:
+            - /bin/bash
+            - -c
+            - |
+              /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 \
+                --create --if-not-exists --topic job.requests --partitions 3 --replication-factor 1
+              /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 \
+                --create --if-not-exists --topic job.results --partitions 3 --replication-factor 1

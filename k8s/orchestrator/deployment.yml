@@ -17,6 +17,18 @@ spec:
       labels:
         app : orchestrator
     spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:18-alpine
+          imagePullPolicy: Never
+          command:
+          - sh
+          - -c
+          - |
+            until pg_isready -h postgres -U $POSTGRES_USER -d $POSTGRES_DB; do
+              echo "Waiting for postgres..."
+              sleep 2
+            done
       containers:
         - name: orchestrator
           image: imageprocessing/orchestrator:latest
@@ -28,7 +40,7 @@ spec:
             httpGet:
               path: /internal/actuator/health
               port: 8080
-            initialDelaySeconds: 15  
+            initialDelaySeconds: 5  
             periodSeconds: 10        
             timeoutSeconds: 5        
             failureThreshold: 3
@@ -36,7 +48,7 @@ spec:
             httpGet:
               path: /internal/actuator/health
               port: 8080
-            initialDelaySeconds: 60  
+            initialDelaySeconds: 15
             periodSeconds: 10        
             timeoutSeconds: 5        
             failureThreshold: 3

@@ -42,7 +42,6 @@ public class JobResultListener {
         // and target key), so no dedup guard is needed here.
         if ("DONE".equals(message.status())) {
             job.setStatus(JobStatus.DONE);
-            job.setTargetStorageKey(message.targetStorageKey());
         } else {
             job.setStatus(JobStatus.FAILED);
             log.error("Job {} failed in worker: {}", message.jobId(), message.errorMessage());

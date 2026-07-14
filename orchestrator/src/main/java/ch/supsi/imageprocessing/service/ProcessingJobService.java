@@ -17,6 +17,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.beans.factory.annotation.Value;   
 
 import java.util.List;
+import java.util.UUID;   
 
 @Service
 public class ProcessingJobService {
@@ -46,6 +47,10 @@ public class ProcessingJobService {
 		public ProcessingJob processJob(Long jobId) {
 				ProcessingJob job = pjr.findById(jobId)
 						.orElseThrow(() -> new ResourceNotFoundException("Job not found: " + jobId));
+				if (job.getTargetStorageKey() == null || job.getTargetStorageKey().isBlank()) {
+						String newStorageKey = UUID.randomUUID().toString();
+						job.setTargetStorageKey(newStorageKey);
+				}
 				job.setStatus(JobStatus.RUNNING);
 				pjr.save(job);
 				publishJobRequest(job);

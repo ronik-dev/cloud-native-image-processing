@@ -6,7 +6,6 @@ metadata:
 data:
   POSTGRES_DB: cloud_native_db
   POSTGRES_HOST: postgres
-  WORKER_URL: http://worker-service:8080
   STORAGE_DATA_DIR: /data/imageprocessing
   LOCAL_DATA_DIR: /tmp/imageprocessing/data
   ORCHESTRATOR_PORT: "8080"

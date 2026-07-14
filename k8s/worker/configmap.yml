@@ -10,3 +10,5 @@ data:
   U2NET_HOME: /home/appuser/.u2net
   WORKER_PORT: "8080"
   KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+  JOB_REQUESTS_TOPIC: "job.requests"
+  JOB_RESULTS_TOPIC: "job.results"

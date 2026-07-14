@@ -176,7 +176,7 @@ async def consume_job_requests():
     runs the matching processing function on a worker thread (they're all
     blocking: subprocess calls, torch inference), and publishes the outcome
     to job.results. Offsets are committed manually, only after the result has
-    been produced — so a crash mid-processing causes redelivery rather than a
+    been produced, so a crash mid-processing causes redelivery rather than a
     silently lost job.
     """
     consumer: AIOKafkaConsumer = kafka_state["consumer"]
@@ -210,7 +210,7 @@ async def consume_job_requests():
                 value=json.dumps(result).encode("utf-8"),
             )
         else:
-            # Message wasn't even valid JSON / had no job_id — nothing sane to
+            # Message wasn't even valid JSON / had no job_id, nothing sane to
             # report back. Logged above; commit and move on rather than
             # looping on a message that can never succeed.
             logger.error(f"discarding unparseable message on {JOB_REQUESTS_TOPIC}")
@@ -292,7 +292,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 # ---------------------------------------------------------------------------
-# HTTP endpoints — kept for manual testing and the existing pytest suite.
+# HTTP endpoints, kept for manual testing and the existing pytest suite.
 # In production, the orchestrator no longer calls these directly; it publishes
 # to job.requests and these code paths are only reached via consume_job_requests.
 # ---------------------------------------------------------------------------

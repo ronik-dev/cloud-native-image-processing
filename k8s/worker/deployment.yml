@@ -31,11 +31,17 @@ spec:
           envFrom:
             - configMapRef:
                 name: worker-config
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            failureThreshold: 30    # v
+            periodSeconds: 5        # 30s * 5s = 150s max wait
           readinessProbe:
             httpGet:
               path: /health
               port: 8080
-            initialDelaySeconds: 120  
+            initialDelaySeconds: 0
             periodSeconds: 5        
             timeoutSeconds: 3        
             failureThreshold: 3
@@ -43,8 +49,8 @@ spec:
             httpGet:
               path: /health
               port: 8080
-            initialDelaySeconds: 150  
-            periodSeconds: 5        
+            initialDelaySeconds: 0
+            periodSeconds: 10
             timeoutSeconds: 3        
             failureThreshold: 3
       volumes:

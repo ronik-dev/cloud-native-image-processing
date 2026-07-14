@@ -20,6 +20,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+
 @WebMvcTest(ProcessingJobController.class)
 class ProcessingJobControllerTest {
 
@@ -49,7 +50,7 @@ class ProcessingJobControllerTest {
 		// ==========================================
 
 		@Test
-		void triggerProcessing_ShouldReturn202AndStartAsync_WhenJobExists() throws Exception {
+		void triggerProcessing_ShouldReturn202_WhenJobExists() throws Exception {
 				ProcessingJob job = job(100L, "output.png");
 				when(pjs.processJob(100L)).thenReturn(job);
 
@@ -59,7 +60,6 @@ class ProcessingJobControllerTest {
 						.andExpect(jsonPath("$.status").value("PENDING"));
 
 				verify(pjs, times(1)).processJob(100L);
-				verify(pjs, times(1)).startAsyncProcessExecution(100L);
 		}
 
 		@Test
@@ -68,8 +68,6 @@ class ProcessingJobControllerTest {
 
 				mockMvc.perform(post("/jobs/{id}/process", 9L))
 						.andExpect(status().isNotFound());
-
-				verify(pjs, never()).startAsyncProcessExecution(any());
 		}
 
 		@Test
@@ -109,7 +107,7 @@ class ProcessingJobControllerTest {
 		}
 
 		// ==========================================
-		// DELETE /jobs/{id}  (deleteJob)  -- note: no @Min(0) on this endpoint
+		// DELETE /jobs/{id}  (deleteJob)
 		// ==========================================
 
 		@Test

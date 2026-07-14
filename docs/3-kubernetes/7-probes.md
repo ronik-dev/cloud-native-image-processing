@@ -53,7 +53,7 @@ The shared `pvc-shared-storage` PVC is mounted at `/data/imageprocessing` by bot
 Fixed by granting write permissions directly on the Minikube node:
 
 ```bash
-minikube ssh -- sudo chmod 777 /data/shared-storage
+minikube ssh -- sudo chmod 777 /data
 ```
 
 This is a local development workaround. On a cloud cluster the correct approach is a `securityContext` in the pod spec with `fsGroup` set to the application's GID, which instructs Kubernetes to recursively chown the mounted volume to that group on pod startup.

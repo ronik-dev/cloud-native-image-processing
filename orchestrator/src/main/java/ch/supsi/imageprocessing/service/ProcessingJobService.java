@@ -54,10 +54,7 @@ public class ProcessingJobService {
 				job.setStatus(JobStatus.RUNNING);
 				pjr.save(job);
 				publishJobRequest(job);
-				// Returned immediately with status RUNNING — the controller still
-				// responds 202 Accepted, same contract as before. The client polls
-				// GET /api/jobs/{id} as usual; JobResultListener is what eventually
-				// flips it to DONE/FAILED.
+				// Returned immediately with status RUNNING 
 				return job;
 		}
 

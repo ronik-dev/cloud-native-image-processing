@@ -12,3 +12,4 @@ data:
   KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
   JOB_REQUESTS_TOPIC: "job.requests"
   JOB_RESULTS_TOPIC: "job.results"
+  KAFKA_CONSUMER_GROUP: "ai-worker" 

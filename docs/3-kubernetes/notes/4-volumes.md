@@ -46,7 +46,7 @@ Both use `ReadWriteOnce` since only the worker pod accesses them. Kubernetes aut
 
 ### Shared storage (static, ReadWriteMany)
 
-The `STORAGE_DATA_DIR` (`/data/imageprocessing`) is accessed by both orchestrator (writes uploaded images) and worker (reads source files, writes processed outputs). Two pods mounting the same volume simultaneously requires `ReadWriteMany`.
+The `STORAGE_DATA_DIR` (`/data/imageprocessing`) is accessed by both orchestrator (writes uploaded images) and worker (reads source files, writes processed outputs). 
 
 Minikube's default `standard` StorageClass only supports `ReadWriteOnce`, so static provisioning is used instead. A PV is defined manually with `hostPath` pointing to `/data/shared-storage` on the Minikube node, and a PVC binds to it by name using `storageClassName: manual`.
 

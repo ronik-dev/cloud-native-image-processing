@@ -1,25 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment 
 metadata:
-  name: gateway
+  name: frontend
   namespace: imageprocessing
   labels:
-    app: gateway
+    app: frontend
     layer: web
 spec:
   replicas: 1 #(default: 1)
   minReadySeconds: 0 #(default: 0)
   selector:
     matchLabels:
-      app: gateway
+      app: frontend
   template:
     metadata:
       labels:
-        app: gateway
+        app: frontend
     spec:
       containers:
-        - name: gateway
-          image: imageprocessing/gateway:latest
+        - name: frontend
+          image: imageprocessing/frontend:latest
           imagePullPolicy: Never
           readinessProbe:
             httpGet:
@@ -39,4 +39,4 @@ spec:
             failureThreshold: 3
           envFrom:
             - configMapRef:
-                name: gateway-config
+                name: frontend-config

@@ -21,6 +21,9 @@ spec:
         - name: worker
           image: imageprocessing/worker:latest
           imagePullPolicy: Never
+          resources:
+            requests:
+              cpu: "200m"
           volumeMounts:
             - mountPath: "/home/appuser/.cache/huggingface"
               name: pvc-model-cache
@@ -35,8 +38,8 @@ spec:
             httpGet:
               path: /health
               port: 8080
-            failureThreshold: 30    # v
-            periodSeconds: 5        # 30s * 5s = 150s max wait
+            failureThreshold: 120   # v
+            periodSeconds: 5        # 120 * 5s = 10m max wait
           readinessProbe:
             httpGet:
               path: /health

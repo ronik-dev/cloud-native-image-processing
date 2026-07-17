@@ -4,7 +4,7 @@ import time
 import base64
 import concurrent.futures
 
-BASE_URL = "http://localhost:8080/api"
+BASE_URL = "http://api.imageprocessing.local/api"
 state = {}
 
 def poll_job(job_id):

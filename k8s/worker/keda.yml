@@ -1,18 +1,19 @@
-apiVersion: keda.sh/v1alpha1
-kind: ScaledObject
-metadata:
-  name: kafka-scaledobject
-  namespace: imageprocessing
-spec:
-  scaleTargetRef:
-    name: worker
-  minReplicaCount: 1
-  maxReplicaCount: 10
-  triggers:
-  - type: kafka
-    metadata:
-      bootstrapServers: kafka.imageprocessing.svc.cluster.local:9092
-      consumerGroup: ai-worker
-      topic: job.requests
-      lagThreshold: '10'           # Scales up by 1 pod for every 10 messages in the backlog
-      offsetResetPolicy: latest
+# Example on how to use Keda to scale based on the number of waiting jobs instead of cpu usage
+# apiVersion: keda.sh/v1alpha1
+# kind: ScaledObject
+# metadata:
+#   name: kafka-scaledobject
+#   namespace: imageprocessing
+# spec:
+#   scaleTargetRef:
+#     name: worker
+#   minReplicaCount: 1
+#   maxReplicaCount: 10
+#   triggers:
+#   - type: kafka
+#     metadata:
+#       bootstrapServers: kafka.imageprocessing.svc.cluster.local:9092
+#       consumerGroup: ai-worker
+#       topic: job.requests
+#       lagThreshold: '10'           # Scales up by 1 pod for every 10 messages in the backlog
+#       offsetResetPolicy: latest

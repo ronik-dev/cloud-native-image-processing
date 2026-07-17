@@ -7,7 +7,7 @@ spec:
   storageClassName: manual
   volumeName: pv-shared-storage
   accessModes: 
-    - ReadWriteMany
+    - ReadWriteOnce
   resources:
     requests:
       storage: 5Gi

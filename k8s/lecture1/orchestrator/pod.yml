@@ -16,7 +16,7 @@ spec:
       - sh
       - -c
       - |
-        until pg_isready -h 10.244.0.113 -U $POSTGRES_USER -d $POSTGRES_DB; do
+        until pg_isready -h <POSTGRES-IP> -U $POSTGRES_USER -d $POSTGRES_DB; do
           echo "Waiting for postgres..."
           sleep 2
         done
@@ -28,13 +28,13 @@ spec:
         - name: POSTGRES_DB
           value: cloud_native_db
         - name: POSTGRES_HOST
-          value: 10.244.0.113
+          value: <POSTGRES-IP>
         - name: STORAGE_DATA_DIR
           value: /data/imageprocessing
         - name: ORCHESTRATOR_PORT
           value: "8080"
         - name: KAFKA_BOOTSTRAP_SERVERS
-          value: "10.244.0.115:9092"
+          value: "<KAFKA-IP>:9092"
         - name: POSTGRES_USER_NAME
           value: yourusername
         - name: POSTGRES_USER_PASSWORD

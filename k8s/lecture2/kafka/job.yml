@@ -18,13 +18,13 @@ spec:
             - -c
             - |
               echo "Waiting for Kafka broker to be ready..."
-              until /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list; do
+              until /opt/kafka/bin/kafka-topics.sh --bootstrap-server <KAFKA-IP>:9092 --list; do
                 echo "Kafka is not ready yet, retrying in 3 seconds..."
                 sleep 3
               done
               echo "Kafka is ready! Creating topics..."
-              /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 \
+              /opt/kafka/bin/kafka-topics.sh --bootstrap-server <KAFKA-IP>:9092 \
                 --create --if-not-exists --topic job.requests --partitions 10 --replication-factor 1
-              /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 \
+              /opt/kafka/bin/kafka-topics.sh --bootstrap-server <KAFKA-IP>:9092 \
                 --create --if-not-exists --topic job.results --partitions 3 --replication-factor 1
               echo "Topics created successfully."

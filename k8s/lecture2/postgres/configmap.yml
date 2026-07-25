@@ -5,4 +5,4 @@ metadata:
   namespace: imageprocessing
 data:
   POSTGRES_DB: cloud_native_db
-  POSTGRES_HOST: postgres
+  POSTGRES_HOST: <POSTGRES-IP>

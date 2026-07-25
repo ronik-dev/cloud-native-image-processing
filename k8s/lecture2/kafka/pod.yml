@@ -10,6 +10,15 @@ spec:
       envFrom:
         - configMapRef:
             name: kafka-config
+      env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: KAFKA_ADVERTISED_LISTENERS
+          value: "PLAINTEXT://$(POD_IP):9092"
+        - name: KAFKA_CONTROLLER_QUORUM_VOTERS
+          value: "1@localhost:9093"
       ports:
         - containerPort: 9092
         - containerPort: 9093

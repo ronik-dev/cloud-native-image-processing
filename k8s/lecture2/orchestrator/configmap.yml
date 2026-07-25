@@ -5,8 +5,8 @@ metadata:
   namespace: imageprocessing
 data:
   POSTGRES_DB: cloud_native_db
-  POSTGRES_HOST: postgres
+  POSTGRES_HOST: <POSTGRES-IP>
   STORAGE_DATA_DIR: /data/imageprocessing
   LOCAL_DATA_DIR: /tmp/imageprocessing/data
   ORCHESTRATOR_PORT: "8080"
-  KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+  KAFKA_BOOTSTRAP_SERVERS: "<KAFKA-IP>:9092"

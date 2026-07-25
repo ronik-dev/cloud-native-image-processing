@@ -22,8 +22,8 @@ Ensure your Minikube cluster is completely clean (no lingering Pods, PVs, or cus
 
 ## Phase 2: Message Broker Setup
 1. **Patch Kafka for Dynamic IPs:**
-    Before applying, modify lecture1/kafka/pod.yml. You must replace the hardcoded KAFKA_ADVERTISED_LISTENERS value with the Downward API to inject its own IP. Add this environment variable:  
-    
+   make shure to have the following configuration for the kafka advertised listeners. Be aware that this will change in lecture 3 when services will be introduced. 
+
     ```YAML
             - name: POD_IP
               valueFrom:

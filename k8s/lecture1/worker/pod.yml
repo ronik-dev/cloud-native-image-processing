@@ -15,7 +15,7 @@ spec:
         - name: U2NET_HOME
           value: /home/appuser/.u2net
         - name: KAFKA_BOOTSTRAP_SERVERS
-          value: "10.244.0.115:9092"
+          value: "<KAFKA-IP>:9092"
         - name: JOB_REQUESTS_TOPIC
           value: "job.requests"
         - name: JOB_RESULTS_TOPIC

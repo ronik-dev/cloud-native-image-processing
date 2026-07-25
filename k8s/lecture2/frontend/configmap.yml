@@ -4,4 +4,4 @@ metadata:
   name: frontend-config
   namespace: imageprocessing
 data:
-  ORCHESTRATOR_URL: http://orchestrator-service:8080/internal
+  ORCHESTRATOR_URL: http://<ORCHESTRATOR-IP>:8080/internal

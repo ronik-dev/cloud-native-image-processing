@@ -1,8 +1,10 @@
-# Sprint 3 : Kubernetes Deployment — Complete Recap
+# Sprint 3 : Kubernetes Deployment - Complete Recap
 
 **Cloud-Native Image Processing : Kubernetes Deployment Phase** _Romano Nicola . SUPSI DTI-ISIN . July 2026_
 
-> Consolidates the full Kubernetes deployment arc — Minikube setup through Ingress, probes, pod design patterns, the Kafka job queue, and KEDA autoscaling — into a single reference document, in the same format as `sprint-1-recap.md` and the `sprint-2-*-recap.md` pair. Supersedes `1-k8s-setup.md` through `10-keda.md` and the two interim `sprint-3-kafka-recap.md` / `sprint-3-elastic-scaling-recap.md` documents as the canonical reference; those are kept as the detailed development log. Where an older note and the manifests actually on disk disagree, this document follows the manifests (flagged explicitly where relevant — see §7.1).
+> Consolidates the full Kubernetes deployment arc - Minikube setup through Ingress, probes, pod design patterns, the Kafka job queue, and KEDA autoscaling - into a single reference document, in the same format as `sprint-1-recap.md` and the `sprint-2-*-recap.md` pair. Supersedes `1-k8s-setup.md` through `10-keda.md` and the two interim `sprint-3-kafka-recap.md` / `sprint-3-elastic-scaling-recap.md` documents as the canonical reference; those are kept as the detailed development log. Where an older note and the manifests actually on disk disagree, this document follows the manifests (flagged explicitly where relevant - see §7.1).
+>
+> **Sprint 3 is now complete.** In addition to this technical recap, the deployment arc has been repackaged into three standalone, progressively-complex **lecture guides** (`lecture1-deployment-guide.md`, `lecture2-deployment-guide.md`, `lecture3-deployment-guide.md`) for course presentation purposes - see §14 for how they relate to this document and to each other.
 
 ---
 
@@ -43,7 +45,7 @@ flowchart TD
 | `postgres` | StatefulSet | 1 | `postgres` Service (ClusterIP) | Stable pod DNS, `volumeClaimTemplates` |
 | `kafka` | StatefulSet | 1 | `kafka` Service (headless) | KRaft mode, no Zookeeper |
 
-Everything lives in the `imageprocessing` namespace (`namespace.yml`) — confirmed as the single, consistent name across every manifest in the repository (no `image-processing` variants remain anywhere on disk).
+Everything lives in the `imageprocessing` namespace (`namespace.yml`) - confirmed as the single, consistent name across every manifest in the repository (no `image-processing` variants remain anywhere on disk).
 
 ---
 
@@ -58,10 +60,10 @@ Established in `1-k8s-setup.md`, unchanged since:
 
 ```bash
 minikube start
-kubectl get nodes   # confirms a single control-plane node — see §5.3, §11.3 for why this matters
+kubectl get nodes   # confirms a single control-plane node - see §5.3, §11.3 for why this matters
 ```
 
-**Building images for Minikube** — Minikube runs its own isolated Docker daemon, so host-built images are invisible to it unless the shell targets Minikube's daemon first:
+**Building images for Minikube** - Minikube runs its own isolated Docker daemon, so host-built images are invisible to it unless the shell targets Minikube's daemon first:
 
 ```bash
 eval $(minikube docker-env)   # per-terminal; does not persist across sessions
@@ -69,7 +71,7 @@ docker compose build
 minikube image load postgres:18-alpine   # third-party images already on the host
 ```
 
-**Evolution of the manifest layout:** the project began with bare `Pod` manifests (one `pod.yml` per service, `imagePullPolicy: Never` since nothing is pushed to a registry) purely to confirm scheduling worked, before any resilience concerns were introduced — see §6 for the migration to Deployments/StatefulSets.
+**Evolution of the manifest layout:** the project began with bare `Pod` manifests (one `pod.yml` per service, `imagePullPolicy: Never` since nothing is pushed to a registry) purely to confirm scheduling worked, before any resilience concerns were introduced - see §6 for the migration to Deployments/StatefulSets.
 
 ---
 
@@ -119,7 +121,7 @@ env:
 
 ### 3.3 ConfigMaps
 
-One `ConfigMap` per service — no service reads another's, enforcing least privilege and letting one service's config change without side effects elsewhere.
+One `ConfigMap` per service - no service reads another's, enforcing least privilege and letting one service's config change without side effects elsewhere.
 
 | ConfigMap | Key variables |
 |---|---|
@@ -127,17 +129,17 @@ One `ConfigMap` per service — no service reads another's, enforcing least priv
 | `orchestrator-config` | `POSTGRES_DB`, `POSTGRES_HOST=postgres`, `STORAGE_DATA_DIR=/data/imageprocessing`, `ORCHESTRATOR_PORT`, `KAFKA_BOOTSTRAP_SERVERS=kafka:9092` |
 | `worker-config` | `STORAGE_DATA_DIR`, `HF_HOME`, `U2NET_HOME`, `WORKER_PORT=8080`, `KAFKA_BOOTSTRAP_SERVERS=kafka:9092`, `JOB_REQUESTS_TOPIC`, `JOB_RESULTS_TOPIC`, `KAFKA_CONSUMER_GROUP=ai-worker` |
 | `postgres-config` | `POSTGRES_DB`, `POSTGRES_HOST=postgres` |
-| `kafka-config` | KRaft broker settings — see §9.4 |
+| `kafka-config` | KRaft broker settings - see §9.4 |
 
 All pods consume their ConfigMap/Secret via `envFrom` rather than enumerating individual `env` entries (except the two explicit `secretKeyRef` mappings in §3.2), keeping pod specs decoupled from the specific variable names inside.
 
-**Scheme correction carried from Sprint 2:** URL-valued config entries must include `http://` — Docker Compose tolerated bare hostnames in some contexts, Kubernetes does not.
+**Scheme correction carried from Sprint 2:** URL-valued config entries must include `http://` - Docker Compose tolerated bare hostnames in some contexts, Kubernetes does not.
 
 ---
 
 ## 4. Labels, Services & Internal DNS
 
-Kubernetes has no automatic DNS registration for bare Pods — unlike Compose, where container names resolve automatically. A `Service` is required in front of every pod that needs to be reachable, and its `selector` matches pods by label.
+Kubernetes has no automatic DNS registration for bare Pods - unlike Compose, where container names resolve automatically. A `Service` is required in front of every pod that needs to be reachable, and its `selector` matches pods by label.
 
 | Pod | Labels |
 |---|---|
@@ -147,7 +149,7 @@ Kubernetes has no automatic DNS registration for bare Pods — unlike Compose, w
 | `postgres` | `app: postgres`, `layer: data` |
 | `kafka` | `app: kafka`, `layer: backend` |
 
-**Service naming is not cosmetic** — `orchestrator-config`'s `POSTGRES_HOST: postgres` and `worker-config`'s Kafka bootstrap value only resolve if the Services are literally named `postgres` and `kafka`. Misnaming a Service produces `UnknownHostException` at runtime even with every pod otherwise healthy — this exact failure mode was hit and fixed during initial setup (`3-labels-and-services.md`).
+**Service naming is not cosmetic** - `orchestrator-config`'s `POSTGRES_HOST: postgres` and `worker-config`'s Kafka bootstrap value only resolve if the Services are literally named `postgres` and `kafka`. Misnaming a Service produces `UnknownHostException` at runtime even with every pod otherwise healthy - this exact failure mode was hit and fixed during initial setup (`3-labels-and-services.md`).
 
 **Gateway exposure evolved.** `3-labels-and-services.md` originally specified `NodePort` for `gateway-service`, reachable directly from the Minikube node. Once the NGINX Ingress Controller was introduced (§7), `6-ingress.md` explicitly calls `NodePort` "insufficient for a production-grade architecture," and the manifest actually on disk today is:
 
@@ -163,7 +165,7 @@ spec:
   type: ClusterIP
 ```
 
-`ClusterIP` is correct here precisely because the Ingress Controller — not the backend Service — is now the thing exposed to the outside. This document follows the current manifest, per the instruction to prefer YAML over prose notes when the two disagree.
+`ClusterIP` is correct here precisely because the Ingress Controller - not the backend Service - is now the thing exposed to the outside. This document follows the current manifest, per the instruction to prefer YAML over prose notes when the two disagree.
 
 All other Services (`postgres`, `orchestrator-service`, and `kafka`) remain `ClusterIP` or headless, since none of them should ever be reached directly from outside the cluster.
 
@@ -173,7 +175,7 @@ All other Services (`postgres`, `orchestrator-service`, and `kafka`) remain `Clu
 
 Two categories of state must survive pod restarts: ML model files (large, slow to re-download, network-restricted in Minikube) and processed image files (in-flight job data).
 
-### 5.1 Dynamic Provisioning — ML Model Caches
+### 5.1 Dynamic Provisioning - ML Model Caches
 
 ```yaml
 # worker/pvc-model-cache.yml, worker/pvc-rembg-cache.yml
@@ -182,11 +184,11 @@ accessModes: [ReadWriteOnce]
 resources: { requests: { storage: 10Gi } }
 ```
 
-Minikube's built-in `standard` StorageClass auto-provisions the backing PV. `ReadWriteOnce` was correct when only one Worker pod ever existed — **this assumption is now stale** given KEDA can run up to 10 Worker replicas concurrently (§10); see §11.1 for the open follow-up.
+Minikube's built-in `standard` StorageClass auto-provisions the backing PV. `ReadWriteOnce` was correct when only one Worker pod ever existed - **this assumption is now stale** given KEDA can run up to 10 Worker replicas concurrently (§10); see §11.1 for the open follow-up.
 
-### 5.2 Static Provisioning — Shared Storage
+### 5.2 Static Provisioning - Shared Storage
 
-`STORAGE_DATA_DIR` is written by the orchestrator (uploads) and read/written by the Worker (processing outputs) — genuinely shared, unlike the per-Worker model caches. Minikube's `standard` StorageClass only supports `ReadWriteOnce`, so this volume is provisioned statically instead:
+`STORAGE_DATA_DIR` is written by the orchestrator (uploads) and read/written by the Worker (processing outputs) - genuinely shared, unlike the per-Worker model caches. Minikube's `standard` StorageClass only supports `ReadWriteOnce`, so this volume is provisioned statically instead:
 
 ```yaml
 # storage/pv-shared-storage.yml
@@ -212,12 +214,12 @@ spec:
   resources: { requests: { storage: 5Gi } }
 ```
 
-**Design decision log and update plan over `hostPath`.** This PV previously declared `ReadWriteMany` while backed by `hostPath`. Kubernetes accepts that combination syntactically, but `hostPath` has no attach/detach mechanism for the kubelet to enforce access modes against — the field was decorative, not a real guarantee. In practice:
+**Design decision log and update plan over `hostPath`.** This PV previously declared `ReadWriteMany` while backed by `hostPath`. Kubernetes accepts that combination syntactically, but `hostPath` has no attach/detach mechanism for the kubelet to enforce access modes against - the field was decorative, not a real guarantee. In practice:
 
-- Two Worker pods on the **same** node transparently shared the directory — looked correct.
-- A Worker pod scheduled to a **different** node got its own node's empty, disconnected local path — silent `FileNotFoundError`, no scheduling error to explain why.
+- Two Worker pods on the **same** node transparently shared the directory - looked correct.
+- A Worker pod scheduled to a **different** node got its own node's empty, disconnected local path - silent `FileNotFoundError`, no scheduling error to explain why.
 
-This is now declared `ReadWriteOnce`, matching what `hostPath` can actually deliver. The relabeling doesn't fix the underlying multi-node risk by itself — `hostPath` still can't enforce anything — but the manifest no longer claims a guarantee it can't keep. The real constraint is enforced operationally instead: **the cluster stays single-node (Minikube) until this migrates to a genuine `ReadWriteMany` backend.** On a single-node cluster, every Worker replica lands on the same node by construction, so the multi-node inconsistency cannot occur. No `nodeAffinity` was added to enforce this explicitly, since it would be redundant on a cluster with exactly one node — flagged in §11.1 as a follow-up the moment a second node is added before the storage migration lands.
+This is now declared `ReadWriteOnce`, matching what `hostPath` can actually deliver. The relabeling doesn't fix the underlying multi-node risk by itself - `hostPath` still can't enforce anything - but the manifest no longer claims a guarantee it can't keep. The real constraint is enforced operationally instead: **the cluster stays single-node (Minikube) until this migrates to a genuine `ReadWriteMany` backend.** On a single-node cluster, every Worker replica lands on the same node by construction, so the multi-node inconsistency cannot occur. No `nodeAffinity` was added to enforce this explicitly, since it would be redundant on a cluster with exactly one node - flagged in §11.1 as a follow-up the moment a second node is added before the storage migration lands.
 
 **Planned migration**, tracked against the roadmap's cloud-provisioning phase:
 
@@ -229,11 +231,11 @@ This is now declared `ReadWriteOnce`, matching what `hostPath` can actually deli
 
 ### 5.3 StatefulSet-Managed Storage
 
-`postgres` and `kafka` each provision their own storage via `volumeClaimTemplates` rather than a standalone PVC — see §6.2 for why this is a StatefulSet responsibility.
+`postgres` and `kafka` each provision their own storage via `volumeClaimTemplates` rather than a standalone PVC - see §6.2 for why this is a StatefulSet responsibility.
 
 ### 5.4 Reclaim Policy
 
-The statically-provisioned `pv-shared-storage` uses `Retain` (the default for static PVs) — deleting the PVC keeps the PV and data for manual reclaim. The dynamically-provisioned model-cache PVs use `Delete` — their backing storage disappears with the PVC. Deliberately asymmetric: shared storage holds user-facing data worth protecting against accidental deletion; model caches are trivially reconstructible by re-downloading.
+The statically-provisioned `pv-shared-storage` uses `Retain` (the default for static PVs) - deleting the PVC keeps the PV and data for manual reclaim. The dynamically-provisioned model-cache PVs use `Delete` - their backing storage disappears with the PVC. Deliberately asymmetric: shared storage holds user-facing data worth protecting against accidental deletion; model caches are trivially reconstructible by re-downloading.
 
 ---
 
@@ -241,14 +243,14 @@ The statically-provisioned `pv-shared-storage` uses `Retain` (the default for st
 
 ### 6.1 From Bare Pods to Deployments
 
-Bare `Pod` manifests (§2) proved scheduling worked but are fragile: a node crash or an OOM-killed pod is gone permanently, and scaling means hand-duplicating manifests. `gateway`, `orchestrator`, and `worker` were converted to `Deployment` — the environment variables, `envFrom`, and volume mounts carried over unchanged from the bare-pod specs; only the `spec.template.spec` wrapping is new. All three are stateless from Kubernetes's perspective (state lives in Postgres/PVCs, not container-local storage), so the Deployment controller can freely destroy and recreate them across nodes without data loss.
+Bare `Pod` manifests (§2) proved scheduling worked but are fragile: a node crash or an OOM-killed pod is gone permanently, and scaling means hand-duplicating manifests. `gateway`, `orchestrator`, and `worker` were converted to `Deployment` - the environment variables, `envFrom`, and volume mounts carried over unchanged from the bare-pod specs; only the `spec.template.spec` wrapping is new. All three are stateless from Kubernetes's perspective (state lives in Postgres/PVCs, not container-local storage), so the Deployment controller can freely destroy and recreate them across nodes without data loss.
 
 ### 6.2 Why Postgres and Kafka Need StatefulSets
 
-Databases and (in KRaft mode) the Kafka broker both need startup-ordering guarantees, stable network identity, and volumes that reattach to the *same* instance on restart — none of which a Deployment provides. A `StatefulSet` gives:
+Databases and (in KRaft mode) the Kafka broker both need startup-ordering guarantees, stable network identity, and volumes that reattach to the *same* instance on restart - none of which a Deployment provides. A `StatefulSet` gives:
 
-- **Stable DNS** — always `postgres-0` / `kafka-0`, never a random hash suffix.
-- **`volumeClaimTemplates`** — Kubernetes provisions and re-binds the same PVC per replica automatically, rather than a manually pre-created PVC shared across possibly-different pod instances.
+- **Stable DNS** - always `postgres-0` / `kafka-0`, never a random hash suffix.
+- **`volumeClaimTemplates`** - Kubernetes provisions and re-binds the same PVC per replica automatically, rather than a manually pre-created PVC shared across possibly-different pod instances.
 
 ```yaml
 # postgres/statefulset.yml (excerpt)
@@ -261,7 +263,7 @@ volumeClaimTemplates:
 
 ```yaml
 # kafka/statefulset.yml (excerpt)
-serviceName: kafka   # must match the headless Service — see §9.4
+serviceName: kafka   # must match the headless Service - see §9.4
 volumeClaimTemplates:
   - metadata: { name: kafka-data }
     spec:
@@ -271,7 +273,7 @@ volumeClaimTemplates:
 
 ### 6.3 Init Container: `wait-for-postgres`
 
-Kubernetes starts all pods concurrently — unlike Compose's `depends_on: condition: service_healthy`. Without ordering, `orchestrator` would attempt to open a connection pool before Postgres finished initializing, producing crash loops even though increased probe delays alone (§8) had already prevented Kubernetes from prematurely killing the pod.
+Kubernetes starts all pods concurrently - unlike Compose's `depends_on: condition: service_healthy`. Without ordering, `orchestrator` would attempt to open a connection pool before Postgres finished initializing, producing crash loops even though increased probe delays alone (§8) had already prevented Kubernetes from prematurely killing the pod.
 
 ```yaml
 initContainers:
@@ -280,12 +282,12 @@ initContainers:
     command: ["sh", "-c", "until pg_isready -h postgres -U $POSTGRES_USER -d $POSTGRES_DB; do sleep 2; done"]
 ```
 
-Init containers run sequentially before the main container and block it in `PodInitializing` until they succeed, restarting on failure. With this in place, `orchestrator`'s `livenessProbe.initialDelaySeconds` was safely reduced from a temporary 60s workaround back to 15s (§8), since the init container — not a padded liveness delay — now absorbs the concurrent-startup race.
+Init containers run sequentially before the main container and block it in `PodInitializing` until they succeed, restarting on failure. With this in place, `orchestrator`'s `livenessProbe.initialDelaySeconds` was safely reduced from a temporary 60s workaround back to 15s (§8), since the init container - not a padded liveness delay - now absorbs the concurrent-startup race.
 
 ### 6.4 Patterns Evaluated and Dismissed
 
-- **Sidecar** (e.g. a local logging agent) — unnecessary; logs already go to stdout and Kubernetes handles collection natively.
-- **Adapter** (normalizing metrics for a monitoring backend) — unnecessary; Spring Boot + Micrometer already emit standard-format metrics.
+- **Sidecar** (e.g. a local logging agent) - unnecessary; logs already go to stdout and Kubernetes handles collection natively.
+- **Adapter** (normalizing metrics for a monitoring backend) - unnecessary; Spring Boot + Micrometer already emit standard-format metrics.
 
 ---
 
@@ -318,13 +320,13 @@ Local DNS is simulated by appending the Minikube VM's IP to `/etc/hosts` (`192.1
 
 ### 7.1 Note on the Superseded `NodePort` Description
 
-As covered in §4, an earlier note (`3-labels-and-services.md`) still describes `gateway-service` as `NodePort` — accurate at the time it was written, before Ingress existed. The manifest on disk is `ClusterIP`, and that's what's deployed today. Documented here explicitly so the two sources don't read as contradictory without explanation.
+As covered in §4, an earlier note (`3-labels-and-services.md`) still describes `gateway-service` as `NodePort` - accurate at the time it was written, before Ingress existed. The manifest on disk is `ClusterIP`, and that's what's deployed today. Documented here explicitly so the two sources don't read as contradictory without explanation.
 
 ---
 
 ## 8. Probes: Readiness, Liveness, Startup
 
-Without probes, Kubernetes routes traffic to any `Running` pod regardless of internal state, and only restarts on process crash — not on "silently broken but still alive."
+Without probes, Kubernetes routes traffic to any `Running` pod regardless of internal state, and only restarts on process crash - not on "silently broken but still alive."
 
 | Mechanism | Used by | How |
 |---|---|---|
@@ -344,7 +346,7 @@ Without probes, Kubernetes routes traffic to any `Running` pod regardless of int
 **Two mount-path corrections, non-obvious and worth keeping visible:**
 
 - **Postgres PVC mounts at `/var/lib/postgresql`, not `/var/lib/postgresql/data`.** Postgres 18 Alpine enforces strict ownership/permission checks on its `data/` subdirectory; mounting the PVC directly onto `/data` caused the engine to deliberately crash on startup. Mounting one level up lets Postgres manage `data/` itself.
-- **Shared storage permissions on the Minikube node** required `minikube ssh -- sudo chmod 777 /data` as a local-dev workaround, since the `hostPath` directory defaults to root ownership and `orchestrator` runs as non-root `appuser`. The documented correct fix for a cloud cluster is a pod-spec `securityContext.fsGroup` matching the app's GID, so Kubernetes recursively chowns the volume on mount — not yet applied since this stays local for now (§5.2).
+- **Shared storage permissions on the Minikube node** required `minikube ssh -- sudo chmod 777 /data` as a local-dev workaround, since the `hostPath` directory defaults to root ownership and `orchestrator` runs as non-root `appuser`. The documented correct fix for a cloud cluster is a pod-spec `securityContext.fsGroup` matching the app's GID, so Kubernetes recursively chowns the volume on mount - not yet applied since this stays local for now (§5.2).
 
 ---
 
@@ -352,7 +354,7 @@ Without probes, Kubernetes routes traffic to any `Running` pod regardless of int
 
 ### 9.1 From Synchronous HTTP to Async Messaging
 
-Sprint 2 had the orchestrator call the Worker synchronously over HTTP from within an `@Async` thread (`sprint-2-microservices-recap.md`, §8.4) — a thread held for the full duration of AI inference, with no buffering under load. Sprint 3 replaces that with two topics:
+Sprint 2 had the orchestrator call the Worker synchronously over HTTP from within an `@Async` thread (`sprint-2-microservices-recap.md`, §8.4) - a thread held for the full duration of AI inference, with no buffering under load. Sprint 3 replaces that with two topics:
 
 ```mermaid
 flowchart TD
@@ -365,26 +367,26 @@ flowchart TD
 1. `POST /api/jobs/{id}/process` -> Orchestrator assigns `targetStorageKey`, sets status `RUNNING`, publishes `JobRequestMessage`, returns immediately.
 2. Worker consumes, processes on a thread-pool executor, writes the output, publishes `JobResultMessage` (`DONE`/`FAILED`).
 3. `JobResultListener` (Orchestrator) applies the result to PostgreSQL.
-4. `GET /api/jobs/{id}` — unchanged; it only ever reads the DB.
+4. `GET /api/jobs/{id}` - unchanged; it only ever reads the DB.
 
 ### 9.2 Design Decisions
 
-- **Two topics, not one per job type.** `job_type` travels inside the payload. This mirrors the Orchestrator's exhaustive `switch` on `JobType` (no `default` arm — a new type is a compile error until handled): a new job type becomes a new dispatch-table/switch arm, not new topic provisioning.
-- **Keyed by `jobId`** on both topics — guarantees per-job ordering on a single partition, relevant if a job is ever resubmitted.
-- **Storage key ownership stays with the Orchestrator.** `processJob()` assigns `targetStorageKey` via `UUID.randomUUID()` **before** publishing — not the Worker, and not `JobResultListener` on completion. An early draft assigned it at completion instead; reverted because creation-time assignment is idempotent under Kafka redelivery (a reprocessed message always targets the same file) and keeps `GET /api/jobs/{id}` accurate the instant a job goes `RUNNING`, rather than only after the Worker replies. `JobResultListener` reads the Worker's echoed `target_sk` back only as a correlation check — a mismatch is logged as a warning, never adopted as a new value.
-- **At-least-once delivery, handled explicitly, not via exactly-once machinery.** The Worker's `AIOKafkaConsumer` commits its offset only *after* publishing to `job.results` — a crash mid-inference causes redelivery, not silent loss. `JobResultListener` is idempotent (replaying the same status twice is harmless). **Known, documented gap:** if the Orchestrator's `KafkaTemplate.send()` itself fails (broker unreachable), the job goes straight to `FAILED` with no retry — a transactional outbox would close this, judged out of scope for this sprint.
-- **`aiokafka` over `confluent-kafka`** on the Worker — fits the existing FastAPI `lifespan` pattern already used to load the `rembg`/DETR models once at boot; the consumer loop runs as a native `asyncio` task in that same `lifespan` rather than needing a separate thread bridged into the event loop. The blocking processing functions are offloaded via `loop.run_in_executor(...)` so the event loop stays free to serve `/health` and keep polling Kafka mid-job.
-- **Single-broker KRaft mode, no Zookeeper** — proportionate to thesis scale, one fewer component to operate alongside Postgres and the eventual service mesh.
+- **Two topics, not one per job type.** `job_type` travels inside the payload. This mirrors the Orchestrator's exhaustive `switch` on `JobType` (no `default` arm - a new type is a compile error until handled): a new job type becomes a new dispatch-table/switch arm, not new topic provisioning.
+- **Keyed by `jobId`** on both topics - guarantees per-job ordering on a single partition, relevant if a job is ever resubmitted.
+- **Storage key ownership stays with the Orchestrator.** `processJob()` assigns `targetStorageKey` via `UUID.randomUUID()` **before** publishing - not the Worker, and not `JobResultListener` on completion. An early draft assigned it at completion instead; reverted because creation-time assignment is idempotent under Kafka redelivery (a reprocessed message always targets the same file) and keeps `GET /api/jobs/{id}` accurate the instant a job goes `RUNNING`, rather than only after the Worker replies. `JobResultListener` reads the Worker's echoed `target_sk` back only as a correlation check - a mismatch is logged as a warning, never adopted as a new value.
+- **At-least-once delivery, handled explicitly, not via exactly-once machinery.** The Worker's `AIOKafkaConsumer` commits its offset only *after* publishing to `job.results` - a crash mid-inference causes redelivery, not silent loss. `JobResultListener` is idempotent (replaying the same status twice is harmless). **Known, documented gap:** if the Orchestrator's `KafkaTemplate.send()` itself fails (broker unreachable), the job goes straight to `FAILED` with no retry - a transactional outbox would close this, judged out of scope for this sprint.
+- **`aiokafka` over `confluent-kafka`** on the Worker - fits the existing FastAPI `lifespan` pattern already used to load the `rembg`/DETR models once at boot; the consumer loop runs as a native `asyncio` task in that same `lifespan` rather than needing a separate thread bridged into the event loop. The blocking processing functions are offloaded via `loop.run_in_executor(...)` so the event loop stays free to serve `/health` and keep polling Kafka mid-job.
+- **Single-broker KRaft mode, no Zookeeper** - proportionate to thesis scale, one fewer component to operate alongside Postgres and the eventual service mesh.
 
 ### 9.3 Message Schemas
 
 ```json
-// JobRequestMessage — job.requests
+// JobRequestMessage - job.requests
 { "job_id": 42, "job_type": "FORMAT_CONVERSION", "source_sk": "...", "target_sk": "...", "input_format": "png", "output_format": "jpg" }
 ```
 
 ```json
-// JobResultMessage — job.results
+// JobResultMessage - job.results
 { "job_id": 42, "status": "DONE", "target_sk": "...", "error_message": null }
 ```
 
@@ -393,16 +395,16 @@ flowchart TD
 ### 9.4 Kubernetes Objects
 
 ```yaml
-# kafka/configmap.yml (excerpt — KRaft settings)
+# kafka/configmap.yml (excerpt - KRaft settings)
 KAFKA_NODE_ID: "1"
 KAFKA_PROCESS_ROLES: "broker,controller"
 KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka-0.kafka.imageprocessing.svc.cluster.local:9092"
 KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka-0.kafka.imageprocessing.svc.cluster.local:9093"
-KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"   # deliberate — see topic creation below
+KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"   # deliberate - see topic creation below
 ```
 
 ```yaml
-# kafka/service.yml — headless, required for StatefulSet pod DNS + KRaft voter resolution
+# kafka/service.yml - headless, required for StatefulSet pod DNS + KRaft voter resolution
 spec:
   clusterIP: None
   selector: { app: kafka }
@@ -425,7 +427,7 @@ Topics are created explicitly by a one-shot `Job` rather than relying on auto-cr
 
 ### 10.1 KEDA over Plain HPA
 
-The default `HorizontalPodAutoscaler` scales on CPU/memory — a poor proxy here, since a Worker doing inference can sit at high CPU with only one job in flight while ten queued jobs behind it produce no CPU signal until picked up. KEDA's `kafka` scaler reads **consumer lag on `job.requests`** directly and drives a standard HPA underneath, so scaling tracks actual backlog rather than a CPU approximation of it.
+The default `HorizontalPodAutoscaler` scales on CPU/memory - a poor proxy here, since a Worker doing inference can sit at high CPU with only one job in flight while ten queued jobs behind it produce no CPU signal until picked up. KEDA's `kafka` scaler reads **consumer lag on `job.requests`** directly and drives a standard HPA underneath, so scaling tracks actual backlog rather than a CPU approximation of it.
 
 ```yaml
 # keda.yml
@@ -434,7 +436,7 @@ kind: ScaledObject
 metadata: { name: kafka-scaledobject, namespace: imageprocessing }
 spec:
   scaleTargetRef: { name: worker }        # apps/v1 Deployment, matches worker/deployment.yml
-  minReplicaCount: 1                       # keeps one Worker warm — avoids scale-from-zero cold start
+  minReplicaCount: 1                       # keeps one Worker warm - avoids scale-from-zero cold start
   maxReplicaCount: 10                       # bounded by job.requests partition count, see §10.2
   triggers:
     - type: kafka
@@ -450,7 +452,7 @@ spec:
 
 ### 10.2 Partitioning as the Real Scaling Ceiling
 
-Kafka assigns at most one partition per consumer in a group — a partition never splits across two consumers. `maxReplicaCount` is therefore bounded by `job.requests`'s partition count, not just a safety cap: any replica beyond the partition count gets no partitions and sits fully idle. `job.requests` is provisioned with **10 partitions** (§9.4) specifically to match `maxReplicaCount: 10` — the two numbers are aligned deliberately. Partitions can be added to an existing topic without data loss but never reduced, so over-provisioning up front is the safer direction to round.
+Kafka assigns at most one partition per consumer in a group - a partition never splits across two consumers. `maxReplicaCount` is therefore bounded by `job.requests`'s partition count, not just a safety cap: any replica beyond the partition count gets no partitions and sits fully idle. `job.requests` is provisioned with **10 partitions** (§9.4) specifically to match `maxReplicaCount: 10` - the two numbers are aligned deliberately. Partitions can be added to an existing topic without data loss but never reduced, so over-provisioning up front is the safer direction to round.
 
 ### 10.3 Operator Installation
 
@@ -462,7 +464,7 @@ helm install keda kedacore/keda --namespace keda --create-namespace
 
 ### 10.4 Validation
 
-`10-keda.md` documents a synthetic load test bypassing the Orchestrator entirely — publishing directly to `job.requests` to isolate scaling behavior from the rest of the pipeline:
+`10-keda.md` documents a synthetic load test bypassing the Orchestrator entirely - publishing directly to `job.requests` to isolate scaling behavior from the rest of the pipeline:
 
 ```bash
 kubectl exec -it kafka-0 -n imageprocessing -- /bin/bash -c "
@@ -472,7 +474,26 @@ done | /opt/kafka/bin/kafka-console-producer.sh --broker-list localhost:9092 --t
 "
 ```
 
-30 messages against `lagThreshold: 10` should drive the Worker toward `ceil(30/10) = 3` replicas. **Not yet validated:** whether all 10 replicas can actually be *scheduled* on the current single-node Minikube cluster — no CPU/memory `resources.requests` are set on the Worker container, so node capacity, not the KEDA/Kafka ceiling, may be the real limit in practice (§11.1).
+30 messages against `lagThreshold: 10` should drive the Worker toward `ceil(30/10) = 3` replicas. **Not yet validated:** whether all 10 replicas can actually be *scheduled* on the current single-node Minikube cluster - no CPU/memory `resources.requests` are set on the Worker container, so node capacity, not the KEDA/Kafka ceiling, may be the real limit in practice (§11.1).
+
+### 10.5 k6 HTTP Load Test (End-to-End Validation)
+
+The `10-keda.md` script in §10.4 validates the KEDA/Kafka trigger in isolation by publishing directly to `job.requests`, bypassing the Gateway and Orchestrator entirely. `test/loadtest.js` closes that gap: it is a [k6](https://k6.io/) script that drives load through the **real public API** (Ingress → Gateway → Orchestrator → Kafka → Worker), so it exercises the full path this recap describes rather than just the scaling trigger.
+
+```bash
+# Requires k6 installed locally (not part of the cluster)
+k6 run test/loadtest.js
+```
+
+**Structure** - mirrors the `setup()`/default-function/`teardown()` lifecycle k6 provides for exactly this shape of test:
+
+- **`setup()`, runs once:** creates a single load-test `User` and uploads one `penguin-test.jpg` image via `POST /api/images`. Doing this once in `setup()` rather than per-VU avoids each of the ramped-up virtual users racing to create their own user/image during ramp-up, which would conflate "API surface handling test-harness churn" with "the thing actually being load-tested" (Worker scaling under a burst of jobs against a *fixed* image). Both IDs are returned from `setup()` and injected into every VU iteration.
+- **Default function, runs per VU iteration:** creates a `BACKGROUND_REMOVAL` job against the shared image (`outputName` disambiguated per VU/iteration via `${__VU}_${__ITER}` to avoid the `(image_id, outputName)` uniqueness constraint from the Sprint 1 domain model - see `sprint-1-recap.md` §3.1), then immediately triggers it via `POST /api/jobs/{id}/process`, asserting `201`/`202` at each step.
+- **`teardown()`, runs once:** deletes the load-test user, relying on the `CASCADE DELETE` chain (`User` → `Image` → `ProcessingJob`) established since Sprint 1 to clean up every job created during the run in one call, rather than tracking and deleting each job ID individually.
+
+**Load profile:** ramp `0 → 5` VUs over 30s, hold at 5 VUs for 3 minutes, ramp back to `0` over 30s - each VU sleeps 1s between iterations, so this is a sustained, moderate, steady-state burst against `job.requests` rather than a spike test. It's deliberately shaped to keep the Worker's consumer-lag trigger (§10.1) in its scaling range for several minutes at a stretch, long enough to observe replica count actually climb and settle, not just spike momentarily.
+
+**What this does and doesn't validate:** confirms the full HTTP-to-Kafka-to-Worker path holds up under sustained concurrent job creation and that `BACKGROUND_REMOVAL` jobs triggered this way do get picked up and scaled against. It does **not** resolve the open question from §10.4/§11.1 about whether 10 Worker replicas are schedulable on a resource-request-less single-node cluster - 5 concurrent VUs was not intended to push replica count anywhere near that ceiling. Worker `resources.requests`/`limits` remain the tracked follow-up for that specific question (§11.1).
 
 ---
 
@@ -483,12 +504,12 @@ Consolidated view of decisions that span multiple sections above:
 | Decision | Where | Reasoning, in one line |
 |---|---|---|
 | Namespace consistently `imageprocessing` | §1, all manifests | A single typo (`image-processing`) silently breaks Service DNS; verified consistent across every current manifest |
-| Postgres secret keys kept as Postgres expects, mapped explicitly for Spring | §3.2 | One secret, two consumers with different naming conventions — solved with `secretKeyRef`, not a duplicated secret |
+| Postgres secret keys kept as Postgres expects, mapped explicitly for Spring | §3.2 | One secret, two consumers with different naming conventions - solved with `secretKeyRef`, not a duplicated secret |
 | `gateway-service`: `NodePort` -> `ClusterIP` | §4, §7.1 | Superseded once Ingress took over external routing; documented explicitly since an older note still says `NodePort` |
 | Storage key (`targetStorageKey`) assigned at job creation, not completion | §9.2 | Single source of truth; idempotent under Kafka redelivery; correct value visible while `RUNNING`, not just at `DONE` |
-| At-least-once Kafka delivery, not exactly-once | §9.2 | Exactly-once needs transactional producers/consumers on both JVM and Python sides — disproportionate for this scale; handled explicitly instead (commit-after-publish, idempotent listener) |
+| At-least-once Kafka delivery, not exactly-once | §9.2 | Exactly-once needs transactional producers/consumers on both JVM and Python sides - disproportionate for this scale; handled explicitly instead (commit-after-publish, idempotent listener) |
 | Shared storage relabeled `RWO` on `hostPath` | §5.2 | `hostPath` never enforced `RWX` in the first place; the manifest now states what it can actually deliver |
-| Single-node Minikube as the interim multi-node-safety mechanism | §5.2, §10.4 | No `nodeAffinity` added — redundant on a true single-node cluster; becomes necessary the moment a second node exists before the storage migration lands |
+| Single-node Minikube as the interim multi-node-safety mechanism | §5.2, §10.4 | No `nodeAffinity` added - redundant on a true single-node cluster; becomes necessary the moment a second node exists before the storage migration lands |
 
 ### 11.1 Still-Open Follow-Ups
 
@@ -506,7 +527,7 @@ Consolidated view of decisions that span multiple sections above:
 Dependency-ordered `kubectl apply`, consolidating every object introduced across this document:
 
 ```bash
-# 1. Namespace first — everything else references it
+# 1. Namespace first - everything else references it
 kubectl apply -f namespace.yml
 
 # 2. Secrets and ConfigMaps
@@ -517,7 +538,7 @@ kubectl apply -f worker/configmap.yml
 kubectl apply -f gateway/configmap.yml
 kubectl apply -f kafka/configmap.yml
 
-# 3. Storage — before anything that mounts it
+# 3. Storage - before anything that mounts it
 kubectl apply -f storage/pv-shared-storage.yml
 kubectl apply -f storage/pvc-shared-storage.yml
 kubectl apply -f worker/pvc-model-cache.yml
@@ -567,6 +588,38 @@ curl -I http://api.imageprocessing.local
 | Init container pattern | `wait-for-postgres` eliminates startup race | Done | §6.3 |
 | Kafka job queue | `job.requests`/`job.results`, at-least-once, storage-key ownership fixed | Done | §9 |
 | KEDA autoscaling | Worker scales 1–10 on Kafka lag | Done | Partition count aligned to `maxReplicaCount` (§10.2) |
+| k6 load test | Sustained end-to-end load against the real API, not just a Kafka-producer bypass | Done | `test/loadtest.js`, §10.5 - validates the full path, not the 10-replica scheduling ceiling |
 | Shared storage multi-node safety | RWX backend (NFS/cloud) | **Open** | Deferred to cloud-provisioning phase; single-node cluster is the interim constraint |
 | ML model cache multi-node safety | Bake into image or RWX backend | **Open** | Not yet started |
 | Worker resource requests/limits | Scheduling headroom validated for 10 replicas | Done | Needed before treating `maxReplicaCount: 10` as a validated ceiling |
+| Lecture deployment guides | Three standalone, progressively-complex guides split out for course presentation | Done | §14 |
+
+---
+
+## 14. Lecture Deployment Guides (Course Presentation Track)
+
+Separately from this technical recap - which documents the *final* architecture (Deployments, StatefulSets, Services, Ingress, Kafka, KEDA) as it stands on disk - the same Sprint 3 arc has been repackaged into three standalone `lecture{1,2,3}-deployment-guide.md` documents. These exist to *teach* the progression rather than to describe the end state: each one is a self-contained, step-by-step deployment walkthrough for a snapshot of the architecture at an earlier level of Kubernetes maturity, mirroring how the DevOps course itself builds up the concepts.
+
+### 14.1 Why a Separate Track
+
+This recap (§1–§13) intentionally reads as "here is where the manifests ended up, and why." It is not a good teaching artifact for someone who hasn't yet seen a `Service` or a `PersistentVolumeClaim` - it assumes the reader already knows why those objects exist. The lecture guides invert that: each one freezes the deployment procedure at the DNS/config maturity level that had been reached at that point in the course, so a student can reproduce *exactly* what was demoed in that lecture without needing the final-state manifests early.
+
+### 14.2 The Three Guides
+
+| Guide | Corresponds to | K8s objects in play | Routing model |
+|---|---|---|---|
+| `lecture1-deployment-guide.md` | §2 (bare Pods, `1-k8s-setup.md`) | Bare `Pod` only, `default` namespace | No Services - pods get dynamic IPs; every downstream config (Kafka advertised listeners, `POSTGRES_HOST`, `ORCHESTRATOR_URL`) is hand-patched with the IP retrieved via `kubectl get pod ... -o wide` after each pod starts. Strict dependency-ordered deploy: Postgres → Kafka → Orchestrator/Worker → Frontend. |
+| `lecture2-deployment-guide.md` | §3, §5 (namespace, ConfigMaps/Secrets, PV/PVC - pre-§4 Services) | Namespace, Secrets, ConfigMaps, PV/PVC, bare `Pod` | Still no Services, so still manual IP propagation into ConfigMaps at each phase - but credentials and config are no longer hardcoded in the pod specs, and model-cache/shared storage now survive pod restarts. A Downward-API (`status.podIP`) trick is introduced for Kafka's `KAFKA_ADVERTISED_LISTENERS` instead of hardcoding a value. |
+| `lecture3-deployment-guide.md` | §4, §6, §7 (Services, Deployments/StatefulSets, Ingress - this recap's steady state) | Services (ClusterIP/headless), Deployments, StatefulSets, Ingress | No manual IP wiring anywhere - internal DNS via Service names resolves everything (`postgres`, `kafka`, `orchestrator-service`), and external access goes through the NGINX Ingress + `minikube tunnel` rather than a privileged `port-forward`. This is the routing model §1–§13 of this document assume throughout. |
+
+### 14.3 What Changes Across the Three, Concretely
+
+- **IP handling**: lecture1/2 manually retrieve and re-inject pod IPs after every apply (`kubectl get pod ... -o wide`, then edit and reapply a ConfigMap or pod spec); lecture3 relies entirely on Service-name DNS, matching §4 of this recap.
+- **Namespace**: lecture1 deploys to `default` (no namespace isolation yet); lecture2 and lecture3 use the dedicated `imageprocessing` namespace established in §3.1.
+- **External access**: lecture1/2 use a privileged `sudo -E kubectl port-forward ... 80:8080` tunnel to `frontend`/`gateway`, since no Ingress exists yet; lecture3 uses `minikube addons enable ingress` plus `minikube tunnel`, matching §7 of this recap.
+- **Resilience**: lecture1/2 use bare Pods throughout - a crash is terminal until manually reapplied; lecture3 introduces Deployments/StatefulSets (§6), which is also the point at which self-healing and rolling behavior first appear.
+- **Not covered by any of the three lecture guides**: the Kafka job queue's topic partitioning details (§9.3–§9.4) and KEDA autoscaling (§10) are demonstrated live in class from the manifests directly rather than walked through as a separate guide step - the lecture guides stop at "the stack is reachable end-to-end," not at elastic scaling.
+
+### 14.4 Relationship to This Recap
+
+Treat `lecture3-deployment-guide.md` as the closest sibling to this document: both describe the Services/Deployments/Ingress-based steady state, but this recap additionally covers everything the lecture guides deliberately leave out for classroom time - persistent storage design tradeoffs (§5), probe tuning rationale (§8), the Kafka migration (§9), and KEDA (§10). `lecture1` and `lecture2` describe architectures that no longer exist on `main` - they are retained as teaching snapshots, not as alternative deployment paths for the current codebase.

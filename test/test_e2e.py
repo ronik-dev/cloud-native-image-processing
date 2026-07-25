@@ -28,7 +28,6 @@ def poll_job(job_id):
         
         print(f"    -> Job {job_id} Status: {status}")
         
-        # FIX 1: Changed "COMPLETED" to "DONE" to match your Java Enum!
         if status == "DONE":
             return True
         elif status == "FAILED":
@@ -52,7 +51,6 @@ class TestImageProcessingUserJourney:
     def test_02_upload_image(self, tmp_path):
         url = f"{BASE_URL}/images"
         
-        # FIX 2: A mathematically perfect, valid 1x1 transparent PNG
         dummy_image = tmp_path / "test_image.png"
         valid_png_base64 = b"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
         dummy_image.write_bytes(base64.b64decode(valid_png_base64))

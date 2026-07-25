@@ -21,6 +21,17 @@ spec:
         - name: wait-for-postgres
           image: postgres:18-alpine
           imagePullPolicy: Never
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: orchestrator-config
+                  key: POSTGRES_DB
           command:
           - sh
           - -c

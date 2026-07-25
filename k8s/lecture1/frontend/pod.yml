@@ -9,4 +9,4 @@ spec:
       imagePullPolicy: Never
       env:
         - name: ORCHESTRATOR_URL
-          value: http://orchestrator-service:8080/internal
+          value: http://10.244.0.122:8080/internal

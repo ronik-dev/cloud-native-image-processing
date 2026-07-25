@@ -16,7 +16,7 @@ spec:
       - sh
       - -c
       - |
-        until pg_isready -h postgres -U $POSTGRES_USER -d $POSTGRES_DB; do
+        until pg_isready -h 10.244.0.113 -U $POSTGRES_USER -d $POSTGRES_DB; do
           echo "Waiting for postgres..."
           sleep 2
         done
@@ -28,17 +28,17 @@ spec:
         - name: POSTGRES_DB
           value: cloud_native_db
         - name: POSTGRES_HOST
-          value: postgres
+          value: 10.244.0.113
         - name: STORAGE_DATA_DIR
           value: /data/imageprocessing
         - name: ORCHESTRATOR_PORT
           value: "8080"
         - name: KAFKA_BOOTSTRAP_SERVERS
-          value: "kafka:9092"
+          value: "10.244.0.115:9092"
         - name: POSTGRES_USER_NAME
-          value: LUdaz77ck
+          value: yourusername
         - name: POSTGRES_USER_PASSWORD
-          value: GkQwdA7.59
+          value: yourpassword
       volumeMounts:
         - mountPath: "/data/imageprocessing"
           name: shared-storage

@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: worker
+  namespace: imageprocessing
+spec:
+  containers:
+    - name: worker
+      image: imageprocessing/worker:latest
+      imagePullPolicy: Never
+      envFrom:
+        - configMapRef:
+            name: worker-config
+      volumeMounts:
+        - mountPath: "/home/appuser/.cache/huggingface"
+          name: pvc-model-cache
+        - mountPath: "/home/appuser/.u2net"
+          name: pvc-rembg-cache
+        - mountPath: "/data/imageprocessing"
+          name: pvc-shared-storage
+      startupProbe:
+        httpGet:
+          path: /health
+          port: 8080
+        failureThreshold: 120
+        periodSeconds: 5
+      readinessProbe:
+        httpGet:
+          path: /health
+          port: 8080
+        periodSeconds: 5
+      livenessProbe:
+        httpGet:
+          path: /health
+          port: 8080
+        periodSeconds: 10
+  volumes:
+    - name: pvc-model-cache
+      persistentVolumeClaim:
+        claimName: pvc-model-cache
+    - name: pvc-rembg-cache
+      persistentVolumeClaim:
+        claimName: pvc-rembg-cache
+    - name: pvc-shared-storage
+      persistentVolumeClaim:
+        claimName: pvc-shared-storage

@@ -1,0 +1,79 @@
+services:
+  gateway:
+    container_name: gateway 
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    image: imageprocessing/gateway:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - ORCHESTRATOR_URL=http://orchestrator:8081/internal
+    depends_on:
+      - orchestrator
+
+  orchestrator:
+    container_name: orchestrator 
+    build:
+      context: .
+      dockerfile: orchestrator/Dockerfile
+    image: imageprocessing/orchestrator:latest
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER_NAME=${POSTGRES_USER}
+      - POSTGRES_USER_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB_NAME=${POSTGRES_DB}
+      - WORKER_URL=http://worker:8082
+      - STORAGE_DATA_DIR=${STORAGE_DATA_DIR}
+      - LOCAL_DATA_DIR=${LOCAL_DATA_DIR}
+    volumes:
+      - ${LOCAL_DATA_DIR}:${STORAGE_DATA_DIR}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      worker:
+        condition: service_healthy
+
+  worker:
+    container_name: worker 
+    build:
+      context: .
+      dockerfile: worker/Dockerfile
+    image: imageprocessing/worker:latest
+    environment:
+      - STORAGE_DATA_DIR=${STORAGE_DATA_DIR}
+      - LOCAL_DATA_DIR=${LOCAL_DATA_DIR}
+      - HF_HOME=/home/appuser/.cache/huggingface
+      - U2NET_HOME=/home/appuser/.u2net
+    volumes:
+      - ${LOCAL_DATA_DIR}:${STORAGE_DATA_DIR}
+      - rembg_cache:/home/appuser/.u2net
+      - model_cache:/home/appuser/.cache/huggingface
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/health"]
+      interval: 15s 
+      timeout: 5s
+      retries: 10
+
+  postgres:
+    container_name: postgres
+    image: postgres:18-alpine
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck: 
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  model_cache:
+    name: ai-models-cache
+  rembg_cache:
+    name: rembg_cache
+  postgres_data:
+    name: postgres_data

@@ -6,6 +6,8 @@ import ch.supsi.imageprocessing.entity.ProcessingJob;
 import ch.supsi.imageprocessing.entity.User;
 import ch.supsi.imageprocessing.common.exception.ResourceNotFoundException;
 import ch.supsi.imageprocessing.service.ProcessingJobService;
+import ch.supsi.imageprocessing.common.enums.JobStatus; 
+															
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -42,6 +44,10 @@ class ProcessingJobControllerTest {
 				setField(image, "id", 1L);
 				ProcessingJob job = new ProcessingJob(image, JobType.FORMAT_CONVERSION, outputName, "png");
 				setField(job, "id", id);
+
+				// CHANGE THIS LINE:
+				setField(job, "status", JobStatus.PENDING); 
+
 				return job;
 		}
 
@@ -49,17 +55,16 @@ class ProcessingJobControllerTest {
 		// POST /jobs/{id}/process  (triggerProcessing)
 		// ==========================================
 
-		@Test
-		void triggerProcessing_ShouldReturn202_WhenJobExists() throws Exception {
-				ProcessingJob job = job(100L, "output.png");
-				when(pjs.processJob(100L)).thenReturn(job);
+		@Test void triggerProcessing_ShouldReturn202_WhenJobExists() throws Exception {
+		ProcessingJob job = job(100L, "output.png");
+		when(pjs.processJob(100L)).thenReturn(job);
 
-				mockMvc.perform(post("/jobs/{id}/process", 100L))
-						.andExpect(status().isAccepted())
-						.andExpect(jsonPath("$.id").value(100))
-						.andExpect(jsonPath("$.status").value("PENDING"));
+		mockMvc.perform(post("/jobs/{id}/process", 100L))
+				.andExpect(status().isAccepted())
+				.andExpect(jsonPath("$.id").value(100))
+				.andExpect(jsonPath("$.status").value("PENDING"));
 
-				verify(pjs, times(1)).processJob(100L);
+		verify(pjs, times(1)).processJob(100L);
 		}
 
 		@Test
@@ -137,7 +142,7 @@ class ProcessingJobControllerTest {
 				byte[] data = "processed-bytes".getBytes();
 				Resource resource = new ByteArrayResource(data);
 				when(pjs.getJobResult(100L)).thenReturn(resource);
-				when(pjs.getJobStatus(100L)).thenReturn(job(100L, "result.png"));
+				doReturn(job(100L, "result.png")).when(pjs).getJobStatus(100L);
 
 				mockMvc.perform(get("/jobs/{id}/result", 100L))
 						.andExpect(status().isOk())

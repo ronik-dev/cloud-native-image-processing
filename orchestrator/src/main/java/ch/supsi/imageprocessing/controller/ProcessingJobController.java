@@ -27,7 +27,6 @@ public class ProcessingJobController{
 		@PostMapping("/{id}/process")
 		public ResponseEntity<JobResponse> triggerProcessing(@PathVariable @Min(0) Long id) {
 				ProcessingJob pj = pjs.processJob(id);
-				pjs.processJob(pj.getId());
 				return ResponseEntity.accepted().body(JobMapper.toResponse(pj));
 		}
 

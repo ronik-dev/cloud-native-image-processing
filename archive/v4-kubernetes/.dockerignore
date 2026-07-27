@@ -1,0 +1,14 @@
+**/target/
+.mvn/
+mvnw
+mvnw.cmd
+worker/.venv/
+**/__pycache__/
+**/.cache/
+.idea/
+.vscode/
+*.iml
+.DS_Store
+.git/
+**/application-local.properties
+archive/

@@ -1,13 +1,49 @@
-# CI/CD Pipeline
-# Full implementation planned for Sprint 4 — CI/CD + Security milestone
-# Pipeline disabled until proper runner and image are configured
+# .gitlab-ci.yml
+#
+# Scope of this draft: TEST stage only (closes #57 java tests, #58 python tests).
+# BUILD (image build/push, #59) and DEPLOY (#55) stages are intentionally left
+# out for now; add them as separate stages below once #59 is picked up.
 
 stages:
   - test
 
-test-job:
-  stage: test
+# ---------------------------------------------------------------------------
+# Shared config
+# ---------------------------------------------------------------------------
+default:
+  tags:
+    - linux
+    - docker
+
+workflow:
   rules:
-    - when: never
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+# ---------------------------------------------------------------------------
+# Java unit tests (common, orchestrator, gateway; multi-module reactor build)
+# ---------------------------------------------------------------------------
+java-tests:
+  stage: test
+  image: maven:3.9.16-eclipse-temurin-21-alpine
+  variables:
+    # Keep the local repo inside the job workspace so GitLab's cache can pick it up
+    MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+    MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version"
+  cache:
+    key:
+      files:
+        - pom.xml
+        - common/pom.xml
+        - orchestrator/pom.xml
+        - gateway/pom.xml
+    paths:
+      - .m2/repository
   script:
-    - mvn test
+    - mvn $MAVEN_CLI_OPTS test
+  artifacts:
+    when: always
+    reports:
+      junit:
+        - "*/target/surefire-reports/TEST-*.xml"
+    expire_in: 1 week

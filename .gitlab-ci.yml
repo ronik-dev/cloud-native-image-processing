@@ -16,9 +16,10 @@ default:
 
 workflow:
   rules:
+    - if: '$CI_COMMIT_BRANCH == "feature/58-run-py-test-in-cicd"'
     - if: '$CI_COMMIT_BRANCH == "dev"'
     - if: '$CI_COMMIT_BRANCH == "main"'
-
+     
 # ---------------------------------------------------------------------------
 # Java unit tests (common, orchestrator, gateway; multi-module reactor build)
 # ---------------------------------------------------------------------------
@@ -58,4 +59,30 @@ java-tests:
         - "*/target/surefire-reports/TEST-*.xml"
     paths:
       - "*/target/site/jacoco/"
+    expire_in: 1 week
+
+# ---------------------------------------------------------------------------
+# Python unit tests (worker)
+# ---------------------------------------------------------------------------
+python-tests:
+  stage: test
+  image: python:3.13-slim
+  variables:
+    UV_CACHE_DIR: "$CI_PROJECT_DIR/.uv-cache"
+  cache:
+    key:
+      files:
+        - worker/uv.lock
+    paths:
+      - .uv-cache
+  before_script:
+    - pip install --no-cache-dir uv
+  script:
+    - cd worker
+    - uv sync
+    - uv run pytest test/ -v --junitxml=../report.xml
+  artifacts:
+    when: always
+    reports:
+      junit: report.xml
     expire_in: 1 week

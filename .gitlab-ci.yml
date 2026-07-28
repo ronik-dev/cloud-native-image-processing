@@ -16,7 +16,6 @@ default:
 
 workflow:
   rules:
-    - if: '$CI_COMMIT_BRANCH == "feature/58-run-py-test-in-cicd"'
     - if: '$CI_COMMIT_BRANCH == "dev"'
     - if: '$CI_COMMIT_BRANCH == "main"'
      

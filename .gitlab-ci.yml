@@ -34,9 +34,6 @@ java-tests:
     key:
       files:
         - pom.xml
-        - common/pom.xml
-        - orchestrator/pom.xml
-        - gateway/pom.xml
     paths:
       - .m2/repository
   script:

@@ -20,6 +20,7 @@ dependencies = [
 dev = [
     "httpx2>=2.4.0",
     "pytest>=9.1.0",
+    "pytest-cov>=7.1.0",
 ]
 
 [[tool.uv.index]]

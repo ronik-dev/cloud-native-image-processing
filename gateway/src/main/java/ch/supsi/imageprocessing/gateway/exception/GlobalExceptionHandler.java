@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import jakarta.validation.ConstraintViolationException;
 
 import java.io.UncheckedIOException;
 import java.time.LocalDateTime;
@@ -90,5 +91,19 @@ public class GlobalExceptionHandler {
 										request.getRequestURI(),
 										null
 										));
+		}
+
+		@ExceptionHandler(ConstraintViolationException.class)
+		public ResponseEntity<ErrorResponse> handleConstraintViolation(
+						ConstraintViolationException ex, HttpServletRequest request) {
+		    
+		    return ResponseEntity.status(400).body(new ErrorResponse(
+						LocalDateTime.now().toString(),
+						400,
+						"Bad Request",
+						ex.getMessage(),
+						request.getRequestURI(),
+						null
+				));
 		}
 }

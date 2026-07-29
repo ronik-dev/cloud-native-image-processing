@@ -35,10 +35,6 @@ java-tests:
         - pom.xml
     paths:
       - .m2/repository
-  # Regex matches the "XX.XX% covered" line echoed below and drives the
-  # coverage badge shown on the pipeline and on the MR overview.
-  # Assumes default JaCoCo Maven paths (target/site/jacoco/jacoco.csv per
-  # module) 
   coverage: '/(\d+\.\d+)% covered/'
   script:
     - mvn $MAVEN_CLI_OPTS test
@@ -58,6 +54,44 @@ java-tests:
         - "*/target/surefire-reports/TEST-*.xml"
     paths:
       - "*/target/site/jacoco/"
+    expire_in: 1 week
+
+# ---------------------------------------------------------------------------
+# Integration tests (Testcontainers -- real Postgres, orchestrator only)
+# ---------------------------------------------------------------------------
+# Requires the runner to expose Docker access to the job (bind-mounted
+# /var/run/docker.sock or an equivalent dind setup) -- not something this
+# file controls. If this job fails with a Testcontainers "Could not find a
+# valid Docker environment" error, that's a runner-config question, not a
+# pipeline bug -- flag it to whoever administers the runner.
+integration-tests:
+  stage: test
+  image: maven:3.9.16-eclipse-temurin-21-alpine
+  variables:
+    MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+    MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version"
+  cache:
+    key:
+      files:
+        - pom.xml
+    paths:
+      - .m2/repository
+  before_script:
+    # Cheap sanity check before Testcontainers gets a chance to fail with a
+    # less obvious stack trace -- doesn't guarantee the daemon is reachable,
+    # just that the socket file made it into the container at all.
+    - '[ -S /var/run/docker.sock ] && echo "docker socket present" || echo "WARNING: /var/run/docker.sock not found -- Testcontainers will likely fail"'
+  script:
+    # -pl orchestrator -am: only orchestrator has IT tests, -am pulls in
+    # common as a reactor dependency. -Dsurefire.skip=true skips re-running
+    # the unit tests already covered by java-tests -- only Failsafe's *IT.java
+    # tests execute here.
+    - mvn $MAVEN_CLI_OPTS -pl orchestrator -am verify -Dsurefire.skip=true
+  artifacts:
+    when: always
+    reports:
+      junit:
+        - "orchestrator/target/failsafe-reports/TEST-*.xml"
     expire_in: 1 week
 
 # ---------------------------------------------------------------------------

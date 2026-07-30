@@ -207,3 +207,4 @@ build-images:
       --dockerfile "${CI_PROJECT_DIR}/${SERVICE}/Dockerfile"
       --destination "${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${CI_COMMIT_SHORT_SHA}"
       --destination "${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${FLOATING_TAG}"
+      --skip-tls-verify-registry="${CI_REGISTRY}"

@@ -17,10 +17,11 @@ spec:
       labels:
         app : orchestrator
     spec:
+      imagePullSecrets:
+        - name: gitlab-registry-secret
       initContainers:
         - name: wait-for-postgres
           image: postgres:18-alpine
-          imagePullPolicy: Never
           env:
             - name: POSTGRES_USER
               valueFrom:
@@ -42,8 +43,8 @@ spec:
             done
       containers:
         - name: orchestrator
-          image: imageprocessing/orchestrator:latest
-          imagePullPolicy: Never
+          image: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/orchestrator:dev
+          imagePullPolicy: Always
           volumeMounts:
             - mountPath: "/data/imageprocessing"
               name: pvc-shared-storage

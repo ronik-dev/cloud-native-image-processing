@@ -20,6 +20,7 @@ spec:
       containers:
         - name: kafka
           image: apache/kafka:3.9.0
+          imagePullPolicy: Always
           envFrom:
             - configMapRef:
                 name: kafka-config

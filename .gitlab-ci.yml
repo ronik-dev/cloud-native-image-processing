@@ -199,7 +199,7 @@ build-images:
       if [ "$CI_COMMIT_BRANCH" = "main" ]; then
         FLOATING_TAG="latest"
       else
-        FLOATING_TAG="$CI_COMMIT_BRANCH"
+        FLOATING_TAG="$CI_COMMIT_REF_SLUG"
       fi
     - >
       /kaniko/executor

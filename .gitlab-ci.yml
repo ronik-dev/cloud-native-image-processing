@@ -1,10 +1,14 @@
 # .gitlab-ci.yml
 #
-# Scope of this draft: TEST stage only (closes #57 java tests, #58 python tests).
-# BUILD (image build/push, #59) and DEPLOY (#55) stages are intentionally left
-# out for now; add them as separate stages below once #59 is picked up.
+# TEST stage: java-tests + python-tests (#57/#58), integration-tests (#79,
+# currently allow_failure: true -- blocked on runner Docker access, see
+# that job's comment below).
+# BUILD stage: build-images (#59) -- builds & pushes gateway/orchestrator/
+# worker via Kaniko.
+# DEPLOY (#55) is not yet implemented; add as a separate stage once picked up.
 stages:
   - test
+  - build
 
 # ---------------------------------------------------------------------------
 # Shared config
@@ -16,7 +20,6 @@ default:
 
 workflow:
   rules:
-    - if: '$CI_COMMIT_BRANCH == "feature/79-add-test-containers"'
     - if: '$CI_COMMIT_BRANCH == "dev"'
     - if: '$CI_COMMIT_BRANCH == "main"'
  
@@ -36,10 +39,23 @@ java-tests:
         - pom.xml
     paths:
       - .m2/repository
+  # Regex matches the "XX.XX% covered" line echoed below and drives the
+  # coverage badge shown on the pipeline and on the MR overview.
+  # Assumes default JaCoCo Maven paths (target/site/jacoco/jacoco.csv per
+  # module) -- adjust the `find` path below if your setup differs.
   coverage: '/(\d+\.\d+)% covered/'
   script:
     - mvn $MAVEN_CLI_OPTS test
+    # `report` isn't bound to any phase in the poms (only prepare-agent runs
+    # during `test`, producing jacoco.exec) and the root pom doesn't declare
+    # the plugin at all -- so invoke it via full coordinates + version
+    # (matching what orchestrator/pom.xml pins) rather than the `jacoco:`
+    # prefix, which only resolves against modules that declare the plugin.
+    # Modules with no jacoco.exec (common, gateway) are skipped harmlessly.
     - mvn $MAVEN_CLI_OPTS org.jacoco:jacoco-maven-plugin:0.8.15:report
+    # Aggregate instruction coverage across every module's jacoco.csv
+    # (common/orchestrator/gateway -- modules with no tests, e.g. gateway,
+    # simply have no csv and are skipped by the glob).
     - >
       find . -name jacoco.csv -path "*/target/site/jacoco/*" -exec cat {} + |
       awk -F',' '
@@ -62,9 +78,15 @@ java-tests:
 # ---------------------------------------------------------------------------
 # Requires the runner to expose Docker access to the job (bind-mounted
 # /var/run/docker.sock or an equivalent dind setup) -- not something this
-# file controls. If this job fails with a Testcontainers "Could not find a
-# valid Docker environment" error, that's a runner-config question, not a
-# pipeline bug -- flag it to whoever administers the runner.
+# file controls.
+#
+# CONFIRMED (2026-07-29, CI run): this runner does NOT currently expose
+# Docker to jobs -- fails with "Could not find a valid Docker environment."
+# This is a runner-config question for whoever administers it, not
+# something fixable here. `allow_failure: true` is set so this doesn't
+# block the build stage while that access request is pending -- remove it
+# once Docker access is confirmed working, so a real regression here goes
+# back to failing the pipeline properly.
 integration-tests:
   stage: test
   allow_failure: true
@@ -101,6 +123,11 @@ integration-tests:
 # ---------------------------------------------------------------------------
 python-tests:
   stage: test
+  # No ffmpeg/system deps installed here on purpose: rembg/DETR models and
+  # ffmpeg calls are fully mocked in the test suite (monkeypatch.setitem,
+  # MagicMock -- sprint-2-microservices-recap.md §6.5), so plain
+  # python:3.13-slim is sufficient. If a future test exercises the real
+  # subprocess/model calls, this image will need apt-get install -y ffmpeg.
   image: python:3.13-slim
   variables:
     UV_CACHE_DIR: "$CI_PROJECT_DIR/.uv-cache"
@@ -112,16 +139,71 @@ python-tests:
       - .uv-cache
   before_script:
     - pip install --no-cache-dir uv
-  coverage: '/^TOTAL.*\s+(\d+\%)$/'
   script:
     - cd worker
     - uv sync
-    - uv run pytest test/ -v --junitxml=../report.xml --cov=main --cov-report=term --cov-report=xml:../coverage.xml
+    - uv run pytest test/ -v --junitxml=../report.xml
   artifacts:
     when: always
     reports:
       junit: report.xml
-      coverage_report:
-        coverage_format: cobertura
-        path: coverage.xml
     expire_in: 1 week
+
+# ---------------------------------------------------------------------------
+# Build & push images (gateway, orchestrator, worker) -- #59
+# ---------------------------------------------------------------------------
+# Kaniko instead of `docker build`/`docker push`: it builds and pushes OCI
+# images entirely in userspace, no Docker daemon or privileged socket
+# required. Chosen specifically because we don't yet know (and can't
+# configure) whether this self-hosted Docker-executor runner exposes
+# /var/run/docker.sock -- see the integration-tests job's caveat above.
+# Kaniko sidesteps that question for the build stage regardless of how it
+# resolves for Testcontainers.
+#
+# Build context is the repo root (matches compose.yml's `context: .` for
+# all three services) -- required since gateway/orchestrator's Dockerfiles
+# COPY the parent pom.xml and common/ module for the Maven reactor build.
+#
+# Pushes two tags per image: the immutable commit SHA (traceability) and a
+# branch-aware floating tag -- main -> :latest, dev -> :dev. Deliberately NOT
+# a single shared :latest for both branches: since dev and main both build
+# here (see workflow.rules), a shared floating tag would have whichever
+# branch's pipeline ran most recently silently overwrite the other's -- exactly
+# the kind of thing #55 (deploy) would end up pointing at by accident.
+build-images:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  parallel:
+    matrix:
+      # SERVICE = directory containing the Dockerfile (unchanged: gateway/,
+      # orchestrator/, worker/). IMAGE_NAME = what it's actually called in
+      # the registry -- gateway's directory wasn't renamed, only its image
+      # name was (now "frontend"), so these two need to be tracked separately
+      # rather than assuming they're always the same string.
+      - SERVICE: gateway
+        IMAGE_NAME: frontend
+      - SERVICE: orchestrator
+        IMAGE_NAME: orchestrator
+      - SERVICE: worker
+        IMAGE_NAME: worker
+  before_script:
+    - mkdir -p /kaniko/.docker
+    - >
+      echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf '%s:%s' "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}"
+      > /kaniko/.docker/config.json
+  script:
+    - |
+      if [ "$CI_COMMIT_BRANCH" = "main" ]; then
+        FLOATING_TAG="latest"
+      else
+        FLOATING_TAG="$CI_COMMIT_REF_SLUG"
+      fi
+    - >
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/${SERVICE}/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${CI_COMMIT_SHORT_SHA}"
+      --destination "${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${FLOATING_TAG}"
+      --skip-tls-verify-registry="${CI_REGISTRY}"

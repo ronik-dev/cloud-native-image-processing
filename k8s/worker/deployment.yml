@@ -17,10 +17,12 @@ spec:
       labels:
         app: worker
     spec:
+      imagePullSecrets:
+        - name: gitlab-registry-secret
       containers:
         - name: worker
-          image: imageprocessing/worker:latest
-          imagePullPolicy: Never
+          image: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/worker:dev
+          imagePullPolicy: Always
           resources:
             requests:
               cpu: "200m"

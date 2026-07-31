@@ -17,10 +17,12 @@ spec:
       labels:
         app: frontend
     spec:
+      imagePullSecrets:
+        - name: gitlab-registry-secret
       containers:
         - name: frontend
-          image: imageprocessing/frontend:latest
-          imagePullPolicy: Never
+          image: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/frontend:dev
+          imagePullPolicy: Always
           readinessProbe:
             httpGet:
               path: /actuator/health

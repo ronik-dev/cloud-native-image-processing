@@ -22,7 +22,7 @@ A `parallel: matrix` strategy dynamically fans out into three parallel build job
 
 ### 3.2 Floating Tags and Security
 * **Tag Sanitization:** Branches like `feature/59-build-and-push-images` contain illegal characters for OCI tags. The pipeline uses `$CI_COMMIT_REF_SLUG` to format tags cleanly.
-* **Institutional TLS:** To bypass certificate authority rejections from the internal `gitlab-edu.supsi.ch` registry, Kaniko is explicitly passed the `--skip-tls-verify-registry` argument.
+* **Institutional TLS (Conscious Trade-off):** To bypass certificate authority rejections from the internal `gitlab-edu.supsi.ch` registry, Kaniko is explicitly passed the `--skip-tls-verify-registry` argument. **Known Gap:** This completely disables certificate verification, leaving push traffic unprotected against MITM attacks. This is a deliberate, documented trade-off accepted for the scope of this university project to unblock the pipeline without requiring custom CA certificate injection into the Kaniko image.
 
 ## 4. Continuous Deployment (Kubernetes)
 The Kubernetes cluster has been transitioned from local, statically-built images to a dynamic architecture which allows pull from the gitlab container registry.

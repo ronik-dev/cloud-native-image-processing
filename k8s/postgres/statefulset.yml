@@ -22,7 +22,7 @@ spec:
       containers:
       - name: postgres
         image: postgres:18-alpine
-        imagePullPolicy: Never
+        imagePullPolicy: Always
         volumeMounts:
           - name: postgres-data
             mountPath: /var/lib/postgresql

@@ -148,9 +148,13 @@ deploy:
   tags:
     - pc-k8s
   script:
+    - whoami
+    - echo "HOME=$HOME"
+    - pwd
+    - echo "KUBECONFIG=$KUBECONFIG"
+    - ls -la "$HOME"
+    - ls -la "$HOME/.kube" || true
+    - kubectl config view
+    - kubectl config current-context
+    - kubectl cluster-info
     - kubectl rollout restart deployment/frontend -n imageprocessing
-    - kubectl rollout restart deployment/orchestrator -n imageprocessing
-    - kubectl rollout restart deployment/worker -n imageprocessing
-    - kubectl rollout status deployment/frontend -n imageprocessing
-    - kubectl rollout status deployment/orchestrator -n imageprocessing
-    - kubectl rollout status deployment/worker -n imageprocessing

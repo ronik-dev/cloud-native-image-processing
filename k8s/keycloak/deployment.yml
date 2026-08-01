@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: imageprocessing
+  labels:
+    app: keycloak
+    layer: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+        layer: backend
+    spec:
+      # Keycloak needs the DB to exist before its own first startup (it
+      # creates its schema on first boot against an empty `keycloak` DB).
+      # Mirrors the wait-for-postgres init container pattern already used
+      # by orchestrator (sprint-3-recap.md §6.3), but here waiting on the
+      # one-shot keycloak-create-db Job having created the DB/role, not on
+      # Postgres itself being up (Postgres is already running by this point).
+      initContainers:
+        - name: wait-for-keycloak-db
+          image: postgres:18-alpine
+          envFrom:
+            - secretRef:
+                name: keycloak-db-secret
+          command:
+            - sh
+            - -c
+            - >
+              until pg_isready -h postgres -U "$KC_DB_USERNAME" -d keycloak; do
+                echo "waiting for keycloak database...";
+                sleep 2;
+              done
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:26.0.7
+          args: ["start", "--import-realm"]
+          envFrom:
+            - configMapRef:
+                name: keycloak-config
+            - secretRef:
+                name: keycloak-db-secret
+            - secretRef:
+                name: keycloak-admin-secret
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: management
+              containerPort: 9000
+          volumeMounts:
+            - name: realm-config
+              mountPath: /opt/keycloak/data/import
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: management
+            initialDelaySeconds: 20
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: management
+            initialDelaySeconds: 40
+            periodSeconds: 10
+      volumes:
+        - name: realm-config
+          configMap:
+            name: keycloak-realm-config
+# test

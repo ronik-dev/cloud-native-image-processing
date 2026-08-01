@@ -35,6 +35,7 @@ build/
 ### Env variables and secrets###
 .env
 k8s/**/secret.yaml
+k8s/**/secret.yml
 k8s/gitlab-registry-secret.yml
 
 ### Project specific ###

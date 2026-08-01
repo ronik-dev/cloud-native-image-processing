@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-realm-config
+  namespace: imageprocessing
+data:
+  imageprocessing-realm.json: |
+    {
+      "realm": "imageprocessing",
+      "enabled": true,
+      "sslRequired": "none",
+      "clients": [
+        {
+          "clientId": "gateway",
+          "enabled": true,
+          "protocol": "openid-connect",
+          "publicClient": false,
+          "clientAuthenticatorType": "client-secret",
+          "secret": "gateway-client-secret-CHANGE-ME",
+          "standardFlowEnabled": true,
+          "directAccessGrantsEnabled": false,
+          "implicitFlowEnabled": false,
+          "serviceAccountsEnabled": false,
+          "redirectUris": [
+            "http://api.imageprocessing.local/login/oauth2/code/keycloak"
+          ],
+          "webOrigins": [
+            "http://api.imageprocessing.local"
+          ]
+        }
+      ]
+    }

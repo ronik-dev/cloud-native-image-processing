@@ -1,0 +1,54 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: keycloak-create-db
+  namespace: imageprocessing
+spec:
+  # Safe to re-run: every statement below is written to be idempotent
+  # (checked via pg_roles/pg_database before CREATE), same philosophy as
+  # kafka-create-topics' --if-not-exists (sprint-3-recap.md §9.4).
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: create-keycloak-db
+          image: postgres:18-alpine
+          envFrom:
+            - secretRef:
+                name: postgres-secret   # superuser creds, to CREATE ROLE/DATABASE
+            - secretRef:
+                name: keycloak-db-secret # the role/password being created
+          env:
+            - name: PGHOST
+              value: postgres
+            - name: PGPORT
+              value: "5432"
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h postgres -U "$POSTGRES_USER" -d postgres; do
+                echo "Waiting for postgres..."
+                sleep 2
+              done
+              
+              export PGPASSWORD="$POSTGRES_PASSWORD"
+              
+              set -e
+              # Create role if not exists
+              psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d postgres <<-SQL
+                DO \$\$
+                BEGIN
+                  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '${KC_DB_USERNAME}') THEN
+                    EXECUTE format('CREATE ROLE %I LOGIN PASSWORD %L', '${KC_DB_USERNAME}', '${KC_DB_PASSWORD}');
+                  END IF;
+                END
+                \$\$;
+              SQL
+
+              # Create database if not exists (double quotes added to preserve uppercase letters)
+              psql -v ON_ERROR_STOP=0 -U "$POSTGRES_USER" -d postgres -c "CREATE DATABASE keycloak OWNER \"${KC_DB_USERNAME}\";"
+
+              # Grant privileges (double quotes added to preserve uppercase letters)
+              psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d postgres -c "GRANT ALL PRIVILEGES ON DATABASE keycloak TO \"${KC_DB_USERNAME}\";"

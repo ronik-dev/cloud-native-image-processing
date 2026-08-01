@@ -26,7 +26,11 @@ data:
           ],
           "webOrigins": [
             "http://api.imageprocessing.local"
-          ]
+          ],
+          "attributes": {
+            "post.logout.redirect.uris": "+"
+          }
         }
       ]
     }
+# test

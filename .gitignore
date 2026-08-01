@@ -37,6 +37,7 @@ build/
 k8s/**/secret.yaml
 k8s/**/secret.yml
 k8s/gitlab-registry-secret.yml
+k8s/keycloak/realm-configmap.yml
 
 ### Project specific ###
 # Logs

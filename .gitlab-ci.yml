@@ -121,6 +121,8 @@ build-images:
         IMAGE_NAME: orchestrator
       - SERVICE: worker
         IMAGE_NAME: worker
+      - SERVICE: keycloak-kafka-extension
+        IMAGE_NAME: keycloak
   before_script:
     - mkdir -p /kaniko/.docker
     - >

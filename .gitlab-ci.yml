@@ -153,3 +153,4 @@ deploy:
     - kubectl rollout restart deployment/frontend -n imageprocessing
     - kubectl rollout restart deployment/orchestrator -n imageprocessing
     - kubectl rollout restart deployment/worker -n imageprocessing
+    - kubectl rollout restart deployment/keycloak -n imageprocessing

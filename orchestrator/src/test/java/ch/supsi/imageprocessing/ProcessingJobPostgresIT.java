@@ -23,9 +23,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
 @SpringBootTest(properties = {
-"spring.kafka.bootstrap-servers=localhost:9092",
-"kafka.topics.job-requests=job.requests",
-"kafka.topics.job-results=job.results"
+    "spring.kafka.bootstrap-servers=localhost:9092",
+    "spring.kafka.listener.auto-startup=false",
+    "kafka.topics.user-events=user.events",
+    "kafka.topics.job-requests=job.requests",
+    "kafka.topics.job-results=job.results"
 })
 class ProcessingJobPostgresIT {
 

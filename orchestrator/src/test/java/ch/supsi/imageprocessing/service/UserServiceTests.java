@@ -10,7 +10,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,51 +29,60 @@ class UserServiceTest {
 		private UserService us;
 
 		// ==========================================
-		// createUser
+		// findOrCreateUser
 		// ==========================================
-
 		@Test
-		void createUser_ShouldSucceed_WhenInputsAreValid() {
+		void findOrCreateUser_ShouldReturnExisting_WhenUserExists() {
 				String username = "username";
 				String email = "username@mail.ch";
-				when(ur.save(any(User.class))).thenReturn(new User(username, email));
+				User existingUser = new User(username, email);
+				when(ur.findByUsername(username)).thenReturn(Optional.of(existingUser));
 
-				User result = us.createUser(username, email);
+				User result = us.findOrCreateUser(username, email);
 
 				assertNotNull(result);
 				assertEquals(username, result.getUsername());
-				assertEquals(email, result.getEmail());
-				verify(ur, times(1)).save(any(User.class));
+				verify(ur, never()).save(any(User.class)); // Should not save if it already exists
 		}
 
 		@Test
-		void createUser_ShouldThrowInvalidRequestException_WhenUsernameIsNull() {
-				InvalidRequestException ex = assertThrows(InvalidRequestException.class,
-								() -> us.createUser(null, "username@mail.ch"));
+		void findOrCreateUser_ShouldCreate_WhenUserDoesNotExist() {
+				String username = "username";
+				String email = "username@mail.ch";
+				when(ur.findByUsername(username)).thenReturn(Optional.empty());
+				when(ur.save(any(User.class))).thenReturn(new User(username, email));
+
+				User result = us.findOrCreateUser(username, email);
+
+				assertNotNull(result);
+				assertEquals(username, result.getUsername());
+				verify(ur, times(1)).save(any(User.class)); // Should save a new user
+		}
+
+		@Test
+		void findOrCreateUser_ShouldThrowInvalidRequestException_WhenUsernameIsNull() {
+				InvalidRequestException ex = assertThrows(InvalidRequestException.class, () -> us.findOrCreateUser(null, "username@mail.ch"));
 				assertEquals("Invalid or missing username.", ex.getMessage());
 				verifyNoInteractions(ur);
 		}
 
 		@Test
-		void createUser_ShouldThrowInvalidRequestException_WhenUsernameIsEmpty() {
-				InvalidRequestException ex = assertThrows(InvalidRequestException.class,
-								() -> us.createUser("", "username@mail.ch"));
+		void findOrCreateUser_ShouldThrowInvalidRequestException_WhenUsernameIsEmpty() {
+				InvalidRequestException ex = assertThrows(InvalidRequestException.class, () -> us.findOrCreateUser("", "username@mail.ch"));
 				assertEquals("Invalid or missing username.", ex.getMessage());
 				verifyNoInteractions(ur);
 		}
 
 		@Test
-		void createUser_ShouldThrowInvalidRequestException_WhenEmailIsNull() {
-				InvalidRequestException ex = assertThrows(InvalidRequestException.class,
-								() -> us.createUser("username", null));
+		void findOrCreateUser_ShouldThrowInvalidRequestException_WhenEmailIsNull() {
+				InvalidRequestException ex = assertThrows(InvalidRequestException.class, () -> us.findOrCreateUser("username", null));
 				assertEquals("Invalid or missing email.", ex.getMessage());
 				verifyNoInteractions(ur);
 		}
 
 		@Test
-		void createUser_ShouldThrowInvalidRequestException_WhenEmailIsEmpty() {
-				InvalidRequestException ex = assertThrows(InvalidRequestException.class,
-								() -> us.createUser("username", "   "));
+		void findOrCreateUser_ShouldThrowInvalidRequestException_WhenEmailIsEmpty() {
+				InvalidRequestException ex = assertThrows(InvalidRequestException.class, () -> us.findOrCreateUser("username", "   "));
 				assertEquals("Invalid or missing email.", ex.getMessage());
 				verifyNoInteractions(ur);
 		}
@@ -82,7 +90,6 @@ class UserServiceTest {
 		// ==========================================
 		// getUserById
 		// ==========================================
-
 		@Test
 		void getUserById_ShouldReturnUser_WhenUserExists() {
 				Long userId = 1L;
@@ -97,8 +104,7 @@ class UserServiceTest {
 
 		@Test
 		void getUserById_ShouldThrowInvalidRequestException_WhenIdIsNull() {
-				InvalidRequestException ex = assertThrows(InvalidRequestException.class,
-								() -> us.getUserById(null));
+				InvalidRequestException ex = assertThrows(InvalidRequestException.class, () -> us.getUserById(null));
 				assertEquals("User ID cannot be null.", ex.getMessage());
 				verifyNoInteractions(ur);
 		}
@@ -108,8 +114,8 @@ class UserServiceTest {
 				Long nonExistentId = 999L;
 				when(ur.findById(nonExistentId)).thenReturn(Optional.empty());
 
-				ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
-								() -> us.getUserById(nonExistentId));
+				ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class, () -> us.getUserById(nonExistentId));
+
 				assertEquals("User not found with ID: 999", ex.getMessage());
 				verify(ur, times(1)).findById(nonExistentId);
 		}
@@ -117,39 +123,26 @@ class UserServiceTest {
 		// ==========================================
 		// deleteUser
 		// ==========================================
+		//@Test
+		//void deleteUser_ShouldCascadeImagesAndDeleteUser_WhenUserExists() {
+		//		Long userId = 5L;
+		//		User user = new User("username", "username@mail.ch");
+		//		when(ur.findById(userId)).thenReturn(Optional.of(user));
 
-		@Test
-		void deleteUser_ShouldCascadeImagesAndDeleteUser_WhenUserExists() {
-				Long userId = 5L;
-				User user = new User("username", "username@mail.ch");
-				when(ur.findById(userId)).thenReturn(Optional.of(user));
+		//		us.deleteUser(userId);
 
-				us.deleteUser(userId);
+		//		// Images are purged before the user row is removed.
+		//		verify(is, times(1)).deleteAllByUser(userId);
+		//		verify(ur, times(1)).delete(user);
+		//}
 
-				// Images are purged before the user row is removed.
-				verify(is, times(1)).deleteAllByUser(userId);
-				verify(ur, times(1)).delete(user);
-		}
+		//@Test
+		//void deleteUser_ShouldThrow_WhenUserDoesNotExist() {
+		//		when(ur.findById(5L)).thenReturn(Optional.empty());
 
-		@Test
-		void deleteUser_ShouldThrow_WhenUserDoesNotExist() {
-				when(ur.findById(5L)).thenReturn(Optional.empty());
+		//		assertThrows(ResourceNotFoundException.class, () -> us.deleteUser(5L));
 
-				assertThrows(ResourceNotFoundException.class, () -> us.deleteUser(5L));
-				verifyNoInteractions(is);
-				verify(ur, never()).delete(any());
-		}
-
-		// ==========================================
-		// getAllUsers
-		// ==========================================
-
-		@Test
-		void getAllUsers_ShouldDelegateToRepository() {
-				List<User> all = List.of(new User("a", "a@e.ch"), new User("b", "b@e.ch"));
-				when(ur.findAll()).thenReturn(all);
-
-				assertEquals(all, us.getAllUsers());
-				verify(ur, times(1)).findAll();
-		}
+		//		verifyNoInteractions(is);
+		//		verify(ur, never()).delete(any());
+		//}
 }

@@ -10,7 +10,6 @@ import ch.supsi.imageprocessing.mapper.UserMapper;
 import ch.supsi.imageprocessing.mapper.ImageMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;   
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,20 +36,6 @@ public class UserController{
 		@Autowired
 		private UserService us;
 
-		@PostMapping()
-		public ResponseEntity<UserResponse> newUser(@Valid @RequestBody UserRequest request) {
-				User u = us.createUser(request.username(),request.email());
-				return ResponseEntity.status(HttpStatus.CREATED).body(UserMapper.toResponse(u));
-		}
-
-		@GetMapping()
-		public ResponseEntity<List<UserResponse>> getAllUsers() {
-				List<UserResponse> responses = us.getAllUsers().stream()
-						.map(UserMapper::toResponse)
-						.toList();
-				return ResponseEntity.ok(responses);
-		}
-
 		@GetMapping("/{id}/images")
 		public ResponseEntity<List<ImageResponse>> getImagesByUser(@PathVariable @Min(0) Long id) {
 				List<ImageResponse> responses = is.getImagesByUser(us.getUserById(id)).stream() 
@@ -59,9 +44,9 @@ public class UserController{
 				return ResponseEntity.ok(responses);
 		}
 
-		@DeleteMapping("/{id}")
-		public ResponseEntity<Void> deleteUser(@PathVariable @Min(0) Long id) {
-				us.deleteUser(id); 
-				return ResponseEntity.noContent().build();
+		@PostMapping("/find-or-create")
+		public ResponseEntity<UserResponse> findOrCreateUser(@Valid @RequestBody UserRequest request) {
+				User u = us.findOrCreateUser(request.username(), request.email());
+				return ResponseEntity.ok(UserMapper.toResponse(u));
 		}
 }

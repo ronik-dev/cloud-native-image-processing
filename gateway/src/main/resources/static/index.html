@@ -12,26 +12,16 @@
 						<div class="column">
 								<div class="row header-row">
 										<h2>User Management</h2>
+								</div>
+
+								<div class="row form-row">
+										<h3>Signed in as</h3>
+										<p id="currentUserDisplay" style="padding:10px 0;">Loading...</p>
 										<form action="/logout" method="post" style="display:inline;">
 												<button type="submit" style="width:auto; padding:6px 12px;">Logout</button>
 										</form>
 								</div>
-
-								<div class="row form-row">
-										<h3>Create New User</h3>
-										<div class="input-group">
-												<input type="text" id="usernameInput" placeholder="Username" required>
-												<input type="email" id="emailInput" placeholder="example@mail.ch" required>
-												<button onclick="createUser()">Register User</button>
-										</div>
-								</div>  
-
-								<div class="row list-row">
-										<h3>Active Users</h3>
-										<div class="column list-box" id="usersList">
-										</div>
-								</div>  
-						</div>  
+						</div>
 
 						<div class="column">
 								<div class="row header-row">

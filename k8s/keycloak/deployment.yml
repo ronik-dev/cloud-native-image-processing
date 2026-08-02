@@ -17,6 +17,8 @@ spec:
         app: keycloak
         layer: backend
     spec:
+      imagePullSecrets:
+        - name: gitlab-registry-secret
       initContainers:
         - name: wait-for-keycloak-db
           image: postgres:18-alpine
@@ -33,7 +35,7 @@ spec:
               done
       containers:
         - name: keycloak
-          image: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/keycloak:dev
+          image: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/keycloak:feature-53-update-gateway-to-handle-auth
           imagePullPolicy: Always
           args: ["start", "--import-realm"]
           envFrom:

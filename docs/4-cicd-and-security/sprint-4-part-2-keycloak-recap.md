@@ -9,18 +9,44 @@
 
 ## 1. Architecture Overview
 Sprint 4 decouples user identity management from the core domain. Authentication is outsourced to Keycloak, while the Gateway acts as the sole security boundary, enforcing OIDC flows and managing secure HTTP-only sessions for the static frontend. The Orchestrator trusts the Gateway implicitly and handles users purely as logical owners of images and jobs.
-
 ```mermaid
 flowchart TD
-    Client[Browser] -->|1. HTTP GET /| GW[Gateway]
-    GW -.->|2. 302 Redirect| KC[Keycloak IdP]
-    Client -->|3. Authenticate| KC
-    KC -.->|4. Auth Code| GW
-    GW -->|5. Swap Code for Token| KC
-    GW -->|6. Set Session Cookie| Client
-    Client -->|7. API Request + Cookie| GW
-    GW -->|8. Forward Request (No JWT)| ORC[Orchestrator]
+    Client[External Client] -->|HTTP host: api.*| ING[NGINX Ingress]
+    Client -->|HTTP host: keycloak.*| ING
+    
+    ING --> GWS[gateway-service :8080]
+    ING --> KCS[keycloak-service :8080]
+    
+    GWS --> GW[Deployment: gateway]
+    KCS --> KC[Deployment: keycloak]
+    
+    %% BFF Backchannel
+    GW -.->|Token Swap /internal| KCS
+    
+    GW -->|HTTP /internal| ORS[orchestrator-service :8081]
+    ORS --> OR[Deployment: orchestrator]
+    
+    %% Kafka Topics
+    OR -->|publish JobRequestMessage| K1[(job.requests)]
+    K1 -->|consume| WK[Deployment: worker]
+    
+    WK -->|publish JobResultMessage| K2[(job.results)]
+    K2 -->|consume| OR
+    
+    KC -->|publish UserEventMessage| K3[(user.events)]
+    K3 -->|consume| OR
+    
+    %% Databases
+    OR -->|SQL| PG[(StatefulSet: postgres)]
+    KC -->|SQL| PG
+    
+    %% Storage & Scaling
+    OR -->|write/read| SS(("PVC: shared storage"))
+    WK -->|write/read| SS
+    
+    HPA[HPA] -.watches lag, scales.-> WK
 ```
+
 
 ## 2. Keycloak Infrastructure
 Keycloak is deployed natively within the `imageprocessing` namespace alongside the existing microservices.
@@ -52,6 +78,37 @@ Synchronous REST deletion (`DELETE /api/users/{id}`) was replaced with a reactiv
 *   The Orchestrator now implements a `UserEventListener` annotated with `@KafkaListener(topics = "${kafka.topics.user-events}")`.
 *   If an administrator deletes a user centrally from Keycloak, a `DELETE` event is published to the `user.events` Kafka topic.
 *   The Orchestrator consumes this event and executes `userService.deleteByUsername()`, triggering the JPA cascade-delete for all associated images, jobs, and physical storage files.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Client as Browser
+    participant GW as Gateway (BFF)
+    participant KC as Keycloak (IdP)
+    participant ORC as Orchestrator
+
+    Client->>GW: GET /api/me (No Session)
+    GW-->>Client: 302 Redirect to IdP
+    Client->>KC: GET /realms/imageprocessing/.../auth
+    KC-->>Client: Renders Login Page
+    Client->>KC: Submits Credentials
+    KC-->>Client: 302 Redirect with Auth Code
+    Client->>GW: GET /login/oauth2/code/keycloak?code=...
+    
+    rect rgb(240, 240, 240)
+        Note over GW,KC: Secure Backchannel
+        GW->>KC: POST Swap Code for Tokens
+        KC-->>GW: Returns ID Token & Access Token
+    end
+
+    GW->>GW: Extracts User Info & Creates Session
+    GW-->>Client: 302 Redirect to / + Set-Cookie (SESSION)
+    
+    Client->>GW: GET /api/me (with Cookie)
+    GW->>ORC: POST /users/find-or-create (Trusted Internal)
+    ORC-->>GW: 200 OK (User Data)
+    GW-->>Client: 200 OK (JSON)
+```
 
 ## 5. Sprint Completion Status (Auth & Security)
 

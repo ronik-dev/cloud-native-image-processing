@@ -18,8 +18,12 @@
 										<h3>Signed in as</h3>
 										<p id="currentUserDisplay" style="padding:10px 0;">Loading...</p>
 										<form action="/logout" method="post" style="display:inline;">
-												<button type="submit" style="width:auto; padding:6px 12px;">Logout</button>
+												<button type="submit">Logout</button>
 										</form>
+								</div>
+
+								<div class="row form-row">
+										<button type="button" onclick="window.open('http://keycloak.imageprocessing.local/realms/imageprocessing/account/#/security', '_blank')"> Manage Account</button>
 								</div>
 						</div>
 

@@ -41,14 +41,6 @@ public class OrchestratorClient {
 						.block();
 		}
 
-		public void deleteUser(Long userId) {
-				webClient.delete()
-						.uri("/users/{id}", userId)
-						.retrieve()
-						.toBodilessEntity()
-						.block();
-		}
-
 		// --- Image ---
 
 		public ImageResponse getImage(Long imageId) {

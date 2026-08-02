@@ -32,15 +32,19 @@ async function handleApiError(response) {
 async function loadCurrentUser() {
     try {
         const response = await fetch(`${BASE_URL}/api/me`);
-        if (!response.ok) {
-            // Shouldn't normally happen -- Spring Security already gates
-            // every route, so reaching this page at all means a session
-            // exists. A 401 here most likely means the session just expired
-            // mid-use; sending the browser back to "/" re-triggers login.
+        
+        // If the response is HTML, Spring Security redirected us to Keycloak.
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("text/html")) {
             window.location.href = '/';
             return;
         }
- 
+
+        if (!response.ok) {
+            window.location.href = '/';
+            return;
+        }
+        
         const user = await response.json();
         selectedUserId = String(user.id);
  

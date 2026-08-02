@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 
 /**
  * Gateway acts as the OAuth2 client (BFF pattern): it performs the
@@ -25,54 +26,57 @@ import org.springframework.web.util.UriComponentsBuilder;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Value("${keycloak.logout-uri}")
-    private String keycloakLogoutUri;
+		@Value("${keycloak.logout-uri}")
+		private String keycloakLogoutUri;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            // The frontend is plain static HTML/JS (index.html/script.js) with
-            // no templating engine to inject a CSRF token into -- every
-            // mutating fetch() call (createUser, uploadImage, createJob,
-            // processJob, delete*) would otherwise get 403'd the instant
-            // login is wired up. Disabling CSRF here is a deliberate,
-            // proportionate tradeoff for a session-cookie BFF on an internal
-            // thesis-scale tool now sitting behind real Keycloak auth --
-            // the session cookie's default SameSite=Lax already blocks most
-            // practical cross-site CSRF vectors in modern browsers.
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/actuator/health").permitAll()
-                .anyRequest().authenticated()
-            )
-            .oauth2Login(withDefaults -> { })
-            .logout(logout -> logout
-                .logoutSuccessHandler(keycloakLogoutSuccessHandler())
-            );
-        return http.build();
-    }
+		@Bean
+		public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+				http
+						// The frontend is plain static HTML/JS (index.html/script.js) with
+						// no templating engine to inject a CSRF token into -- every
+						// mutating fetch() call (createUser, uploadImage, createJob,
+						// processJob, delete*) would otherwise get 403'd the instant
+						// login is wired up. Disabling CSRF here is a deliberate,
+						// proportionate tradeoff for a session-cookie BFF on an internal
+						// thesis-scale tool now sitting behind real Keycloak auth --
+						// the session cookie's default SameSite=Lax already blocks most
+						// practical cross-site CSRF vectors in modern browsers.
+						.csrf(csrf -> csrf.disable())
+						.authorizeHttpRequests(authorize -> authorize
+										.requestMatchers("/actuator/health").permitAll()
+										.anyRequest().authenticated()
+										)
+						.oauth2Login(withDefaults -> { })
+						.logout(logout -> logout
+										.logoutSuccessHandler(keycloakLogoutSuccessHandler())
+							   );
+				return http.build();
+		}
 
-    /**
-     * Spring's built-in OidcClientInitiatedLogoutSuccessHandler relies on
-     * the end_session_endpoint populated via OIDC discovery, which this
-     * app deliberately doesn't use (see application.properties -- no
-     * issuer-uri, to keep token/jwks/userinfo endpoints internal). Building
-     * the Keycloak RP-initiated logout redirect by hand instead, using the
-     * same external/browser-facing host as the authorization endpoint.
-     */
-    private LogoutSuccessHandler keycloakLogoutSuccessHandler() {
-        return (request, response, authentication) -> {
-            String appBaseUrl = request.getRequestURL()
-                .toString()
-                .replace(request.getRequestURI(), "/");
+		/**
+		 * Spring's built-in OidcClientInitiatedLogoutSuccessHandler relies on
+		 * the end_session_endpoint populated via OIDC discovery, which this
+		 * app deliberately doesn't use (see application.properties -- no
+		 * issuer-uri, to keep token/jwks/userinfo endpoints internal). Building
+		 * the Keycloak RP-initiated logout redirect by hand instead, using the
+		 * same external/browser-facing host as the authorization endpoint.
+		 */
+		private LogoutSuccessHandler keycloakLogoutSuccessHandler() {
+				return (request, response, authentication) -> {
+						String appBaseUrl = request.getRequestURL()
+								.toString()
+								.replace(request.getRequestURI(), "/");
 
-            String redirectUri = UriComponentsBuilder
-                .fromUriString(keycloakLogoutUri)
-                .queryParam("post_logout_redirect_uri", appBaseUrl)
-                .build()
-                .toUriString();
+						UriComponentsBuilder builder = UriComponentsBuilder
+								.fromUriString(keycloakLogoutUri)
+								.queryParam("post_logout_redirect_uri", appBaseUrl);
 
-            response.sendRedirect(redirectUri);
-        };
-    }
+						// Extract the id_token and attach it to the logout request
+						if (authentication != null && authentication.getPrincipal() instanceof OidcUser oidcUser) {
+								builder.queryParam("id_token_hint", oidcUser.getIdToken().getTokenValue());
+						}
+
+						response.sendRedirect(builder.build().toUriString());
+				};
+		}
 }

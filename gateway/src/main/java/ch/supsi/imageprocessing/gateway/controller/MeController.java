@@ -7,9 +7,7 @@ import ch.supsi.imageprocessing.gateway.client.OrchestratorClient;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
@@ -45,20 +43,5 @@ public class MeController {
 				String email = principal.getEmail();
 				UserResponse user = orchestratorClient.findOrCreateUser(username, email);
 				return orchestratorClient.getUserImages(user.id());
-		}
-
-		@DeleteMapping("/api/me")
-		public ResponseEntity<Void> deleteMe(@AuthenticationPrincipal OidcUser principal) {
-				// 1. Identify the user from the token
-				String username = principal.getPreferredUsername();
-				String email = principal.getEmail();
-
-				// 2. Find their local ID
-				UserResponse user = orchestratorClient.findOrCreateUser(username, email);
-
-				// 3. Trigger the cascade deletion in the orchestrator
-				orchestratorClient.deleteUser(user.id());
-
-				return ResponseEntity.noContent().build();
 		}
 }

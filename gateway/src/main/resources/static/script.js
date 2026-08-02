@@ -97,15 +97,43 @@ async function refreshImagesAndJobs() {
         const finishedJobsContainer = document.getElementById("finishedJobsList");
         
         if (selectedUserId) {
-			const imgResponse = await fetch(`${BASE_URL}/api/me/images`);
-            const images = imgResponse.ok ? await imgResponse.json() : [];
+            const imgResponse = await fetch(`${BASE_URL}/api/me/images`);
+            
+            // 1. Use 'let' so we can reuse this variable name later
+            let contentType = imgResponse.headers.get("content-type");
+            if (contentType && contentType.includes("text/html")) {
+                window.location.href = '/';
+                return;
+            }
+
+            // 2. Fix the reference to imgResponse
+            if (!imgResponse.ok) {
+                window.location.href = '/';
+                return;
+            }
+
+            // Since we already returned if !imgResponse.ok, we can just call .json() directly
+            const images = await imgResponse.json();
 
             let jobs = [];
             if (selectedImageId) {
                 const jobResponse = await fetch(`${BASE_URL}/api/images/${selectedImageId}/jobs`);
-                if (jobResponse.ok) {
-                    jobs = await jobResponse.json();
+
+                // 3. Reassign the existing variable instead of using 'const' again
+                contentType = jobResponse.headers.get("content-type");
+                if (contentType && contentType.includes("text/html")) {
+                    window.location.href = '/';
+                    return;
                 }
+
+                // 4. Fix the reference to jobResponse
+                if (!jobResponse.ok) {
+                    window.location.href = '/';
+                    return;
+                }
+
+                // Since we already returned if !jobResponse.ok, we can just call .json() directly
+                jobs = await jobResponse.json();
             }
 
             imagesContainer.innerHTML = images.length === 0 ? '<p style="padding:10px; margin:0;">No image assets.</p>' : '';

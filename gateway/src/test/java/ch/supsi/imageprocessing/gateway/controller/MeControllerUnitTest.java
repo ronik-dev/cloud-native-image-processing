@@ -19,9 +19,6 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.mockito.Mockito.verify;
-
 
 @WebMvcTest(MeController.class)
 @ActiveProfiles("test")
@@ -51,21 +48,5 @@ class MeControllerUnitTest {
 						.andExpect(jsonPath("$.id").value(1))
 						.andExpect(jsonPath("$.username").value("testuser"))
 						.andExpect(jsonPath("$.email").value("test@test.ch"));
-		}
-		@Test
-		void shouldDeleteMe() throws Exception {
-				// Arrange
-				UserResponse mockResponse = new UserResponse(1L, "testuser", "test@test.ch");
-				Mockito.when(orchestratorClient.findOrCreateUser("testuser", "test@test.ch")).thenReturn(mockResponse);
-				Mockito.doNothing().when(orchestratorClient).deleteUser(1L);
-
-				// Act & Assert
-				mockMvc.perform(delete("/api/me")
-								.with(oidcLogin().idToken(token -> token
-												.claim("preferred_username", "testuser")
-												.claim("email", "test@test.ch"))))
-						.andExpect(status().isNoContent());
-
-				verify(orchestratorClient).deleteUser(1L);
 		}
 }

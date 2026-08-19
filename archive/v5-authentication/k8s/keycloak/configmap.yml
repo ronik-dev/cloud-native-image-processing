@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-config
+  namespace: imageprocessing
+data:
+  KC_DB: postgres
+  KC_DB_URL_HOST: postgres
+  KC_DB_URL_PORT: "5432"
+  KC_DB_URL_DATABASE: keycloak
+  # Browser-facing hostname -- must match the Ingress host and the redirect
+  # URIs configured in the realm/client. Not resolvable from inside the
+  # cluster (only via the developer machine's /etc/hosts), which is why the
+  # Gateway's OAuth2 client config will need separate internal-vs-external
+  # endpoint URIs -- see the Gateway Spring Security config, not this file.
+  KC_HOSTNAME: http://keycloak.imageprocessing.local
+  KC_HOSTNAME_STRICT: "false"
+  # Required behind the NGINX Ingress so Keycloak builds redirect URLs from
+  # the original request, not its own internal ClusterIP/port. KC_PROXY_HEADERS
+  # replaces the deprecated KC_PROXY=edge option (removed after Keycloak 24).
+  KC_PROXY_HEADERS: xforwarded
+  KC_HTTP_ENABLED: "true"
+  # Health endpoints move to the management port (9000) by default once
+  # enabled -- see deployment.yml's probes.
+  KC_HEALTH_ENABLED: "true"
+  KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+  KAFKA_USER_EVENTS_TOPIC: "user.events"

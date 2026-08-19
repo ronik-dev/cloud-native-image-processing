@@ -1,0 +1,111 @@
+package ch.supsi.imageprocessing.gateway.client;
+
+import ch.supsi.imageprocessing.common.dto.ImageResponse;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.reactive.function.client.WebClient;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class OrchestratorClientUnitTest {
+
+    private MockWebServer mockWebServer;
+    private OrchestratorClient orchestratorClient;
+
+    @BeforeEach
+    void setUp() throws IOException {
+        // Start the mock server
+        mockWebServer = new MockWebServer();
+        mockWebServer.start();
+
+        // Configure a real WebClient pointing to the mock server's dynamically assigned URL
+        WebClient webClient = WebClient.builder()
+                .baseUrl(mockWebServer.url("/").toString())
+                .build();
+
+        // Instantiate the client with the WebClient
+        orchestratorClient = new OrchestratorClient(webClient);
+    }
+
+    @AfterEach
+    void tearDown() throws IOException {
+        mockWebServer.shutdown();
+    }
+
+    @Test
+    void shouldUploadImageSuccessfully() throws Exception {
+        // 1. Arrange: Queue the mock response
+        String mockJsonResponse = "{\"id\": 10, \"filename\": \"test.png\", \"format\": \"png\"}";
+        mockWebServer.enqueue(new MockResponse()
+                .setBody(mockJsonResponse)
+                .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
+
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file", "test.png", MediaType.IMAGE_PNG_VALUE, "dummy content".getBytes()
+        );
+
+        // 2. Act: Call uploadImage
+        ImageResponse response = orchestratorClient.uploadImage(mockFile, 5L);
+
+        // 3. Assert: Verify response
+        assertNotNull(response);
+        assertEquals(10L, response.id());
+        assertEquals("test.png", response.filename());
+
+        // Verify the request details
+        RecordedRequest recordedRequest = mockWebServer.takeRequest();
+        assertEquals("POST", recordedRequest.getMethod());
+        assertEquals("/images", recordedRequest.getPath());
+        assertTrue(recordedRequest.getHeader(HttpHeaders.CONTENT_TYPE).contains("multipart/form-data"));
+    }
+
+    @Test
+    void shouldThrowUncheckedIOExceptionWhenFileUploadFails() {
+        // 1. Arrange: Create a faulty MultipartFile that throws an IOException on getBytes()
+        MockMultipartFile faultyFile = new MockMultipartFile("file", "test.png", MediaType.IMAGE_PNG_VALUE, new byte[0]) {
+            @Override
+            public byte[] getBytes() throws IOException {
+                throw new IOException("Simulated disk error");
+            }
+        };
+
+        // 2. Act & Assert: Verify that the try-catch block in OrchestratorClient wraps the error
+        UncheckedIOException exception = assertThrows(UncheckedIOException.class, () -> {
+            orchestratorClient.uploadImage(faultyFile, 5L);
+        });
+
+        assertEquals("Failed to read upload file", exception.getMessage());
+    }
+
+    @Test
+    void shouldDownloadJobResultSuccessfully() throws Exception {
+        // 1. Arrange: Queue a binary response
+        byte[] fakeImageBytes = "fake-binary-data".getBytes();
+        mockWebServer.enqueue(new MockResponse()
+                .setBody(new okio.Buffer().write(fakeImageBytes))
+                .addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"result.png\"")
+                .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE));
+
+        // 2. Act: Call downloadJobResult
+        var responseEntity = orchestratorClient.downloadJobResult(42L);
+
+        // 3. Assert
+        assertNotNull(responseEntity);
+        assertEquals(200, responseEntity.getStatusCode().value());
+        assertArrayEquals(fakeImageBytes, responseEntity.getBody());
+        assertEquals("attachment; filename=\"result.png\"", responseEntity.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION));
+
+        RecordedRequest recordedRequest = mockWebServer.takeRequest();
+        assertEquals("GET", recordedRequest.getMethod());
+        assertEquals("/jobs/42/result", recordedRequest.getPath());
+    }
+}

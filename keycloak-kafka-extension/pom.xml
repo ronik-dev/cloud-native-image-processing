@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<modelVersion>4.0.0</modelVersion>
+
+<parent>
+		<groupId>ch.supsi.imageprocessing</groupId>
+		<artifactId>cloud-native-image-processing</artifactId>
+		<version>0.1.0</version>
+</parent>
+
+<artifactId>keycloak-kafka-extension</artifactId>
+<name>keycloak-kafka-extension</name>
+<description>cloud native image processing keycloak kafka extension</description>
+
+<properties>
+		<maven.compiler.source>21</maven.compiler.source>
+		<maven.compiler.target>21</maven.compiler.target>
+		<keycloak.version>26.0.7</keycloak.version> 
+</properties>
+
+<dependencies>
+		<!-- Keycloak SPI (Provided by the Keycloak container) -->
+		<dependency>
+				<groupId>org.keycloak</groupId>
+				<artifactId>keycloak-core</artifactId>
+				<version>${keycloak.version}</version>
+				<scope>provided</scope>
+		</dependency>
+		<dependency>
+				<groupId>org.keycloak</groupId>
+				<artifactId>keycloak-server-spi</artifactId>
+				<version>${keycloak.version}</version>
+				<scope>provided</scope>
+		</dependency>
+		<dependency>
+				<groupId>org.keycloak</groupId>
+				<artifactId>keycloak-server-spi-private</artifactId>
+				<version>${keycloak.version}</version>
+				<scope>provided</scope>
+		</dependency>
+
+		<!-- Kafka Client (Will be packaged into the jar) -->
+		<dependency>
+				<groupId>org.apache.kafka</groupId>
+				<artifactId>kafka-clients</artifactId>
+				<version>3.7.0</version>
+		</dependency>
+</dependencies>
+
+<build>
+		<plugins>
+				<!-- Builds a "fat jar" containing the Kafka client -->
+				<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>3.6.0</version>
+						<configuration>
+								<descriptorRefs>
+										<descriptorRef>jar-with-dependencies</descriptorRef>
+								</descriptorRefs>
+						</configuration>
+						<executions>
+								<execution>
+										<phase>package</phase>
+										<goals>
+												<goal>single</goal>
+										</goals>
+								</execution>
+						</executions>
+				</plugin>
+		</plugins>
+</build>
+</project>

@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: frontend
+  namespace: imageprocessing
+  labels:
+    app: frontend
+    layer: web
+spec:
+  replicas: 1 #(default: 1)
+  minReadySeconds: 0 #(default: 0)
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      imagePullSecrets:
+        - name: gitlab-registry-secret
+      containers:
+        - name: frontend
+          image: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/frontend:feature-53-update-gateway-to-handle-auth
+          imagePullPolicy: IfNotPresent
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 5  
+            periodSeconds: 10        
+            timeoutSeconds: 5        
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 20  
+            periodSeconds: 10        
+            timeoutSeconds: 5        
+            failureThreshold: 3
+          envFrom:
+            - configMapRef:
+                name: frontend-config
+            - secretRef:
+                name: gateway-oauth2-secret

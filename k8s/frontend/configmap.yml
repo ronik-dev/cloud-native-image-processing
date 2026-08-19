@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: imageprocessing
+data:
+  ORCHESTRATOR_URL: http://orchestrator-service:8080/internal
+  KEYCLOAK_CLIENT_ID: gateway
+  # External/browser-facing -- must match the Ingress host and redirectUris configured in the realm.
+  KEYCLOAK_AUTHORIZATION_URI: http://keycloak.imageprocessing.local/realms/imageprocessing/protocol/openid-connect/auth
+  KEYCLOAK_LOGOUT_URI: http://keycloak.imageprocessing.local/realms/imageprocessing/protocol/openid-connect/logout
+  # Internal/pod-to-pod -- via the keycloak ClusterIP Service, not the Ingress.
+  KEYCLOAK_TOKEN_URI: http://keycloak:8080/realms/imageprocessing/protocol/openid-connect/token
+  KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/imageprocessing/protocol/openid-connect/certs
+  KEYCLOAK_USERINFO_URI: http://keycloak:8080/realms/imageprocessing/protocol/openid-connect/userinfo

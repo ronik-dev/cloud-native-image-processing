@@ -9,8 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-
 @Service
 public class UserService {
 
@@ -19,19 +17,6 @@ public class UserService {
 
 		@Autowired
 		private ImageService is;
-
-		@Transactional
-		public User createUser(String username, String email) {
-				if (username == null || username.strip().isEmpty()) {
-						throw new InvalidRequestException("Invalid or missing username.");
-				}
-				if (email == null || email.strip().isEmpty()) {
-						throw new InvalidRequestException("Invalid or missing email.");
-				}
-
-				return ur.save(new User(username, email));
-		}
-
 		@Transactional(readOnly = true)
 		public User getUserById(Long id) {
 				if (id == null) {
@@ -43,16 +28,23 @@ public class UserService {
 		}
 
 		@Transactional
-		public void deleteUser(Long id) {
-				User user = ur.findById(id)
-						.orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
-
-				is.deleteAllByUser(id); 
-				ur.delete(user);
+		public void deleteByUsername(String username) {
+				ur.findByUsername(username).ifPresent(user -> {
+						is.deleteAllByUser(user.getId());
+						ur.delete(user);
+				});
 		}
 
-		@Transactional(readOnly = true)
-		public List<User> getAllUsers() {
-				return ur.findAll();
+		@Transactional
+		public User findOrCreateUser(String username, String email) {
+				if (username == null || username.strip().isEmpty()) {
+						throw new InvalidRequestException("Invalid or missing username.");
+				}
+				if (email == null || email.strip().isEmpty()) {
+						throw new InvalidRequestException("Invalid or missing email.");
+				}
+
+				return ur.findByUsername(username)
+						.orElseGet(() -> ur.save(new User(username, email)));
 		}
 }

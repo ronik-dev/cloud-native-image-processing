@@ -5,9 +5,11 @@ import ch.supsi.imageprocessing.common.dto.JobRequest;
 import ch.supsi.imageprocessing.common.dto.JobResponse;
 import ch.supsi.imageprocessing.gateway.client.OrchestratorClient;
 import ch.supsi.imageprocessing.gateway.config.JacksonConfig;
+import ch.supsi.imageprocessing.gateway.config.SecurityConfig;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean; 
@@ -15,7 +17,8 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.context.annotation.Import;
-import org.springframework.boot.test.autoconfigure.web.servlet;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.test.context.TestPropertySource;
 
 import java.time.LocalDateTime;   
 
@@ -29,7 +32,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(ImageController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import(JacksonConfig.class) 
+@ActiveProfiles("test")
+@TestPropertySource(properties = {
+    "KEYCLOAK_CLIENT_SECRET=test-secret",
+    "KEYCLOAK_AUTHORIZATION_URI=http://localhost/auth",
+    "KEYCLOAK_TOKEN_URI=http://localhost/token",
+    "KEYCLOAK_JWKS_URI=http://localhost/certs",
+    "KEYCLOAK_USERINFO_URI=http://localhost/userinfo",
+    "spring.security.oauth2.client.registration.keycloak.redirect-uri={baseUrl}/login/oauth2/code/{registrationId}"
+})
+@Import({JacksonConfig.class, SecurityConfig.class})
 class ImageControllerUnitTest {
 
     @Autowired

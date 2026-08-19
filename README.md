@@ -30,31 +30,32 @@ The system evolves progressively across six sprints:
 Sprint 1  Spring Boot monolith        --> single JVM, Spring MVC, REST API
 Sprint 2  Microservices & Containers  --> Gateway / Orchestrator / Python Worker, Docker, docker-compose
 Sprint 3  Kubernetes                  --> Minikube, Deployments/StatefulSets, Ingress, Kafka job queue, KEDA
-Sprint 4  CI/CD + Security            --> GitLab CI/CD pipeline, Keycloak, JWT
+Sprint 4  CI/CD + Security            --> GitLab CI/CD pipeline, Kaniko, Keycloak, Session Cookies, BFF pattern
 Sprint 5  Service Mesh                --> Istio, mTLS, Prometheus, Grafana, Kiali, Jaeger
 Sprint 6  Helm + Cloud + Polish       --> GKE/AKS/EKS, Helm charts
 ```
 
-### Services (Sprint 2 onwards)
+### Services (Sprint 4 onwards)
 
 | Service | Language | Port | Responsibility |
 |---|---|---|---|
-| Gateway | Java / Spring Boot | 8080 | Public API (`/api/*`), UI serving, error forwarding, BFF pattern |
+| Gateway | Java / Spring Boot | 8080 | Public API (`/api/*`), UI serving, error forwarding, BFF OAuth2 Client |
 | Orchestrator | Java / Spring Boot | 8081 | Domain model, job lifecycle, storage, worker dispatch |
 | AI Worker | Python / FastAPI | 8082 | FFmpeg processing, rembg inference, Deformable DETR inference |
-| PostgreSQL | — | 5432 | Persistence, owned exclusively by orchestrator |
+| PostgreSQL | — | 5432 | Persistence, owned exclusively by orchestrator and Keycloak |
+| Keycloak | Java | 8080 | Identity Provider (IdP), OIDC authentication, user management |
 
 ### Traffic flow
 
 ```
 Browser
-  |  HTTP :8080
+  |  1. HTTP GET /api/me (No session)
   v
-Gateway (/api/*)
-  |  HTTP :8081/internal
+Gateway (BFF) -. 2. 302 Redirect .-> Keycloak (IdP)
+  |  3. Authenticate & Swap Code for Token
   v
-Orchestrator --> shared storage directory
-  |  HTTP :8082
+Orchestrator (Internal API) --> shared storage directory
+  |  4. Publish JobRequestMessage (Kafka)
   v
 AI Worker --> shared storage directory
 ```
@@ -65,7 +66,7 @@ AI Worker --> shared storage directory
 User --< Image --< ProcessingJob
 ```
 
-- `User` owns many `Image` records
+- `User` owns many `Image` records (Bridged locally upon Keycloak login)
 - Each `Image` can have many `ProcessingJob` records (one per processing request)
 - `ProcessingJob` tracks type (`FORMAT_CONVERSION`, `BACKGROUND_REMOVAL`, `OBJECT_DETECTION`),
   status (`PENDING` -> `RUNNING` -> `DONE` / `FAILED`), and output storage key
@@ -85,8 +86,8 @@ User --< Image --< ProcessingJob
 | Messaging | Apache Kafka, single-broker KRaft mode (Sprint 3) |
 | Autoscaling | KEDA, Kafka-lag-driven `ScaledObject` on the Worker (Sprint 3) |
 | Load testing | k6, sustained-load HTTP script against the full API (Sprint 3) |
-| CI/CD | GitLab CI/CD (Sprint 4) |
-| Auth | Keycloak, OAuth 2.0, JWT (Sprint 4) |
+| CI/CD | GitLab CI/CD, Kaniko (daemonless builds) (Sprint 4) |
+| Auth | Keycloak, OAuth 2.0, OIDC, Session Cookies, BFF pattern (Sprint 4) |
 | Service mesh | Istio, Envoy (Sprint 5) |
 | Observability | Micrometer, OpenTelemetry, Prometheus, Grafana, Kiali, Jaeger |
 
@@ -232,43 +233,42 @@ kubectl apply -R -f k8s/
 
 Once every workload is `Running`/`Ready`, add `api.imageprocessing.local` to `/etc/hosts` pointing at the Ingress and run `minikube tunnel` (kept open in its own terminal) to reach the dashboard at `http://api.imageprocessing.local`.
 
-#### Progressive lecture guides
+---
 
-For anyone following the course arc rather than deploying the finished architecture directly, the same rollout is also available as three self-contained, increasingly-complex walkthroughs used in class:
+### Sprint 4 — CI/CD & Security
 
-| Guide | Covers | Routing |
-|---|---|---|
-| [`docs/3-kubernetes/lecture1-deployment-guide.md`](docs/3-kubernetes/lecture1-deployment-guide.md) | Bare Pods, `default` namespace | Manual pod-IP propagation, no Services |
-| [`docs/3-kubernetes/lecture2-deployment-guide.md`](docs/3-kubernetes/lecture2-deployment-guide.md) | + Namespace, ConfigMaps/Secrets, PV/PVCs | Still manual IP propagation |
-| [`docs/3-kubernetes/lecture3-deployment-guide.md`](docs/3-kubernetes/lecture3-deployment-guide.md) | + Services, Deployments/StatefulSets, Ingress | Internal DNS + Ingress — matches the full recap above |
+Sprint 4 transitions the API Gateway into a Backend-For-Frontend (BFF) OIDC Client and delegates all authentication and identity management to a locally deployed Keycloak instance. It also introduces a fully automated GitLab CI/CD pipeline using daemonless Kaniko builds.
 
-`lecture1` and `lecture2` describe earlier, no-longer-current states of the architecture kept for teaching purposes; `lecture3` is the closest match to what's actually on `main` today (see `sprint-3-recap.md` §14 for the full breakdown).
+#### CI/CD Pipeline
+- Testing: Automated Java (JUnit + JaCoCo) and Python (pytest + pytest-cov) execution.
+- Build: Kaniko dynamically builds and pushes images to a private registry without requiring Docker-in-Docker.
+- Deploy: Deployments pull via `imagePullSecrets` and are explicitly rolled out via a custom project runner.
 
-#### Load testing
+#### Authentication & Initial Setup
+With Keycloak deployed, unauthenticated requests are explicitly blocked.
 
-`test/loadtest.js` is a [k6](https://k6.io/) script that drives sustained load against the real deployed API (Ingress → Gateway → Orchestrator → Kafka → Worker) to validate autoscaling end-to-end, rather than publishing synthetic messages directly to Kafka. See `sprint-3-recap.md` §10.5 for the full breakdown of what it does and doesn't prove.
-
-```bash
-# Requires the cluster deployed and reachable at api.imageprocessing.local (see above)
-# Requires k6 installed locally: https://k6.io/docs/get-started/installation/
-k6 run test/loadtest.js
-```
+1. **Bootstrap Keycloak:** Keycloak is deployed with an init Job that automatically creates its PostgreSQL database. A ConfigMap auto-imports the `imageprocessing` realm and `gateway` client.
+2. **Access the Admin Console:** Navigate to `http://keycloak.imageprocessing.local`. Use the credentials defined in `k8s/keycloak/secret.yml.example` (or your applied secret) to access the Master realm.
+3. **Create a User:** 
+   - Switch to the `imageprocessing` realm.
+   - Create a new user. **Important:** The Orchestrator requires all users to have a valid email address.
+   - Set a permanent password (disable the "Temporary" toggle).
+4. **Log In:** Navigate to `http://api.imageprocessing.local`. The Gateway will intercept the request and redirect you to Keycloak to securely log in. Session cookies are maintained server-side (BFF pattern) to ensure the static frontend does not handle raw JWTs.
 
 ---
 
 ## API quick reference
 
-All endpoints are served by the gateway at `http://localhost:8080`.
+Because the Gateway acts as a Backend-For-Frontend (BFF), direct user management routes (`/api/users`) have been secured and refactored. The frontend relies on session cookies and the `/api/me` namespace.
 
 | Method | Path | Description |
 |---|---|---|
-| `POST` | `/api/users` | Register a user |
-| `GET` | `/api/users` | List all users |
-| `DELETE` | `/api/users/{id}` | Delete a user |
+| `GET` | `/api/me` | Retrieve the authenticated user's profile |
+| `GET` | `/api/me/images` | List images owned by the authenticated user |
+| `DELETE` | `/api/me` | Delete the authenticated user and cascade-delete their assets |
 | `POST` | `/api/images` | Upload an image (`multipart/form-data`) |
 | `GET` | `/api/images/{id}` | Get image metadata |
 | `DELETE` | `/api/images/{id}` | Delete an image |
-| `GET` | `/api/users/{id}/images` | List images for a user |
 | `POST` | `/api/images/{id}/jobs` | Create a processing job |
 | `GET` | `/api/images/{id}/jobs` | List jobs for an image |
 | `POST` | `/api/jobs/{id}/process` | Trigger async execution |
@@ -286,26 +286,25 @@ Full API and architecture documentation is in `docs/`.
 
 ```
 cloud-native-image-processing/
+├── .gitlab-ci.yml           <- automated testing, Kaniko build, and deploy pipeline
 ├── pom.xml                  <- parent Maven POM
 ├── common/                  <- shared DTOs, enums, exceptions (plain JAR, no Spring)
 ├── orchestrator/            <- domain service (Spring Boot)
-├── gateway/                 <- BFF service (Spring Boot)
+├── gateway/                 <- BFF service (Spring Boot, OAuth2 Client)
 ├── worker/                  <- AI worker (Python / FastAPI)
 ├── k8s/                     <- Kubernetes manifests (namespace, ConfigMaps/Secrets, PV/PVC,
-│                                Deployments/StatefulSets, Services, Ingress, Kafka, KEDA)
+│                                Deployments/StatefulSets, Services, Ingress, Kafka, KEDA, Keycloak)
 ├── test/
 │   └── loadtest.js          <- k6 sustained-load script against the deployed API
 ├── docs/
 │   ├── 1-monolith/
 │   ├── 2-microservices-and-dockerization/
-│   │   ├── notes/
-│   │   └── sprint-2-microservices-recap.md
-│   └── 3-kubernetes/
-│       ├── notes/                          <- 1-k8s-setup.md ... 10-keda.md (dev log)
-│       ├── sprint-3-recap.md               <- canonical architecture reference
-│       ├── lecture1-deployment-guide.md    <- teaching snapshot: bare Pods, manual IP
-│       ├── lecture2-deployment-guide.md    <- teaching snapshot: + Config/Secrets/PVC
-│       └── lecture3-deployment-guide.md    <- teaching snapshot: + Services/Ingress
+│   ├── 3-kubernetes/
+│   ├── 4-ci-cd-and-security/
+│   │   ├── notes/           <- pipeline and keycloak integration dev logs
+│   │   ├── sprint-4-part-1-cicd-recap.md
+│   │   └── sprint-4-part-2-security-recap.md
+│   └── README.md
 └── README.md
 ```
 
@@ -338,9 +337,9 @@ Target branch for MRs: always `dev` — never `main` directly.
 | Sprint | Milestone | Status |
 |---|---|---|
 | 1 | Spring Boot monolith | Complete |
-| 2 | Microservices && Containerisation| Complete |
+| 2 | Microservices & Containerisation| Complete |
 | 3 | Kubernetes (Deployments/StatefulSets, Ingress, Kafka, KEDA/HPA) | Complete |
-| 4 | CI/CD + Security | Planned |
+| 4 | CI/CD + Security (Keycloak, BFF) | Complete |
 | 5 | Service Mesh | Planned |
 | 6 | Helm + Cloud + Polish| Planned |
 

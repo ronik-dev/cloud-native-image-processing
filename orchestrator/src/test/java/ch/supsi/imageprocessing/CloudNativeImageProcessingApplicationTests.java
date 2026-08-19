@@ -9,16 +9,17 @@ import org.springframework.kafka.core.KafkaTemplate;
 
 @SpringBootTest(properties = {
     "spring.kafka.bootstrap-servers=localhost:9092",
+    "spring.kafka.listener.auto-startup=false",
+    "kafka.topics.user-events=user.events",
     "kafka.topics.job-requests=job.requests",
     "kafka.topics.job-results=job.results"
-})												 
+})
 class CloudNativeImageProcessingApplicationTests {
 
     @MockitoBean
     private KafkaTemplate<String, JobRequestMessage> jobRequestKafkaTemplate;
 
-	@Test
-	void contextLoads() {
-	}
-
+    @Test
+    void contextLoads() {
+    }
 }

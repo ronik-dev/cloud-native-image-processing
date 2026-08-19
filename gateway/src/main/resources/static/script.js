@@ -6,9 +6,7 @@ let selectedImageId = null;
 
 // Initialization Hook on Document Ready
 document.addEventListener("DOMContentLoaded", () => {
-    refreshUsers();
-    refreshImagesAndJobs();
-    // Start real-time background status polling intervals every 5 seconds
+    loadCurrentUser();
     setInterval(refreshImagesAndJobs, 5000);
 });
 
@@ -31,97 +29,32 @@ async function handleApiError(response) {
 // LAYER 1: USER MANAGEMENT
 // ============================================================================
 
-async function refreshUsers() {
+async function loadCurrentUser() {
     try {
-        // UPDATED: Now hits your custom UserController
-        const response = await fetch(`${BASE_URL}/api/users`);
+        const response = await fetch(`${BASE_URL}/api/me`);
+        
+        // If the response is HTML, Spring Security redirected us to Keycloak.
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("text/html")) {
+            window.location.href = '/';
+            return;
+        }
+
         if (!response.ok) {
-				handleApiError(response);
-				return;
-		}
-        
-        const users = await response.json(); // Now returns a clean array of UserResponse DTOs
-        const container = document.getElementById("usersList");
-        
-        container.innerHTML = users.length === 0 ? '<p style="padding:10px; margin:0;">No registered users.</p>' : '';
-
-        users.forEach(user => {
-            // UPDATED: Simply read the ID from your DTO instead of HAL links
-            const parsedId = String(user.id);
-            const isSelected = selectedUserId === parsedId;
-
-            const card = document.createElement("div");
-            card.className = `item-card ${isSelected ? 'selected' : ''}`;
-            card.innerHTML = `
-                <span><strong>${user.username}</strong> (${user.email})</span>
-                <div class="item-actions">
-                    <button class="btn-select ${isSelected ? 'active' : ''}" onclick="selectUser('${parsedId}')">
-                        ${isSelected ? 'Selected' : 'Select'}
-                    </button>
-                    <button class="btn-danger" onclick="deleteUser('${parsedId}')">Delete</button>
-                </div>
-            `;
-            container.appendChild(card);
-        });
-    } catch (err) {
-        console.error("Failed to sync structural user graphs", err);
-    }
-}
-
-async function createUser() {
-    const usernameInput = document.getElementById("usernameInput");
-    const emailInput = document.getElementById("emailInput");
-
-    if (!usernameInput.value.trim() || !emailInput.value.trim()) return;
-
-    try {
-        const response = await fetch(`${BASE_URL}/api/users`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                username: usernameInput.value.trim(),
-                email: emailInput.value.trim()
-            })
-        });
-
-        if (response.ok) {
-            usernameInput.value = '';
-            emailInput.value = '';
-            refreshUsers();
-        } else {
-            // Leverage the new GlobalExceptionHandler
-            await handleApiError(response);
+            window.location.href = '/';
+            return;
         }
+        
+        const user = await response.json();
+        selectedUserId = String(user.id);
+ 
+        document.getElementById("currentUserDisplay").textContent =
+            `${user.username} (${user.email})`;
+ 
+        refreshImagesAndJobs();
     } catch (err) {
-        console.error("Failed to register entity structure", err);
+        console.error("Failed to load current user", err);
     }
-}
-
-async function deleteUser(userId) {
-    if (!confirm("Are you sure you want to delete this profile?")) return;
-    try {
-        const response = await fetch(`${BASE_URL}/api/users/${userId}`, { method: 'DELETE' });
-        if (response.ok) {
-            // BUG FIX: Changed 'deletedId' to 'userId'
-            if (selectedUserId === userId) {
-                selectedUserId = null;
-                selectedImageId = null;
-            }
-            refreshUsers();
-            refreshImagesAndJobs();
-        } else {
-            await handleApiError(response);
-        }
-    } catch (err) {
-        console.error("Constraint block encountered during structural drop", err);
-    }
-}
-
-function selectUser(id) {
-    selectedUserId = (selectedUserId === id) ? null : id;
-    selectedImageId = null; 
-    refreshUsers();
-    refreshImagesAndJobs();
 }
 
 // ============================================================================
@@ -164,15 +97,43 @@ async function refreshImagesAndJobs() {
         const finishedJobsContainer = document.getElementById("finishedJobsList");
         
         if (selectedUserId) {
-            const imgResponse = await fetch(`${BASE_URL}/api/users/${selectedUserId}/images`);
-            const images = imgResponse.ok ? await imgResponse.json() : [];
+            const imgResponse = await fetch(`${BASE_URL}/api/me/images`);
+            
+            // 1. Use 'let' so we can reuse this variable name later
+            let contentType = imgResponse.headers.get("content-type");
+            if (contentType && contentType.includes("text/html")) {
+                window.location.href = '/';
+                return;
+            }
+
+            // 2. Fix the reference to imgResponse
+            if (!imgResponse.ok) {
+                window.location.href = '/';
+                return;
+            }
+
+            // Since we already returned if !imgResponse.ok, we can just call .json() directly
+            const images = await imgResponse.json();
 
             let jobs = [];
             if (selectedImageId) {
                 const jobResponse = await fetch(`${BASE_URL}/api/images/${selectedImageId}/jobs`);
-                if (jobResponse.ok) {
-                    jobs = await jobResponse.json();
+
+                // 3. Reassign the existing variable instead of using 'const' again
+                contentType = jobResponse.headers.get("content-type");
+                if (contentType && contentType.includes("text/html")) {
+                    window.location.href = '/';
+                    return;
                 }
+
+                // 4. Fix the reference to jobResponse
+                if (!jobResponse.ok) {
+                    window.location.href = '/';
+                    return;
+                }
+
+                // Since we already returned if !jobResponse.ok, we can just call .json() directly
+                jobs = await jobResponse.json();
             }
 
             imagesContainer.innerHTML = images.length === 0 ? '<p style="padding:10px; margin:0;">No image assets.</p>' : '';

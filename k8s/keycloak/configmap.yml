@@ -23,4 +23,5 @@ data:
   # Health endpoints move to the management port (9000) by default once
   # enabled -- see deployment.yml's probes.
   KC_HEALTH_ENABLED: "true"
-# test
+  KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+  KAFKA_USER_EVENTS_TOPIC: "user.events"

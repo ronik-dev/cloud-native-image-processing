@@ -15,8 +15,7 @@ workflow:
   rules:
     - if: '$CI_COMMIT_BRANCH == "dev"'
     - if: '$CI_COMMIT_BRANCH == "main"'
- 
-# ---------------------------------------------------------------------------
+ # ---------------------------------------------------------------------------
 # Java unit tests (common, orchestrator, gateway; multi-module reactor build)
 # ---------------------------------------------------------------------------
 java-tests:
@@ -121,6 +120,8 @@ build-images:
         IMAGE_NAME: orchestrator
       - SERVICE: worker
         IMAGE_NAME: worker
+      - SERVICE: keycloak-kafka-extension
+        IMAGE_NAME: keycloak
   before_script:
     - mkdir -p /kaniko/.docker
     - >
@@ -153,3 +154,4 @@ deploy:
     - kubectl rollout restart deployment/frontend -n imageprocessing
     - kubectl rollout restart deployment/orchestrator -n imageprocessing
     - kubectl rollout restart deployment/worker -n imageprocessing
+    - kubectl rollout restart deployment/keycloak -n imageprocessing

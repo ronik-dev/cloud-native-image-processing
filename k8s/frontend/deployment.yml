@@ -21,8 +21,8 @@ spec:
         - name: gitlab-registry-secret
       containers:
         - name: frontend
-          image: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/frontend:dev
-          imagePullPolicy: Always
+          image: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/frontend:feature-53-update-gateway-to-handle-auth
+          imagePullPolicy: IfNotPresent
           readinessProbe:
             httpGet:
               path: /actuator/health
@@ -42,3 +42,5 @@ spec:
           envFrom:
             - configMapRef:
                 name: frontend-config
+            - secretRef:
+                name: gateway-oauth2-secret

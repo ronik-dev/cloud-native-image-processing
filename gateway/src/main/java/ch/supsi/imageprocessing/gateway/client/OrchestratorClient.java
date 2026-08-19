@@ -24,23 +24,6 @@ public class OrchestratorClient {
 
 		// --- User ---
 
-		public UserResponse createUser(UserRequest request) {
-				return webClient.post()
-						.uri("/users")
-						.bodyValue(request)
-						.retrieve()
-						.bodyToMono(UserResponse.class)
-						.block();
-		}
-
-		public List<UserResponse> getUsers() {
-				return webClient.get()
-						.uri("/users")
-						.retrieve()
-						.bodyToMono(new ParameterizedTypeReference<List<UserResponse>>() {})
-						.block();
-		}
-
 		public List<ImageResponse> getUserImages(Long userId) {
 				return webClient.get()
 						.uri("/users/{id}/images", userId)
@@ -49,11 +32,12 @@ public class OrchestratorClient {
 						.block();
 		}
 
-		public void deleteUser(Long userId) {
-				webClient.delete()
-						.uri("/users/{id}", userId)
+		public UserResponse findOrCreateUser(String username, String email) {
+				return webClient.post()
+						.uri("/users/find-or-create")
+						.bodyValue(new UserRequest(username, email))
 						.retrieve()
-						.toBodilessEntity()
+						.bodyToMono(UserResponse.class)
 						.block();
 		}
 
@@ -119,11 +103,11 @@ public class OrchestratorClient {
 		}
 
 		public ResponseEntity<byte[]> downloadJobResult(Long jobId) {
-		    return webClient.get()
-		            .uri("/jobs/{id}/result", jobId)
-		            .retrieve()
-		            .toEntity(byte[].class)
-		            .block();
+				return webClient.get()
+						.uri("/jobs/{id}/result", jobId)
+						.retrieve()
+						.toEntity(byte[].class)
+						.block();
 		}
 
 		public ImageResponse uploadImage(MultipartFile file, Long userId) {

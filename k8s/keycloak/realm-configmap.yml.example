@@ -23,6 +23,7 @@ data:
           "serviceAccountsEnabled": false,
           "redirectUris": [
             "http://api.imageprocessing.local/login/oauth2/code/keycloak"
+            "http://api.imageprocessing.local"
           ],
           "webOrigins": [
             "http://api.imageprocessing.local"

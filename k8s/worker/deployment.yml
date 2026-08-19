@@ -21,11 +21,15 @@ spec:
         - name: gitlab-registry-secret
       containers:
         - name: worker
-          image: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/worker:dev
-          imagePullPolicy: Always
+          image: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/worker:feature-53-update-gateway-to-handle-auth
+          imagePullPolicy: IfNotPresent
           resources:
             requests:
-              cpu: "200m"
+              cpu: "500m"
+              memory: "2Gi"  
+            limits:
+              cpu: "3000m"
+              memory: "3Gi"  
           volumeMounts:
             - mountPath: "/home/appuser/.cache/huggingface"
               name: pvc-model-cache

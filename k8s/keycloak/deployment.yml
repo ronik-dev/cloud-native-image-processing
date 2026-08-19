@@ -17,12 +17,8 @@ spec:
         app: keycloak
         layer: backend
     spec:
-      # Keycloak needs the DB to exist before its own first startup (it
-      # creates its schema on first boot against an empty `keycloak` DB).
-      # Mirrors the wait-for-postgres init container pattern already used
-      # by orchestrator (sprint-3-recap.md §6.3), but here waiting on the
-      # one-shot keycloak-create-db Job having created the DB/role, not on
-      # Postgres itself being up (Postgres is already running by this point).
+      imagePullSecrets:
+        - name: gitlab-registry-secret
       initContainers:
         - name: wait-for-keycloak-db
           image: postgres:18-alpine
@@ -39,7 +35,8 @@ spec:
               done
       containers:
         - name: keycloak
-          image: quay.io/keycloak/keycloak:26.0.7
+          image: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/keycloak:feature-53-update-gateway-to-handle-auth
+          imagePullPolicy: IfNotPresent
           args: ["start", "--import-realm"]
           envFrom:
             - configMapRef:
@@ -73,4 +70,3 @@ spec:
         - name: realm-config
           configMap:
             name: keycloak-realm-config
-# test

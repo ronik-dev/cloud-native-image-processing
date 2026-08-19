@@ -15,7 +15,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -23,14 +23,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
 @SpringBootTest(properties = {
-"spring.kafka.bootstrap-servers=localhost:9092",
-"kafka.topics.job-requests=job.requests",
-"kafka.topics.job-results=job.results"
+    "spring.kafka.bootstrap-servers=localhost:9092",
+    "spring.kafka.listener.auto-startup=false",
+    "kafka.topics.user-events=user.events",
+    "kafka.topics.job-requests=job.requests",
+    "kafka.topics.job-results=job.results"
 })
 class ProcessingJobPostgresIT {
 
 		@Container
-		static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:18-alpine");
+		static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:18-alpine");
 
 		@DynamicPropertySource
 		static void datasourceProperties(DynamicPropertyRegistry registry) {

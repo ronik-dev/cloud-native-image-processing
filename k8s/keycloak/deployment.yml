@@ -36,7 +36,7 @@ spec:
       containers:
         - name: keycloak
           image: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/keycloak:feature-53-update-gateway-to-handle-auth
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           args: ["start", "--import-realm"]
           envFrom:
             - configMapRef:

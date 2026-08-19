@@ -9,14 +9,20 @@ spec:
     kind: Deployment
     name: worker
   minReplicas: 1
-  maxReplicas: 5
+  maxReplicas: 2
   metrics:
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: 85
+          averageUtilization: 90
   behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60
     scaleDown:
-      stabilizationWindowSeconds: 300 #(default: 300)
+      stabilizationWindowSeconds: 60 #(default: 300)

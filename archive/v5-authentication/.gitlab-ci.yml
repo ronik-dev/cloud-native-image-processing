@@ -1,0 +1,157 @@
+stages:
+  - test
+  - build
+  - deploy
+
+# ---------------------------------------------------------------------------
+# Shared config
+# ---------------------------------------------------------------------------
+default:
+  tags:
+    - linux
+    - docker
+
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+ # ---------------------------------------------------------------------------
+# Java unit tests (common, orchestrator, gateway; multi-module reactor build)
+# ---------------------------------------------------------------------------
+java-tests:
+  stage: test
+  image: maven:3.9.16-eclipse-temurin-21-alpine
+  variables:
+    # Keep the local repo inside the job workspace so GitLab's cache can pick it up
+    MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+    MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version"
+  cache:
+    key:
+      files:
+        - pom.xml
+    paths:
+      - .m2/repository
+  coverage: '/(\d+\.\d+)% covered/'
+  script:
+    - mvn $MAVEN_CLI_OPTS test
+    - mvn $MAVEN_CLI_OPTS org.jacoco:jacoco-maven-plugin:0.8.15:report
+    - >
+      find . -name jacoco.csv -path "*/target/site/jacoco/*" -exec cat {} + |
+      awk -F',' '
+        NR>1 { missed += $4; covered += $5 }
+        END { total = missed + covered;
+              pct = (total > 0) ? 100 * covered / total : 0;
+              printf "%.2f%% covered (%d/%d instructions)\n", pct, covered, total }
+      '
+  artifacts:
+    when: always
+    reports:
+      junit:
+        - "*/target/surefire-reports/TEST-*.xml"
+    paths:
+      - "*/target/site/jacoco/"
+    expire_in: 1 week
+
+integration-tests:
+  stage: test
+  allow_failure: true
+  image: maven:3.9.16-eclipse-temurin-21-alpine
+  variables:
+    MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+    MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version"
+  cache:
+    key:
+      files:
+        - pom.xml
+    paths:
+      - .m2/repository
+  before_script:
+    # Cheap sanity check before Testcontainers gets a chance to fail with a less obvious stack trace -- doesn't guarantee the daemon is reachable, just that the socket file made it into the container at all.
+    - '[ -S /var/run/docker.sock ] && echo "docker socket present" || echo "WARNING: /var/run/docker.sock not found -- Testcontainers will likely fail"'
+  script:
+    - mvn $MAVEN_CLI_OPTS -pl orchestrator -am verify -Dsurefire.skip=true
+  artifacts:
+    when: always
+    reports:
+      junit:
+        - "orchestrator/target/failsafe-reports/TEST-*.xml"
+    expire_in: 1 week
+
+# ---------------------------------------------------------------------------
+# Python unit tests (worker)
+# ---------------------------------------------------------------------------
+python-tests:
+  stage: test
+  image: python:3.13-slim
+  variables:
+    UV_CACHE_DIR: "$CI_PROJECT_DIR/.uv-cache"
+  cache:
+    key:
+      files:
+        - worker/uv.lock
+    paths:
+      - .uv-cache
+  before_script:
+    - pip install --no-cache-dir uv
+  coverage: '/^TOTAL.*\s+(\d+\%)$/'
+  script:
+    - cd worker
+    - uv sync
+    - uv run pytest test/ -v --junitxml=../report.xml --cov=main --cov-report=term --cov-report=xml:../coverage.xml
+  artifacts:
+    when: always
+    reports:
+      junit: report.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    expire_in: 1 week
+
+build-images:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  parallel:
+    matrix:
+      - SERVICE: gateway
+        IMAGE_NAME: frontend
+      - SERVICE: orchestrator
+        IMAGE_NAME: orchestrator
+      - SERVICE: worker
+        IMAGE_NAME: worker
+      - SERVICE: keycloak-kafka-extension
+        IMAGE_NAME: keycloak
+  before_script:
+    - mkdir -p /kaniko/.docker
+    - >
+      echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf '%s:%s' "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}"
+      > /kaniko/.docker/config.json
+  script:
+    - |
+      if [ "$CI_COMMIT_BRANCH" = "main" ]; then
+        FLOATING_TAG="latest"
+      else
+        FLOATING_TAG="$CI_COMMIT_REF_SLUG"
+      fi
+    - >
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/${SERVICE}/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${CI_COMMIT_SHORT_SHA}"
+      --destination "${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${FLOATING_TAG}"
+      --skip-tls-verify-registry="${CI_REGISTRY}"
+
+deploy:
+  stage: deploy
+  when: manual
+  tags:
+    - pc-k8s
+  script:
+    - export KUBECONFIG="$HOME/.kube/config"
+    - kubectl config current-context
+    - kubectl cluster-info
+    - kubectl rollout restart deployment/frontend -n imageprocessing
+    - kubectl rollout restart deployment/orchestrator -n imageprocessing
+    - kubectl rollout restart deployment/worker -n imageprocessing
+    - kubectl rollout restart deployment/keycloak -n imageprocessing

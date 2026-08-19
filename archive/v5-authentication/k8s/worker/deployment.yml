@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: worker 
+  namespace: imageprocessing
+  labels:
+    app: worker
+    layer: backend
+spec:
+  replicas: 1 #(default: 1)
+  minReadySeconds: 0 #(default: 0)
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+    spec:
+      imagePullSecrets:
+        - name: gitlab-registry-secret
+      containers:
+        - name: worker
+          image: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/worker:feature-53-update-gateway-to-handle-auth
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "2Gi"  
+            limits:
+              cpu: "3000m"
+              memory: "3Gi"  
+          volumeMounts:
+            - mountPath: "/home/appuser/.cache/huggingface"
+              name: pvc-model-cache
+            - mountPath: "/home/appuser/.u2net"
+              name: pvc-rembg-cache
+            - mountPath: "/data/imageprocessing"
+              name: pvc-shared-storage
+          envFrom:
+            - configMapRef:
+                name: worker-config
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            failureThreshold: 120   # v
+            periodSeconds: 5        # 120 * 5s = 10m max wait
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 0
+            periodSeconds: 5        
+            timeoutSeconds: 3        
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 3        
+            failureThreshold: 3
+      volumes:
+        - name: pvc-model-cache
+          persistentVolumeClaim:
+            claimName: pvc-model-cache
+        - name: pvc-rembg-cache
+          persistentVolumeClaim:
+            claimName: pvc-rembg-cache
+        - name: pvc-shared-storage
+          persistentVolumeClaim:
+            claimName: pvc-shared-storage
+

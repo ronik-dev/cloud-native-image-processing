@@ -43,8 +43,8 @@ spec:
             done
       containers:
         - name: orchestrator
-          image: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/orchestrator:feature-85-install-and-configure-istio
-          imagePullPolicy: IfNotPresent
+          image: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/orchestrator@sha256:9581862df0eb4ec775b85a943359ff3899a724315ef6cb8fd478165f6bd5d931
+          imagePullPolicy: Always
           volumeMounts:
             - mountPath: "/data/imageprocessing"
               name: pvc-shared-storage

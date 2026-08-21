@@ -43,7 +43,7 @@ spec:
             done
       containers:
         - name: orchestrator
-          image: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/orchestrator:feature-53-update-gateway-to-handle-auth
+          image: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/orchestrator:feature-85-install-and-configure-istio
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - mountPath: "/data/imageprocessing"

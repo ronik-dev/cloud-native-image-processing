@@ -43,5 +43,5 @@ public class KafkaConsumerConfig {
         factory.setConsumerFactory(consumerFactory);
         factory.setRecordMessageConverter(converter);
         return factory;
-    }
+            }
 }

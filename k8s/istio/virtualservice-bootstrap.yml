@@ -14,6 +14,11 @@ spec:
             host: frontend-service
             port:
               number: 8080
+      timeout: 8s
+      retries:
+        attempts: 1
+        perTryTimeout: 4s
+        retryOn: 5xx,reset,connect-failure
 ---
 apiVersion: networking.istio.io/v1
 kind: VirtualService
@@ -31,3 +36,9 @@ spec:
             host: keycloak
             port:
               number: 8080
+      # also add these? check retry on
+      timeout: 8s
+      retries:
+        attempts: 1
+        perTryTimeout: 4s
+        retryOn: 5xx,reset,connect-failure

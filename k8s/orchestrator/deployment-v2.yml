@@ -1,10 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: orchestrator 
+  name: orchestrator-v2
   namespace: imageprocessing
   labels:
-    app: orchestrator  
+    app: orchestrator
+    version: v2
     layer: backend
 spec:
   replicas: 1 #(default: 1)
@@ -12,10 +13,12 @@ spec:
   selector:
     matchLabels:
       app: orchestrator
+      version: v2
   template:
     metadata:
       labels:
-        app : orchestrator
+        app: orchestrator
+        version: v2
     spec:
       imagePullSecrets:
         - name: gitlab-registry-secret
@@ -43,6 +46,8 @@ spec:
             done
       containers:
         - name: orchestrator
+          # Identical image digest to v1 — this is Option A: config-only differentiation,
+          # not a different build. Only INFO_APP_VERSION and the version label differ.
           image: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/orchestrator@sha256:9581862df0eb4ec775b85a943359ff3899a724315ef6cb8fd478165f6bd5d931
           imagePullPolicy: Always
           volumeMounts:
@@ -52,17 +57,17 @@ spec:
             httpGet:
               path: /internal/actuator/health
               port: 8080
-            initialDelaySeconds: 5  
-            periodSeconds: 10        
-            timeoutSeconds: 5        
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
             failureThreshold: 3
           livenessProbe:
             httpGet:
               path: /internal/actuator/health
               port: 8080
             initialDelaySeconds: 15
-            periodSeconds: 10        
-            timeoutSeconds: 5        
+            periodSeconds: 10
+            timeoutSeconds: 5
             failureThreshold: 3
           env:
             - name: POSTGRES_USER_NAME
@@ -75,6 +80,8 @@ spec:
                 secretKeyRef:
                   name: postgres-secret
                   key: POSTGRES_PASSWORD
+            - name: INFO_APP_VERSION
+              value: "v2"
           envFrom:
             - configMapRef:
                 name: orchestrator-config
@@ -82,4 +89,3 @@ spec:
         - name: pvc-shared-storage
           persistentVolumeClaim:
             claimName: pvc-shared-storage
-

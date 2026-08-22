@@ -10,11 +10,13 @@ default:
   tags:
     - linux
     - docker
+
+workflow:   
   rules:
     - if: '$CI_COMMIT_BRANCH == "feature/85-install-and-configure-istio"'
     - if: '$CI_COMMIT_BRANCH == "dev"'
     - if: '$CI_COMMIT_BRANCH == "main"'
- # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # Java unit tests (common, orchestrator, gateway; multi-module reactor build)
 # ---------------------------------------------------------------------------
 java-tests:

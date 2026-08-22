@@ -10,8 +10,16 @@ spec:
     - route:
         - destination:
             host: orchestrator-service
+            subset: v1
             port:
               number: 8080
+          weight: 70
+        - destination:
+            host: orchestrator-service
+            subset: v2
+            port:
+              number: 8080
+          weight: 30
       timeout: 5s
       retries:
         attempts: 2

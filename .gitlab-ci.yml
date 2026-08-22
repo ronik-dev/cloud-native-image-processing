@@ -10,9 +10,8 @@ default:
   tags:
     - linux
     - docker
-
-workflow:
   rules:
+    - if: '$CI_COMMIT_BRANCH == "feature/85-install-and-configure-istio"'
     - if: '$CI_COMMIT_BRANCH == "dev"'
     - if: '$CI_COMMIT_BRANCH == "main"'
  # ---------------------------------------------------------------------------

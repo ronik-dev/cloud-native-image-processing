@@ -48,7 +48,7 @@ spec:
         - name: orchestrator
           # Identical image digest to v1 — this is Option A: config-only differentiation,
           # not a different build. Only INFO_APP_VERSION and the version label differ.
-          image: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/orchestrator@sha256:d30af54c0d3241199d7188b657f1bdbd81eeff8df00c08c56dbd8b84d893d8c0
+          image: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/orchestrator@sha256:bc5488698c698fcbfb68f89301e7225a13503691418315db18693b852d6ffac3
           imagePullPolicy: Always
           volumeMounts:
             - mountPath: "/data/imageprocessing"

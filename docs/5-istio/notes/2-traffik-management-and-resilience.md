@@ -1,4 +1,4 @@
-# 12 Traffic Management & Resilience (Phase 1)
+# 2 Traffic Management & Resilience (Phase 1)
 
 > This guide covers the mandatory, highest-priority Istio deliverable: `VirtualService`/`DestinationRule` routing plus mesh-level resilience (retries, timeouts, circuit breaking) on the two HTTP hops the mesh can meaningfully act on — external Ingress → Frontend/Gateway, and Frontend/Gateway → Orchestrator. Builds directly on the passthrough routing established in Phase 0 (`11-istio-install.md`); no weighted/canary routing yet — that's Phase 2.
 

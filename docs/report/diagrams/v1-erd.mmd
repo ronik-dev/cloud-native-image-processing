@@ -1,0 +1,25 @@
+erDiagram
+    users ||--o{ image : owns
+    image ||--o{ processingJob : owns
+    users {
+        BIGINT id PK
+        VARCHAR username UK "NOT NULL"
+        VARCHAR email UK "NOT NULL"
+    }
+    image {
+        BIGINT id PK
+        VARCHAR name  "NOT NULL"
+        VARCHAR email  "NOT NULL"
+        VARCHAR storageKey  "NOT NULL,UNIQUE"
+        TIMESTAMP uploadedAt  "NOT NULL,immutable"
+        BIGINT user_id FK
+    }
+    processingJob {
+        BIGINT id PK
+        VARCHAR type "FORMAT_CONVERSION | OTHER..."
+        VARCHAR status "PENDING | RUNNING | OTHER..."
+        VARCHAR outputName "NOT NULL"
+        VARCHAR targetFormat "NOT NULL"
+        VARCHAR targetStorageKey "nullable"
+        BIGINT image_id FK
+    }

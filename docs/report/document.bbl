@@ -1,0 +1,389 @@
+\begin{thebibliography}{10}
+
+\bibitem{gosling2005jls}
+James Gosling, Bill Joy, Guy~L. Steele, and Gilad Bracha.
+\newblock {\em The Java Language Specification}.
+\newblock Addison-Wesley, Boston, MA, 3rd edition, 2005.
+
+\bibitem{bracha1998future}
+Gilad Bracha, Martin Odersky, David Stoutamire, and Philip Wadler.
+\newblock Making the future safe for the past.
+\newblock In {\em Proceedings of the 13th ACM SIGPLAN Conference on Object-Oriented Programming, Systems, Languages, and Applications (OOPSLA '98)}. ACM, 1998.
+
+\bibitem{johnson2002expert}
+Rod Johnson.
+\newblock {\em Expert One-on-One J2EE Design and Development}.
+\newblock Wrox Press, 2002.
+
+\bibitem{springboot2026}
+{Spring Team}.
+\newblock Spring boot reference documentation.
+\newblock \url{https://docs.spring.io/spring-boot/reference/}, 2026.
+\newblock Accessed 2026.
+
+\bibitem{fowler2002poeaa}
+Martin Fowler.
+\newblock {\em Patterns of Enterprise Application Architecture}.
+\newblock Addison-Wesley Professional, Boston, MA, 2002.
+
+\bibitem{tudose2021orm}
+C{\u{a}}t{\u{a}}lin Tudose and Carmen Odub{\u{a}}{\c{s}}teanu.
+\newblock Object-relational mapping using {JPA}, {Hibernate} and {Spring Data JPA}.
+\newblock In {\em 2021 23rd International Conference on Control Systems and Computer Science (CSCS)}. IEEE, 2021.
+
+\bibitem{millman2011python}
+K.~Jarrod Millman and Michael Aivazis.
+\newblock Python for scientists and engineers.
+\newblock {\em Computing in Science \& Engineering}, 2011.
+
+\bibitem{paszke2019pytorch}
+Adam Paszke, Sam Gross, Francisco Massa, Adam Lerer, James Bradbury, Gregory Chanan, Trevor Killeen, Zeming Lin, Natalia Gimelshein, Luca Antiga, Alban Desmaison, Andreas K{\"o}pf, Edward Yang, Zach DeVito, Martin Raison, Alykhan Tejani, Sasank Chilamkurthy, Benoit Steiner, Lu~Fang, Junjie Bai, and Soumith Chintala.
+\newblock {PyTorch}: An imperative style, high-performance deep learning library.
+\newblock In {\em Advances in Neural Information Processing Systems 32 (NeurIPS 2019)}, 2019.
+
+\bibitem{asgi2019}
+{ASGI Project}.
+\newblock Asgi (asynchronous server gateway interface) specification, version 3.0.
+\newblock \url{https://asgi.readthedocs.io/en/latest/specs/main.html}, 2019.
+\newblock Accessed 2026.
+
+\bibitem{alaanzy2026asgi}
+M.~A. Ala'anzy, Zhandos Yeshpatov, Adil Akhmetov, Ramis Akhmedov, and O.~Alnaseri.
+\newblock A performance evaluation of {Flask} ({WSGI}) and {FastAPI} ({ASGI}) under high-concurrency workloads.
+\newblock In {\em 2026 International Conference on Electronics, Computer and Computation (ICECC)}. IEEE, 2026.
+
+\bibitem{obrien2008maven}
+Timothy~M. O'Brien and {Sonatype}.
+\newblock {\em Maven: The Definitive Guide}.
+\newblock O'Reilly Media, Sebastopol, CA, 2008.
+
+\bibitem{benelallam2019maven}
+Amine Benelallam, Nicolas Harrand, C{\'e}sar Soto-Valero, Benoit Baudry, and Olivier Barais.
+\newblock The maven dependency graph: A temporal graph-based representation of maven central.
+\newblock In {\em 2019 IEEE/ACM 16th International Conference on Mining Software Repositories (MSR)}. IEEE, 2019.
+
+\bibitem{uv2026}
+{Astral}.
+\newblock uv: An extremely fast python package and project manager, written in rust.
+\newblock \url{https://docs.astral.sh/uv/}, 2026.
+\newblock Accessed 2026.
+
+\bibitem{chen2020cpu}
+Yuhan Chen, Jingyuan Zhu, Tanvir~Ahmed Khan, and Baris Kasikci.
+\newblock Cpu microarchitectural performance characterization of cloud video transcoding.
+\newblock In {\em 2020 IEEE International Symposium on Workload Characterization (IISWC)}, 2020.
+
+\bibitem{pan2010survey}
+Sinno~Jialin Pan and Qiang Yang.
+\newblock A survey on transfer learning.
+\newblock {\em IEEE Transactions on Knowledge and Data Engineering}, 22(10):1345--1359, October 2010.
+
+\bibitem{dosovitskiy2021vit}
+Alexey Dosovitskiy, Lucas Beyer, Alexander Kolesnikov, Dirk Weissenborn, Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, Matthias Minderer, Georg Heigold, Sylvain Gelly, Jakob Uszkoreit, and Neil Houlsby.
+\newblock An image is worth 16x16 words: Transformers for image recognition at scale.
+\newblock In {\em International Conference on Learning Representations (ICLR)}, 2021.
+
+\bibitem{wolf2020transformers}
+Thomas Wolf, Lysandre Debut, Victor Sanh, Julien Chaumond, Cl{\'e}ment Delangue, Anthony Moi, Pierric Cistac, Tim Rault, R{\'e}mi Louf, Morgan Funtowicz, Joe Davison, Sam Shleifer, Patrick von Platen, Clara Ma, Yacine Jernite, Julien Plu, Canwen Xu, Teven Le~Scao, Sylvain Gugger, Mariama Drame, Quentin Lhoest, and Alexander~M. Rush.
+\newblock Transformers: State-of-the-art natural language processing.
+\newblock In {\em Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing: System Demonstrations}, pages 38--45. Association for Computational Linguistics, 2020.
+
+\bibitem{rfc6749}
+Dick Hardt.
+\newblock {The OAuth 2.0 Authorization Framework}.
+\newblock RFC 6749, Internet Engineering Task Force (IETF), October 2012.
+
+\bibitem{oidccore}
+Nat Sakimura, John Bradley, Michael~B. Jones, Breno de~Medeiros, and Chuck Mortimore.
+\newblock {OpenID Connect Core 1.0}.
+\newblock Specification, OpenID Foundation, November 2014.
+
+\bibitem{rfc9700}
+Torsten Lodderstedt, John Bradley, Andrey Labunets, and Daniel Fett.
+\newblock {Best Current Practice for OAuth 2.0 Security}.
+\newblock RFC 9700, Internet Engineering Task Force (IETF), January 2025.
+\newblock BCP 240; updates RFC 6749, RFC 6750, RFC 6819.
+
+\bibitem{rfc7636}
+Nat Sakimura, John Bradley, and Naveen Agarwal.
+\newblock {Proof Key for Code Exchange by OAuth Public Clients}.
+\newblock RFC 7636, Internet Engineering Task Force (IETF), September 2015.
+
+\bibitem{rfc8693}
+Michael~B. Jones, Anthony Nadalin, Brian Campbell, John Bradley, and Chuck Mortimore.
+\newblock {OAuth 2.0 Token Exchange}.
+\newblock RFC 8693, Internet Engineering Task Force (IETF), January 2020.
+
+\bibitem{keycloak}
+{Keycloak Developers}.
+\newblock {Keycloak}: Open source identity and access management for modern applications and services.
+\newblock \url{https://www.keycloak.org/}, 2026.
+\newblock Apache License 2.0; CNCF incubating project since April 2023.
+
+\bibitem{chacon2014progit}
+Scott Chacon and Ben Straub.
+\newblock {\em Pro Git}.
+\newblock Apress, Berkeley, CA, 2 edition, 2014.
+
+\bibitem{git}
+{Git Developers}.
+\newblock Git: Distributed version control system.
+\newblock \url{https://git-scm.com/}, 2026.
+
+\bibitem{gitlab}
+{GitLab Inc.}
+\newblock {GitLab}: The devops platform.
+\newblock \url{https://about.gitlab.com/}, 2026.
+\newblock Open-core; GitLab Community Edition (MIT) and Enterprise Edition.
+
+\bibitem{soldani2018pains}
+Jacopo Soldani, Damian~Andrew Tamburri, and Willem-Jan Van Den~Heuvel.
+\newblock The pains and gains of microservices: A systematic grey literature review.
+\newblock {\em Journal of Systems and Software}, 146:215--232, 2018.
+
+\bibitem{jamshidi2018microservices}
+Pooyan Jamshidi, Claus Pahl, Nabor~C Mendon{\c{c}}a, James Lewis, and Stefan Tilkov.
+\newblock Microservices: The journey so far and challenges ahead.
+\newblock {\em IEEE Software}, 35(3):24--35, 2018.
+
+\bibitem{fowler2015monolith}
+Martin Fowler.
+\newblock Monolith first.
+\newblock \url{https://martinfowler.com/bliki/MonolithFirst.html}, 2015.
+
+\bibitem{newman2015building}
+Sam Newman.
+\newblock {\em Building Microservices: Designing Fine-Grained Systems}.
+\newblock O'Reilly Media, Inc., 2015.
+
+\bibitem{schwarz2025balancing}
+Georg-Daniel Schwarz, Philip Heltweg, and Dirk Riehle.
+\newblock Balancing technology heterogeneity in microservice architectures.
+\newblock {\em Empirical Software Engineering}, 30(5), 2025.
+
+\bibitem{delaTorre2020dotnet}
+Cesar de~la Torre, Bill Wagner, and Mike Rousos.
+\newblock {\em .NET Microservices: Architecture for Containerized .NET Applications}.
+\newblock Microsoft Corporation, 2020.
+
+\bibitem{richardson2018microservices}
+Chris Richardson.
+\newblock {\em Microservices Patterns: With Examples in Java}.
+\newblock Manning Publications, 2018.
+
+\bibitem{akbulut2019software}
+Akhan Akbulut and Harry~G. Perros.
+\newblock Software versioning with microservices through the api gateway design pattern.
+\newblock In {\em 2019 International Conference on Applied Information Technology and Innovation (ACITT)}. IEEE, 2019.
+
+\bibitem{newman2021building}
+Sam Newman.
+\newblock {\em Building Microservices: Designing Fine-Grained Systems}.
+\newblock O'Reilly Media, 2nd edition, 2021.
+
+\bibitem{calcado2015backend}
+Phil Cal{\c{c}}ado.
+\newblock The back-end for front-end pattern (bff).
+\newblock \url{http://philcalcado.com/2015/09/18/the_back_end_for_front_end_pattern_bff.html}, 2015.
+
+\bibitem{fowler2015backends}
+Martin Fowler.
+\newblock Backends for frontends.
+\newblock \url{https://martinfowler.com/bliki/BackendsForFrontends.html}, 2015.
+
+\bibitem{rfc10017}
+Aaron Parecki, Philippe De~Ryck, and David Waite.
+\newblock Oauth 2.0 for browser-based applications.
+\newblock RFC 10017, RFC Editor, 2026.
+
+\bibitem{kazanavicius2023evaluation}
+Justas Kazanavi{\v{c}}ius and Dalius Ma{\v{z}}eika.
+\newblock Evaluation of microservice communication while decomposing monoliths.
+\newblock {\em Computing and Informatics}, 42(1):1--36, 2023.
+
+\bibitem{magnoni2015modern}
+L~Magnoni.
+\newblock Modern messaging for distributed systems.
+\newblock {\em Journal of Physics: Conference Series}, 608(1):012038, 2015.
+
+\bibitem{kleppmann2017designing}
+Martin Kleppmann.
+\newblock {\em Designing Data-Intensive Applications: The Big Ideas Behind Reliable, Scalable, and Maintainable Systems}.
+\newblock O'Reilly Media, Inc., 2017.
+
+\bibitem{laigner2024data}
+R.~Laigner et~al.
+\newblock Data management in microservices: State of the practice, challenges, and research directions, 2024.
+\newblock arXiv:2408.00440.
+
+\bibitem{fu2021fair}
+Guo Fu, Yanfeng Zhang, and Ge~Yu.
+\newblock A fair comparison of message queuing systems.
+\newblock {\em IEEE Access}, 9:421--432, 2021.
+
+\bibitem{soltesz2007container}
+Stephen Soltesz, Herbert P{\"o}tzl, Marc~E. Fiuczynski, Andy Bavier, and Larry Peterson.
+\newblock Container-based operating system virtualization: A scalable, high-performance alternative to hypervisors.
+\newblock In {\em Proceedings of the 2nd European Conference on Computer Systems (EuroSys '07)}, 2007.
+
+\bibitem{felter2015updated}
+Wes Felter, Alexandre Ferreira, Ram Rajamony, and Juan Campos.
+\newblock An updated performance comparison of virtual machines and linux containers.
+\newblock In {\em 2015 IEEE International Symposium on Performance Analysis of Systems and Software (ISPASS)}, 2015.
+
+\bibitem{merkel2014docker}
+Dirk Merkel.
+\newblock Docker: lightweight linux containers for consistent development and deployment.
+\newblock {\em Linux Journal}, 2014(239):2, 2014.
+
+\bibitem{oci-image-spec}
+{Open Container Initiative}.
+\newblock Open container initiative image format specification.
+\newblock \url{https://github.com/opencontainers/image-spec}, 2016.
+
+\bibitem{oci-runtime-spec}
+{Open Container Initiative}.
+\newblock Open container initiative runtime specification.
+\newblock \url{https://github.com/opencontainers/runtime-spec}, 2015.
+
+\bibitem{truyen2020managing}
+Eddy Truyen, Nane Kratzke, Dimitri Van~Landuyt, Bert Lagaisse, and Wouter Joosen.
+\newblock Managing feature compatibility in kubernetes: Vendor comparison and analysis.
+\newblock {\em IEEE Access}, 8:228420--228439, 2020.
+
+\bibitem{truyen2019comprehensive}
+Eddy Truyen, Dimitri Van~Landuyt, Davy Preuveneers, Bert Lagaisse, and Wouter Joosen.
+\newblock A comprehensive feature comparison study of open-source container orchestration frameworks.
+\newblock {\em Applied Sciences}, 9(5):931, 2019.
+
+\bibitem{burns2016borg}
+Brendan Burns, Brian Grant, David Oppenheimer, Eric Brewer, and John Wilkes.
+\newblock Borg, omega, and kubernetes.
+\newblock {\em Queue}, 2016.
+
+\bibitem{verma2015borg}
+Abhishek Verma, Luis Pedrosa, Madhukar Korupolu, David Oppenheimer, Eric Tune, and John Wilkes.
+\newblock Large-scale cluster management at google with borg.
+\newblock In {\em Proceedings of the Tenth European Conference on Computer Systems (EuroSys '15)}, 2015.
+
+\bibitem{k8s-components}
+{Kubernetes Authors}.
+\newblock Kubernetes components.
+\newblock \url{https://kubernetes.io/docs/concepts/overview/components/}, 2026.
+
+\bibitem{avireneni2022cloud}
+Ravi~Teja Avireneni et~al.
+\newblock Cloud orchestration with kubernetes/docker.
+\newblock {\em American International Journal of Computer Science and Technology}, 4(1), 2022.
+
+\bibitem{codingprotocols2026kubernetes}
+{Coding Protocols}.
+\newblock Kubernetes vs docker compose: When to use which.
+\newblock \url{https://codingprotocols.com/}, 2026.
+
+\bibitem{distr2026dockercompose}
+{distr.sh}.
+\newblock Should i run plain docker compose in production in 2026?
+\newblock \url{https://distr.sh/}, 2026.
+
+\bibitem{cncf2022keda}
+{CNCF}.
+\newblock Keda at zapier.
+\newblock \url{https://www.cncf.io/blog/2022/01/11/keda-at-zapier/}, 2022.
+
+\bibitem{datadog2026scaling}
+{Datadog}.
+\newblock Scaling kubernetes workloads on custom metrics.
+\newblock \url{https://www.datadoghq.com/blog/scaling-kubernetes-custom-metrics/}, 2026.
+
+\bibitem{roubalik2022keda}
+Zbynek Roubalik and Jorge Turrado.
+\newblock Kubernetes event-driven autoscaling with keda.
+\newblock In {\em KubeCon + CloudNativeCon Europe 2022}. CNCF, 2022.
+
+\bibitem{morgan2017service}
+William Morgan.
+\newblock Service mesh: A critical component of the cloud native stack.
+\newblock \url{https://www.cncf.io/blog/2017/04/26/service-mesh-critical-component-cloud-native-stack/}, 2017.
+
+\bibitem{devopscon2019service}
+{DevOpsCon}.
+\newblock Service mesh vs. framework: Resilience in distributed systems with istio or hystrix.
+\newblock \url{https://devopscon.io/}, 2019.
+
+\bibitem{istio-traffic}
+{Istio Authors}.
+\newblock Istio traffic management.
+\newblock \url{https://istio.io/latest/docs/concepts/traffic-management/}, 2026.
+
+\bibitem{istio-virtualservice}
+{Istio Authors}.
+\newblock Istio virtual service.
+\newblock \url{https://istio.io/latest/docs/reference/config/networking/virtual-service/}, 2026.
+
+\bibitem{istio-destinationrule}
+{Istio Authors}.
+\newblock Istio destination rule.
+\newblock \url{https://istio.io/latest/docs/reference/config/networking/destination-rule/}, 2026.
+
+\bibitem{elkhatib2023evaluation}
+Yehia Elkhatib and Jose~Povedano Poyato.
+\newblock An evaluation of service mesh frameworks for edge systems.
+\newblock In {\em Proceedings of the 6th International Workshop on Edge Systems, Analytics and Networking}, pages 19--24. Association for Computing Machinery, 2023.
+
+\bibitem{buoyant2026linkerd}
+{Buoyant}.
+\newblock Linkerd vs istio ambient: 2026 architecture comparison.
+\newblock \url{https://buoyant.io/}, 2026.
+
+\bibitem{bourgon2017metrics}
+Peter Bourgon.
+\newblock Metrics, tracing, and logging.
+\newblock \url{https://peter.bourgon.org/blog/2017/02/21/metrics-tracing-and-logging.html}, 2017.
+
+\bibitem{majors2018pillars}
+Charity Majors.
+\newblock The three pillars of observability.
+\newblock \url{https://www.honeycomb.io/blog/the-three-pillars-of-observability}, 2018.
+
+\bibitem{sigelman2010dapper}
+Benjamin~H. Sigelman, Luiz~Andr{\'e} Barroso, Mike Burrows, Pat Stephenson, Manoj Plakal, Donald Beaver, Saul Jaspan, and Chandan Shanbhag.
+\newblock Dapper, a large-scale distributed systems tracing infrastructure.
+\newblock Technical Report dapper-2010-1, Google, Inc., 2010.
+
+\bibitem{opentracing-spec}
+{OpenTracing Project}.
+\newblock Opentracing specification.
+\newblock \url{https://github.com/opentracing/specification}, 2016.
+
+\bibitem{opentelemetry-spec}
+{OpenTelemetry Authors}.
+\newblock Opentelemetry specification.
+\newblock \url{https://github.com/open-telemetry/opentelemetry-specification}, 2019.
+
+\bibitem{petazzoni2015dind}
+J{\'e}r{\^o}me Petazzoni.
+\newblock Using docker-in-docker for your ci or testing environment? think twice., 2015.
+\newblock Updated 2020. \url{https://jpetazzo.github.io/2015/09/03/do-not-use-docker-in-docker-for-ci/}.
+
+\bibitem{gitlab2024docker}
+{GitLab}.
+\newblock Use docker to build docker images.
+\newblock \url{https://docs.gitlab.com/ee/ci/docker/using_docker_build.html}, 2024.
+
+\bibitem{kaniko2025}
+{GoogleContainerTools}.
+\newblock kaniko: Build container images in kubernetes.
+\newblock \url{https://github.com/GoogleContainerTools/kaniko}, 2025.
+
+\bibitem{plural2025pullpush}
+{Plural.sh}.
+\newblock Pull vs push kubernetes deployment: Which to choose?
+\newblock \url{https://www.plural.sh/blog/pull-vs-push-kubernetes-deployment/}, 2025.
+
+\bibitem{twelvefactor}
+Adam Wiggins.
+\newblock The twelve-factor app.
+\newblock \url{https://12factor.net/}, 2011.
+
+\end{thebibliography}

@@ -1,0 +1,82 @@
+flowchart TD
+    Client[External Client]
+
+    subgraph NS [Namespace: imageprocessing]
+        
+        subgraph ING_LAYER [Ingress]
+            IGW[Istio Ingress Gateway]
+        end
+
+        subgraph MESH [Istio Mesh — sidecar-injected pods]
+            subgraph GW_POD [Deployment: gateway — 1 replica]
+                GWS[gateway-service :8080]
+            end
+
+            subgraph KC_POD [Deployment: keycloak — 1 replica]
+                KCS[keycloak-service :8080]
+            end
+
+            ORS[orchestrator-service]
+
+            subgraph CANARY [DestinationRule subsets]
+                OR1[Deployment: orchestrator-v1 <br/> weight 70 · 1 replica]
+                OR2[Deployment: orchestrator-v2 <br/> weight 30 · 1 replica]
+            end
+
+            subgraph WK_POD [Deployment: worker — HPA 1-N replicas]
+                WKC[worker container]
+            end
+
+            HPA[/HorizontalPodAutoscaler <br/> CPU-based/]
+        end
+
+        subgraph ASYNC [Kafka — StatefulSet, unmeshed]
+            K1[(job.requests <br/> 10 partitions)]
+            K2[(job.results <br/> 3 partitions)]
+            K3[(user.events)]
+        end
+
+        subgraph DATA [Data Tier — StatefulSet, unmeshed]
+            PG[(postgres-0 <br/> PVC: postgres-data)]
+        end
+
+        subgraph STORAGE [Persistent Volumes]
+            SS[(pvc-shared-storage <br/> RWO · Retain)]
+            MC1[(pvc-model-cache <br/> RWO · Delete)]
+            MC2[(pvc-rembg-cache <br/> RWO · Delete)]
+        end
+    end
+
+    %% Connections
+    Client -->|host: api.imageprocessing.local| IGW
+    Client -->|host: keycloak.imageprocessing.local| IGW
+    
+    IGW --> GWS
+    IGW --> KCS
+    
+    GWS -.->|Token Swap /internal| KCS
+    GWS -->|VirtualService: retries 3, timeout 8s| ORS
+    
+    KCS -->|SQL| PG
+    KCS -->|publish| K3
+    
+    ORS --> CANARY
+    
+    CANARY -->|SQL| PG
+    
+    CANARY -.->|write/read| SS
+    
+    CANARY -->|publish| K1
+    
+    K2 -->|consume| CANARY
+    
+    K3 -->|consume| CANARY
+
+    HPA -.->|scales| WK_POD
+    
+    K1 -->|consume| WKC
+    WKC -->|publish| K2
+    
+    WKC -.->|write/read| SS
+    WKC -.->|mount| MC1
+    WKC -.->|mount| MC2

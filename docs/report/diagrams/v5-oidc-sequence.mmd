@@ -1,0 +1,28 @@
+sequenceDiagram
+    autonumber
+    actor Client as Browser
+    participant GW as Gateway (BFF)
+    participant KC as Keycloak (IdP)
+    participant ORC as Orchestrator
+
+    Client->>GW: GET /api/me (No Session)
+    GW-->>Client: 302 Redirect to IdP
+    Client->>KC: GET /realms/imageprocessing/.../auth
+    KC-->>Client: Renders Login Page
+    Client->>KC: Submits Credentials
+    KC-->>Client: 302 Redirect with Auth Code
+    Client->>GW: GET /login/oauth2/code/keycloak?code=...
+    
+    rect rgb(240, 240, 240)
+        Note over GW,KC: Secure Backchannel
+        GW->>KC: POST Swap Code for Tokens
+        KC-->>GW: Returns ID Token & Access Token
+    end
+
+    GW->>GW: Extracts User Info & Creates Session
+    GW-->>Client: 302 Redirect to / + Set-Cookie (SESSION)
+    
+    Client->>GW: GET /api/me (with Cookie)
+    GW->>ORC: POST /users/find-or-create (Trusted Internal)
+    ORC-->>GW: 200 OK (User Data)
+    GW-->>Client: 200 OK (JSON)

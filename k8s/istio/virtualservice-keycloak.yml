@@ -1,19 +1,20 @@
 apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
-  name: gateway-passthrough
+  name: keycloak-passthrough
   namespace: imageprocessing
 spec:
   hosts:
-    - "api.imageprocessing.local"
+    - "keycloak.imageprocessing.local"
   gateways:
     - imageprocessing-gateway
   http:
     - route:
         - destination:
-            host: frontend-service
+            host: keycloak
             port:
               number: 8080
+      # also add these? check retry on
       timeout: 8s
       retries:
         attempts: 3

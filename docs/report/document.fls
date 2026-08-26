@@ -1,4 +1,4 @@
-PWD /home/nicola/code/supsi/thesisProject/report/supsi_modelli/template_rapporto/DTI_documento_tesi_LaTeX
+PWD /home/nicola/code/supsi/thesisProject/cloud-native-image-processing/docs/report
 INPUT /usr/share/texmf-dist/web2c/texmf.cnf
 INPUT /var/lib/texmf/web2c/pdftex/pdflatex.fmt
 INPUT document.tex

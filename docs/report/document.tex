@@ -39,6 +39,13 @@
 \onehalfspacing
 \frontmatter
 
+\cleardoublepage
+\vspace*{0.2\textheight}
+\begin{flushright}
+\textit{A mio nonno Franco}
+\end{flushright}
+\vfill
+\cleardoublepage
 
 \chapter{Abstract}
 \section{English}
@@ -54,6 +61,13 @@ In coding and architectural decision-making, AI was used as a discussion partner
 For research, AI (primarily Claude and Anara) was used to gain insights quickly within an unfamiliar topic, for example, summarizing the trade-offs between Kafka and RabbitMQ, or the practical differences between Istio and Linkerd, before deeper reading. It was not treated as a primary source in its own right: claims relevant to the State of the Art chapter were checked against official documentation, vendor sources, or the peer-reviewed literature cited there, rather than taken on the AI's word alone. This same tool was also used to locate and shortlist candidate academic references on request, but still requiring verification of each source's actual content and relevance before citing it.
 
 For documentation, AI assisted in producing the markdown sprint recaps that accompany each milestone and in drafting and editing sections of this LaTeX report, restructuring prose, tightening explanations, and helping translate the sprint recaps' implementation-level detail into the report's narrative structure. As with the code, every generated passage was reviewed against what was actually built (the manifests, the source code, the validation scripts) before being retained, so that the report's technical claims trace back to the implementation itself rather than to an AI-generated approximation of it.
+
+\problemchapter{Ringraziamenti}
+Desidero cogliere questa occasione per ringraziare tutti coloro che mi hanno supportato e motivato durante il mio percorso universitario e, in particolare, durante la stesura di questa tesi.
+Un ringraziamento speciale va al mio relatore Massimo Coluzzi, e al mio corelatore, Roberto Guidi, che, per la loro costante disponibilità e il prezioso supporto tecnico, sono stati fondamentali. Li ringrazio inoltre per aver incoraggiato e accolto le mie idee, rendendole attuabili all'interno di questo progetto di diploma.
+Vorrei esprimere la mia più profonda gratitudine alla mia famiglia: a mia madre Jacqueline, mio padre Giulio e a mia sorella Carola. Grazie per avermi sempre auitato e sostenuto durante questi anni di studio.
+Infine, un ringraziamento di cuore va a tutti gli amici che mi sono stati vicini lungo questo cammino e durante il periodo di lavoro dedicato alla tesi: Alessio, Andrea, Antonio, Diego, Giorgio, Guymarie, Lorenzo, Luca, Ludovica, Matilda, Matteo, Tommaso C. e Tommaso M.
+A tutti voi, semplicemente, grazie.
 
 \pagenumbering{roman}
 \tableofcontents
@@ -79,7 +93,6 @@ The remainder of this report is organized as follows. Chapter \emph{Context and 
 This chapter outlines the academic and practical context in which this thesis was developed. It details the pedagogical structure of the DevOps course, the starting conditions of the project, and the core motivations driving the choice of a cloud-native image processing pipeline as the primary case study.
 
 \section{Academic Context}
-% TODO: enrich with actual lecture/laboratory list once provided, this paragraph is currently a general framing only.
 This project was developed within the DevOps course of the Master's programme in Computer Science Engineering at SUPSI DTI. The course follows a semester-long, progressively-evolving case-study model: rather than teaching containerization, orchestration, continuous delivery, and observability as isolated exercises, students build and extend a single application over successive modules, each module introducing the concepts and tooling relevant to that stage of the DevOps lifecycle. This project is the case study built under that model.
 
 The work was carried out as a diploma thesis, supervised by a relator (Massimo Coluzzi) and a corelator (Roberto Guidi), under the sponsorship of SUPSI. Supervision followed a two-week cadence: each cycle consisted of a 30/60 minute meeting combining a review of the milestone just closed with a lightweight planning session for the next one, functioning respectively as a sprint review and sprint planning meeting. This structure is described further in Chapter \emph{Approach}, Section \emph{Stakeholder Interaction}. Unlike a purely coursework-graded exercise, the diploma-thesis track additionally requires the work to be documented, justified, and critically evaluated as a scientific report, which is the purpose of the present document.

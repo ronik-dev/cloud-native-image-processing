@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex document"] 1787663678.29363 "document.aux" "document.bbl" "document" 1787756554.36998 0
+["bibtex document"] 1787762095.14898 "document.aux" "document.bbl" "document" 1787765335.99719 0
   "./bibliografia.bib" 1787665713.91117 26820 337ffbb19b91bf134e32561772595cc6 ""
   "/usr/share/texmf-dist/bibtex/bst/base/unsrt.bst" 1775415801 18030 1376b4b231b50c66211e47e42eda2875 ""
-  "document.aux" 1787756554.20997 23026 1eb891933664f9614500fecd47a93898 "pdflatex"
+  "document.aux" 1787765335.84495 23122 ff43cb19ec224a8c3c07ebf0a8cd0360 "pdflatex"
   (generated)
   "document.bbl"
   "document.blg"
   (rewritten before read)
-["pdflatex"] 1787756553.33946 "document.tex" "document.pdf" "document" 1787756554.37013 0
+["pdflatex"] 1787765334.82416 "document.tex" "document.pdf" "document" 1787765335.99732 0
   "/usr/share/texmf-dist/fonts/enc/dvips/base/8r.enc" 1775415801 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc" 1775415801 2971 def0b6c1f0b107b3b936def894055589 ""
   "/usr/share/texmf-dist/fonts/map/fontname/texfonts.map" 1775415801 3524 cb3e574dea2d1052e39280babc910dc8 ""
@@ -123,12 +123,12 @@
   "/usr/share/texmf-dist/web2c/texmf.cnf" 1775415801 43569 fd570f2fa160877d211e859f687312ba ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1786631597 5385779 47c0c393a77fd4a098bacfd57d66b88a ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1786632286 2329485 d016419007a2a98747a9ee4140fb7fdb ""
-  "document.aux" 1787756554.20997 23026 1eb891933664f9614500fecd47a93898 "pdflatex"
-  "document.bbl" 1787665713.91198 16489 4734fe68711940701409bc810be56f6a "bibtex document"
-  "document.lof" 1787756554.21177 1285 d95d4ab20e2fce1ff803856ecc755aeb "pdflatex"
-  "document.lot" 1787756554.21177 684 7e2be2aa9e11d37ce1e513aed7557cc1 "pdflatex"
-  "document.tex" 1787756551.45514 162648 c401c5de2c1e19696c0cd43a37c554ea ""
-  "document.toc" 1787756554.21177 9385 e8c2f48801dee1be82e20b21017c8435 "pdflatex"
+  "document.aux" 1787765335.84495 23122 ff43cb19ec224a8c3c07ebf0a8cd0360 "pdflatex"
+  "document.bbl" 1787762095.20564 16489 4734fe68711940701409bc810be56f6a "bibtex document"
+  "document.lof" 1787765335.8469 1285 d95d4ab20e2fce1ff803856ecc755aeb "pdflatex"
+  "document.lot" 1787765335.8469 684 7e2be2aa9e11d37ce1e513aed7557cc1 "pdflatex"
+  "document.tex" 1787765319.12682 163728 c617ef7b749a9ca7e7fc6e656f0142c3 ""
+  "document.toc" 1787765335.8469 9439 dde23175c2a73eee1b03718f981ed660 "pdflatex"
   "images/thesis-architecture.pdf" 1787665713.91971 120388 65870882a3c6c64c1f7f81e065f2e7cd ""
   "images/thesis-proposal.pdf" 1787665713.91984 255078 74e8cc161dbead4058fc554868febfb9 ""
   "images/v1-erd.pdf" 1787665713.92005 36689 e10ce864110efa3dc0eac8cd5569f0cc ""

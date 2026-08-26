@@ -1,9 +1,10 @@
 \babel@toc {italian}{}\relax 
 \babel@toc {italian}{}\relax 
-\contentsline {chapter}{Abstract}{i}{}%
-\contentsline {section}{\numberline {0.1}English}{i}{}%
-\contentsline {section}{\numberline {0.2}Italiano}{i}{}%
-\contentsline {section}{\numberline {0.3}Use of AI}{i}{}%
+\contentsline {chapter}{Abstract}{iii}{}%
+\contentsline {section}{\numberline {0.1}English}{iii}{}%
+\contentsline {section}{\numberline {0.2}Italiano}{iii}{}%
+\contentsline {section}{\numberline {0.3}Use of AI}{iii}{}%
+\contentsline {chapter}{Ringraziamenti}{i}{}%
 \contentsline {chapter}{\numberline {1}Introduction}{1}{}%
 \contentsline {chapter}{\numberline {2}Context and Motivation}{3}{}%
 \contentsline {section}{\numberline {2.1}Academic Context}{3}{}%

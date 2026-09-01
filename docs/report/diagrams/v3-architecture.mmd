@@ -1,0 +1,11 @@
+flowchart TD
+    A[Host Browser] -->|HTTP :8080| B[Gateway Container]
+    
+    subgraph Docker Internal Network
+        B -->|HTTP :8081/internal| C[Orchestrator Container]
+        C -->|HTTP :8082| E[AI Worker Container]
+        C -->|TCP :5432| F[(PostgreSQL 18)]
+    end
+
+    C -->|Read/Write| D((Host Disk Volumes))
+    E -->|Read/Write| D

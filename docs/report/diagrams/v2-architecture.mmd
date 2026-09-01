@@ -1,0 +1,8 @@
+flowchart TD
+    
+    A[Browser] -->|HTTP :8080| B[Gateway]
+    B -->|HTTP :8081/internal| C[Orchestrator]
+    C -->|write/read| D((disc))
+    C -->|HTTP:8082| E[AI Worker]
+    E -->|write/read| D
+    C -->|write/read| F([PostgreSQL])

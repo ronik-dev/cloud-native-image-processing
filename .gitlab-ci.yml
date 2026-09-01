@@ -11,11 +11,11 @@ default:
     - linux
     - docker
 
-workflow:
+workflow:   
   rules:
     - if: '$CI_COMMIT_BRANCH == "dev"'
     - if: '$CI_COMMIT_BRANCH == "main"'
- # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # Java unit tests (common, orchestrator, gateway; multi-module reactor build)
 # ---------------------------------------------------------------------------
 java-tests:

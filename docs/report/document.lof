@@ -1,0 +1,19 @@
+\babel@toc {italian}{}\relax 
+\babel@toc {italian}{}\relax 
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {6.1}{\ignorespaces Entity-Relationship Model showing Users, Images, and Processing Jobs.}}{28}{}%
+\contentsline {figure}{\numberline {6.2}{\ignorespaces Architecture flowchart (v2): microservices decomposition: Java Orchestrator and Gateway, Python Worker, PostgreSQL}}{31}{}%
+\contentsline {figure}{\numberline {6.3}{\ignorespaces Architecture flowchart (v3): containerizaition and orchestrationand orchestration with Docker and Docker-Compose}}{35}{}%
+\contentsline {figure}{\numberline {6.4}{\ignorespaces Architecture flowchart (v4): local Minikube, Deployments, Ingress, Stateful Sets, PVs and PVCs}}{39}{}%
+\contentsline {figure}{\numberline {6.5}{\ignorespaces Architecture flowchart (v5): Keycloak integration}}{46}{}%
+\contentsline {figure}{\numberline {6.6}{\ignorespaces OIDC login sequence diagram}}{52}{}%
+\contentsline {figure}{\numberline {6.7}{\ignorespaces Architecture flowchart (v6): Istio service mesh, sidecar injection scope, and weighted traffic management}}{54}{}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }

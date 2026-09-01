@@ -1,0 +1,11 @@
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: keycloak-destination
+  namespace: imageprocessing
+spec:
+  host: keycloak
+  trafficPolicy:
+    connectionPool:
+      http:
+        idleTimeout: 30s

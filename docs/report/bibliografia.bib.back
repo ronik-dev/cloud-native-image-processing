@@ -1,0 +1,605 @@
+//Monolith vs Microservices
+@article{soldani2018pains,
+  title={The pains and gains of microservices: A Systematic grey literature review},
+  author={Soldani, Jacopo and Tamburri, Damian Andrew and Van Den Heuvel, Willem-Jan},
+  journal={Journal of Systems and Software},
+  volume={146},
+  pages={215--232},
+  year={2018},
+  publisher={Elsevier},
+  doi={10.1016/j.jss.2018.09.082}
+}
+
+@article{jamshidi2018microservices,
+  title={Microservices: The journey so far and challenges ahead},
+  author={Jamshidi, Pooyan and Pahl, Claus and Mendon{\c{c}}a, Nabor C and Lewis, James and Tilkov, Stefan},
+  journal={IEEE Software},
+  volume={35},
+  number={3},
+  pages={24--35},
+  year={2018},
+  publisher={IEEE},
+  doi={10.1109/ms.2018.2141039}
+}
+
+@book{newman2015building,
+  title={Building Microservices: Designing Fine-Grained Systems},
+  author={Newman, Sam},
+  year={2015},
+  publisher={"O'Reilly Media, Inc."}
+}
+
+@misc{fowler2015monolith,
+  title={Monolith First},
+  author={Fowler, Martin},
+  year={2015},
+  howpublished={\url{https://martinfowler.com/bliki/MonolithFirst.html}}
+}
+
+@article{schwarz2025balancing,
+  title={Balancing technology heterogeneity in microservice architectures},
+  author={Schwarz, Georg-Daniel and Heltweg, Philip and Riehle, Dirk},
+  journal={Empirical Software Engineering},
+  volume={30},
+  number={5},
+  year={2025},
+  publisher={Springer},
+  doi={10.1007/s10664-025-10684-4}
+}
+
+//2. Synchronous vs. Asynchronous Service Communication
+
+@article{kazanavicius2023evaluation,
+  title={Evaluation of Microservice Communication While Decomposing Monoliths},
+  author={Kazanavi{\v{c}}ius, Justas and Ma{\v{z}}eika, Dalius},
+  journal={Computing and Informatics},
+  volume={42},
+  number={1},
+  pages={1--36},
+  year={2023},
+  doi={10.31577/cai_2023_1_1}
+}
+
+@article{fu2021fair,
+  title={A Fair Comparison of Message Queuing Systems},
+  author={Fu, Guo and Zhang, Yanfeng and Yu, Ge},
+  journal={IEEE Access},
+  volume={9},
+  pages={421--432},
+  year={2021},
+  publisher={IEEE},
+  doi={10.1109/access.2020.3046503}
+}
+
+@article{magnoni2015modern,
+  title={Modern Messaging for Distributed Systems},
+  author={Magnoni, L},
+  journal={Journal of Physics: Conference Series},
+  volume={608},
+  number={1},
+  pages={012038},
+  year={2015},
+  publisher={IOP Publishing},
+  doi={10.1088/1742-6596/608/1/012038}
+}
+
+@book{kleppmann2017designing,
+  title={Designing Data-Intensive Applications: The Big Ideas Behind Reliable, Scalable, and Maintainable Systems},
+  author={Kleppmann, Martin},
+  year={2017},
+  publisher={"O'Reilly Media, Inc."}
+}
+
+@misc{laigner2024data,
+  title={Data Management in Microservices: State of the Practice, Challenges, and Research Directions},
+  author={Laigner, R. and others},
+  year={2024},
+  publisher={arXiv},
+  doi={10.48550/arxiv.2408.00440},
+  note={arXiv:2408.00440}
+}
+
+//3. Container Orchestration Platforms
+@article{truyen2019comprehensive,
+  title={A Comprehensive Feature Comparison Study of Open-Source Container Orchestration Frameworks},
+  author={Truyen, Eddy and Van Landuyt, Dimitri and Preuveneers, Davy and Lagaisse, Bert and Joosen, Wouter},
+  journal={Applied Sciences},
+  volume={9},
+  number={5},
+  pages={931},
+  year={2019},
+  publisher={MDPI},
+  doi={10.3390/app9050931}
+}
+
+@article{truyen2020managing,
+  title={Managing Feature Compatibility in Kubernetes: Vendor Comparison and Analysis},
+  author={Truyen, Eddy and Kratzke, Nane and Van Landuyt, Dimitri and Lagaisse, Bert and Joosen, Wouter},
+  journal={IEEE Access},
+  volume={8},
+  pages={228420--228439},
+  year={2020},
+  publisher={IEEE},
+  doi={10.1109/access.2020.3045768}
+}
+
+@article{avireneni2022cloud,
+  title={Cloud Orchestration with Kubernetes/Docker},
+  author={Avireneni, Ravi Teja and others},
+  journal={American International Journal of Computer Science and Technology},
+  volume={4},
+  number={1},
+  year={2022},
+  doi={10.63282/3117-5481/aijcst-v4i1p103}
+}
+
+@misc{codingprotocols2026kubernetes,
+  title={Kubernetes vs Docker Compose: When to Use Which},
+  author={{Coding Protocols}},
+  year={2026},
+  note={Accessed: 2026}
+}
+
+@misc{distr2026dockercompose,
+  title={Should I Run Plain Docker Compose in Production in 2026?},
+  author={{distr.sh}},
+  year={2026},
+  note={Accessed: 2026}
+}
+
+
+// Autoscaling Approaches
+@misc{cncf2022keda,
+  title={KEDA at Zapier},
+  author={{CNCF}},
+  year={2022},
+  howpublished={\url{https://www.cncf.io/blog/2022/01/11/keda-at-zapier/}}
+}
+
+@misc{datadog2026scaling,
+  title={Scaling Kubernetes workloads on custom metrics},
+  author={{Datadog}},
+  year={2026},
+  howpublished={\url{https://www.datadoghq.com/blog/scaling-kubernetes-custom-metrics/}}
+}
+
+@misc{googlecloud2024gke,
+  title={Best practices for autoscaling LLM inference workloads with GPUs on GKE},
+  author={{Google Cloud}},
+  year={2024},
+  howpublished={\url{https://cloud.google.com/kubernetes-engine/docs/best-practices/autoscaling-llm-inference-gpus}}
+}
+
+@inproceedings{roubalik2022keda,
+  title={Kubernetes Event-driven Autoscaling with KEDA},
+  author={Roubalik, Zbynek and Turrado, Jorge},
+  booktitle={KubeCon + CloudNativeCon Europe 2022},
+  year={2022},
+  organization={CNCF}
+}
+
+// Service Mesh
+@misc{morgan2017service,
+  title={Service mesh: A critical component of the cloud native stack},
+  author={Morgan, William},
+  year={2017},
+  howpublished={\url{https://www.cncf.io/blog/2017/04/26/service-mesh-critical-component-cloud-native-stack/}}
+}
+
+@misc{devopscon2019service,
+  title={Service Mesh vs. Framework: Resilience in distributed systems with Istio or Hystrix},
+  author={{DevOpsCon}},
+  year={2019},
+  howpublished={\url{https://devopscon.io/}}
+}
+
+@inproceedings{elkhatib2023evaluation,
+  title={An Evaluation of Service Mesh Frameworks for Edge Systems},
+  author={Elkhatib, Yehia and Poyato, Jose Povedano},
+  booktitle={Proceedings of the 6th International Workshop on Edge Systems, Analytics and Networking},
+  pages={19--24},
+  year={2023},
+  publisher={Association for Computing Machinery},
+  doi={10.1145/3578354.3592867}
+}
+
+@misc{buoyant2026linkerd,
+  title={Linkerd vs Istio Ambient: 2026 Architecture Comparison},
+  author={{Buoyant}},
+  year={2026},
+  howpublished={\url{https://buoyant.io/}}
+}
+
+// CICD
+
+@misc{petazzoni2015dind,
+  title={Using Docker-in-Docker for your CI or testing environment? Think twice.},
+  author={Petazzoni, J{\'e}r{\^o}me},
+  year={2015},
+  note={Updated 2020. \url{https://jpetazzo.github.io/2015/09/03/do-not-use-docker-in-docker-for-ci/}}
+}
+
+@misc{gitlab2024docker,
+  title={Use Docker to build Docker images},
+  author={{GitLab}},
+  year={2024},
+  howpublished={\url{https://docs.gitlab.com/ee/ci/docker/using_docker_build.html}}
+}
+
+@misc{kaniko2025,
+  title={kaniko: Build Container Images In Kubernetes},
+  author={{GoogleContainerTools}},
+  year={2025},
+  howpublished={\url{https://github.com/GoogleContainerTools/kaniko}}
+}
+
+@misc{plural2025pullpush,
+  title={Pull vs Push Kubernetes Deployment: Which to Choose?},
+  author={{Plural.sh}},
+  year={2025},
+  howpublished={\url{https://www.plural.sh/blog/pull-vs-push-kubernetes-deployment/}}
+}
+
+// Java enterprise (dominance, backward compatibility, maturity)
+@book{gosling2005jls,
+  author    = {Gosling, James and Joy, Bill and Steele, Guy L. and Bracha, Gilad},
+  title     = {The Java Language Specification},
+  edition   = {3rd},
+  publisher = {Addison-Wesley},
+  address   = {Boston, MA},
+  year      = {2005},
+  isbn      = {9780321246783}
+}
+@inproceedings{bracha1998future,
+  author    = {Bracha, Gilad and Odersky, Martin and Stoutamire, David and Wadler, Philip},
+  title     = {Making the future safe for the past},
+  booktitle = {Proceedings of the 13th ACM SIGPLAN Conference on Object-Oriented Programming, Systems, Languages, and Applications (OOPSLA '98)},
+  publisher = {ACM},
+  year      = {1998},
+  doi       = {10.1145/286936.286957}
+}
+// Spring DI/IoC and Spring Boot
+@book{johnson2002expert,
+  author    = {Johnson, Rod},
+  title     = {Expert One-on-One J2EE Design and Development},
+  publisher = {Wrox Press},
+  year      = {2002}
+}
+@misc{springboot2026,
+  author       = {{Spring Team}},
+  title        = {Spring Boot Reference Documentation},
+  howpublished = {\url{https://docs.spring.io/spring-boot/reference/}},
+  year         = {2026},
+  note         = {Accessed 2026}
+}
+// ORM, JPA, and the Repository pattern
+@book{fowler2002poeaa,
+  author    = {Fowler, Martin},
+  title     = {Patterns of Enterprise Application Architecture},
+  publisher = {Addison-Wesley Professional},
+  address   = {Boston, MA},
+  year      = {2002},
+  isbn      = {9780321127426}
+}
+@inproceedings{tudose2021orm,
+  author    = {Tudose, C{\u{a}}t{\u{a}}lin and Odub{\u{a}}{\c{s}}teanu, Carmen},
+  title     = {Object-relational Mapping Using {JPA}, {Hibernate} and {Spring Data JPA}},
+  booktitle = {2021 23rd International Conference on Control Systems and Computer Science (CSCS)},
+  publisher = {IEEE},
+  year      = {2021},
+  doi       = {10.1109/cscs52396.2021.00076}
+}
+// Python as the de facto standard for AI tooling
+@article{millman2011python,
+  author  = {Millman, K. Jarrod and Aivazis, Michael},
+  title   = {Python for Scientists and Engineers},
+  journal = {Computing in Science \& Engineering},
+  year    = {2011},
+  doi     = {10.1109/MCSE.2011.36}
+}
+@inproceedings{paszke2019pytorch,
+  author    = {Paszke, Adam and Gross, Sam and Massa, Francisco and Lerer, Adam and Bradbury, James and Chanan, Gregory and Killeen, Trevor and Lin, Zeming and Gimelshein, Natalia and Antiga, Luca and Desmaison, Alban and K{\"o}pf, Andreas and Yang, Edward and DeVito, Zach and Raison, Martin and Tejani, Alykhan and Chilamkurthy, Sasank and Steiner, Benoit and Fang, Lu and Bai, Junjie and Chintala, Soumith},
+  title     = {{PyTorch}: An Imperative Style, High-Performance Deep Learning Library},
+  booktitle = {Advances in Neural Information Processing Systems 32 (NeurIPS 2019)},
+  year      = {2019},
+  doi       = {10.48550/arXiv.1912.01703}
+}
+// ASGI and modern Python async frameworks
+@misc{asgi2019,
+  author       = {{ASGI Project}},
+  title        = {ASGI (Asynchronous Server Gateway Interface) Specification, Version 3.0},
+  howpublished = {\url{https://asgi.readthedocs.io/en/latest/specs/main.html}},
+  year         = {2019},
+  note         = {Accessed 2026}
+}
+@inproceedings{alaanzy2026asgi,
+  author    = {Ala'anzy, M. A. and Yeshpatov, Zhandos and Akhmetov, Adil and Akhmedov, Ramis and Alnaseri, O.},
+  title     = {A Performance Evaluation of {Flask} ({WSGI}) and {FastAPI} ({ASGI}) Under High-Concurrency Workloads},
+  booktitle = {2026 International Conference on Electronics, Computer and Computation (ICECC)},
+  publisher = {IEEE},
+  year      = {2026},
+  doi       = {10.1109/icecco67619.2026.11488817}
+}
+// Apache Maven
+@book{obrien2008maven,
+  author    = {O'Brien, Timothy M. and {Sonatype}},
+  title     = {Maven: The Definitive Guide},
+  publisher = {O'Reilly Media},
+  address   = {Sebastopol, CA},
+  year      = {2008},
+  isbn      = {9780596517335}
+}
+@inproceedings{benelallam2019maven,
+  author    = {Benelallam, Amine and Harrand, Nicolas and Soto-Valero, C{\'e}sar and Baudry, Benoit and Barais, Olivier},
+  title     = {The Maven Dependency Graph: A Temporal Graph-based Representation of Maven Central},
+  booktitle = {2019 IEEE/ACM 16th International Conference on Mining Software Repositories (MSR)},
+  publisher = {IEEE},
+  year      = {2019},
+  doi       = {10.1109/MSR.2019.00060}
+}
+// uv (Rust-based resolver, performance over pip)
+@misc{uv2026,
+  author       = {{Astral}},
+  title        = {uv: An Extremely Fast Python Package and Project Manager, Written in Rust},
+  howpublished = {\url{https://docs.astral.sh/uv/}},
+  year         = {2026},
+  note         = {Accessed 2026}
+}
+@misc{astral2024uv,
+  author       = {Marsh, Charlie and {Astral}},
+  title        = {uv: Python packaging in Rust},
+  howpublished = {\url{https://astral.sh/blog/uv}},
+  year         = {2024},
+  note         = {Accessed 2026}
+}
+@inproceedings{wang2022smartpip,
+  author    = {Wang, Chao and Wu, Rongxin and Song, Haohao and Shu, Jiwu and Li, Guoqing},
+  title     = {{smartPip}: A Smart Approach to Resolving {Python} Dependency Conflict Issues},
+  booktitle = {Proceedings of the 37th IEEE/ACM International Conference on Automated Software Engineering (ASE 2022)},
+  publisher = {ACM},
+  year      = {2022},
+  doi       = {10.1145/3551349.3560437}
+}
+
+// OAuth 2.0 Authorization Framework (RFC 6749)
+@techreport{rfc6749,
+  author      = {Hardt, Dick},
+  title       = {{The OAuth 2.0 Authorization Framework}},
+  institution = {Internet Engineering Task Force (IETF)},
+  type        = {RFC},
+  number      = {6749},
+  year        = {2012},
+  month       = {October},
+  doi         = {10.17487/RFC6749}
+}
+// OpenID Connect Core 1.0
+@techreport{oidccore,
+  author      = {Sakimura, Nat and Bradley, John and Jones, Michael B. and
+                 de Medeiros, Breno and Mortimore, Chuck},
+  title       = {{OpenID Connect Core 1.0}},
+  institution = {OpenID Foundation},
+  type        = {Specification},
+  year        = {2014},
+  month       = {November},
+  url         = {https://openid.net/specs/openid-connect-core-1_0.html}
+}
+// Authorization Code flow security and token exchange
+@techreport{rfc9700,
+  author      = {Lodderstedt, Torsten and Bradley, John and Labunets, Andrey and Fett, Daniel},
+  title       = {{Best Current Practice for OAuth 2.0 Security}},
+  institution = {Internet Engineering Task Force (IETF)},
+  type        = {RFC},
+  number      = {9700},
+  year        = {2025},
+  month       = {January},
+  note        = {BCP 240; updates RFC 6749, RFC 6750, RFC 6819},
+  doi         = {10.17487/RFC9700}
+}
+
+@techreport{rfc7636,
+  author      = {Sakimura, Nat and Bradley, John and Agarwal, Naveen},
+  title       = {{Proof Key for Code Exchange by OAuth Public Clients}},
+  institution = {Internet Engineering Task Force (IETF)},
+  type        = {RFC},
+  number      = {7636},
+  year        = {2015},
+  month       = {September},
+  doi         = {10.17487/RFC7636}
+}
+
+@techreport{rfc8693,
+  author      = {Jones, Michael B. and Nadalin, Anthony and Campbell, Brian and
+                 Bradley, John and Mortimore, Chuck},
+  title       = {{OAuth 2.0 Token Exchange}},
+  institution = {Internet Engineering Task Force (IETF)},
+  type        = {RFC},
+  number      = {8693},
+  year        = {2020},
+  month       = {January},
+  doi         = {10.17487/RFC8693}
+}
+
+// Keycloak
+@misc{keycloak,
+  author       = {{Keycloak Developers}},
+  title        = {{Keycloak}: Open Source Identity and Access Management for Modern Applications and Services},
+  year         = {2026},
+  howpublished = {\url{https://www.keycloak.org/}},
+  note         = {Apache License 2.0; CNCF incubating project since April 2023}
+}
+// Git and GitLab
+@book{chacon2014progit,
+  author    = {Chacon, Scott and Straub, Ben},
+  title     = {Pro Git},
+  publisher = {Apress},
+  address   = {Berkeley, CA},
+  edition   = {2},
+  year      = {2014},
+  isbn      = {978-1-4842-0077-3},
+  doi       = {10.1007/978-1-4842-0076-6}
+}
+
+@misc{git,
+  author       = {{Git Developers}},
+  title        = {Git: Distributed Version Control System},
+  year         = {2026},
+  howpublished = {\url{https://git-scm.com/}}
+}
+@misc{gitlab,
+  author       = {{GitLab Inc.}},
+  title        = {{GitLab}: The DevOps Platform},
+  year         = {2026},
+  howpublished = {\url{https://about.gitlab.com/}},
+  note         = {Open-core; GitLab Community Edition (MIT) and Enterprise Edition}
+}
+
+// OS-level virtualization vs. hypervisors
+
+@inproceedings{soltesz2007container,
+  title     = {Container-based operating system virtualization: A scalable, high-performance alternative to hypervisors},
+  author    = {Soltesz, Stephen and P{\"o}tzl, Herbert and Fiuczynski, Marc E. and Bavier, Andy and Peterson, Larry},
+  booktitle = {Proceedings of the 2nd European Conference on Computer Systems (EuroSys '07)},
+  year      = {2007},
+  doi       = {10.1145/1272996.1273025}
+}
+
+@inproceedings{felter2015updated,
+  title     = {An updated performance comparison of virtual machines and Linux containers},
+  author    = {Felter, Wes and Ferreira, Alexandre and Rajamony, Ram and Campos, Juan},
+  booktitle = {2015 IEEE International Symposium on Performance Analysis of Systems and Software (ISPASS)},
+  year      = {2015},
+  doi       = {10.1109/ispass.2015.7095802}
+}
+// Docker and the OCI
+
+@article{merkel2014docker,
+  title   = {Docker: lightweight Linux containers for consistent development and deployment},
+  author  = {Merkel, Dirk},
+  journal = {Linux Journal},
+  volume  = {2014},
+  number  = {239},
+  pages   = {2},
+  year    = {2014},
+  url     = {https://www.linuxjournal.com/content/docker-lightweight-linux-containers-consistent-development-and-deployment}
+}
+
+@misc{oci-image-spec,
+  title        = {Open Container Initiative Image Format Specification},
+  author       = {{Open Container Initiative}},
+  howpublished = {\url{https://github.com/opencontainers/image-spec}},
+  year         = {2016}
+}
+
+@misc{oci-runtime-spec,
+  title        = {Open Container Initiative Runtime Specification},
+  author       = {{Open Container Initiative}},
+  howpublished = {\url{https://github.com/opencontainers/runtime-spec}},
+  year         = {2015}
+}
+
+// Kubernetes control plane and reconciliation
+@article{burns2016borg,
+  title   = {Borg, Omega, and Kubernetes},
+  author  = {Burns, Brendan and Grant, Brian and Oppenheimer, David and Brewer, Eric and Wilkes, John},
+  journal = {Queue},
+  year    = {2016},
+  doi     = {10.1145/2898442.2898444}
+}
+
+@inproceedings{verma2015borg,
+  title     = {Large-scale cluster management at Google with Borg},
+  author    = {Verma, Abhishek and Pedrosa, Luis and Korupolu, Madhukar and Oppenheimer, David and Tune, Eric and Wilkes, John},
+  booktitle = {Proceedings of the Tenth European Conference on Computer Systems (EuroSys '15)},
+  year      = {2015},
+  doi       = {10.1145/2741948.2741964}
+}
+
+@misc{k8s-components,
+  title        = {Kubernetes Components},
+  author       = {{Kubernetes Authors}},
+  howpublished = {\url{https://kubernetes.io/docs/concepts/overview/components/}},
+  note         = {Continuously updated official documentation}
+}
+// The Twelve-Factor App
+
+@misc{twelvefactor,
+  title        = {The Twelve-Factor App},
+  author       = {Wiggins, Adam},
+  year         = {2011},
+  howpublished = {\url{https://12factor.net/}},
+  note         = {Methodology for building software-as-a-service applications; authored by Heroku co-founder Adam Wiggins}
+}
+// Istio architecture and traffic management
+
+@misc{istio-architecture,
+  title        = {Istio Architecture},
+  author       = {{Istio Authors}},
+  howpublished = {\url{https://istio.io/latest/docs/ops/deployment/architecture/}},
+  note         = {Data plane (Envoy sidecars) and control plane (istiod)}
+}
+
+@misc{istio-traffic,
+  title        = {Istio Traffic Management},
+  author       = {{Istio Authors}},
+  howpublished = {\url{https://istio.io/latest/docs/concepts/traffic-management/}}
+}
+
+@misc{istio-virtualservice,
+  title        = {Istio Virtual Service},
+  author       = {{Istio Authors}},
+  howpublished = {\url{https://istio.io/latest/docs/reference/config/networking/virtual-service/}}
+}
+
+@misc{istio-destinationrule,
+  title        = {Istio Destination Rule},
+  author       = {{Istio Authors}},
+  howpublished = {\url{https://istio.io/latest/docs/reference/config/networking/destination-rule/}}
+}
+
+@misc{envoy,
+  title        = {Envoy Proxy},
+  author       = {{Envoy Project}},
+  howpublished = {\url{https://www.envoyproxy.io/}},
+  note         = {High-performance C++ proxy; originally built at Lyft; data plane for service mesh architectures}
+}
+// Observability pillars and distributed tracing
+
+@techreport{sigelman2010dapper,
+  title       = {Dapper, a Large-Scale Distributed Systems Tracing Infrastructure},
+  author      = {Sigelman, Benjamin H. and Barroso, Luiz Andr{\'e} and Burrows, Mike and Stephenson, Pat and Plakal, Manoj and Beaver, Donald and Jaspan, Saul and Shanbhag, Chandan},
+  institution = {Google, Inc.},
+  year        = {2010},
+  number      = {dapper-2010-1},
+  url         = {https://research.google/pubs/pub36356.html}
+}
+
+@misc{opentracing-spec,
+  title        = {OpenTracing Specification},
+  author       = {{OpenTracing Project}},
+  howpublished = {\url{https://github.com/opentracing/specification}},
+  note         = {Deprecated and archived in favor of OpenTelemetry},
+  year         = {2016}
+}
+
+@misc{bourgon2017metrics,
+  title        = {Metrics, tracing, and logging},
+  author       = {Bourgon, Peter},
+  howpublished = {\url{https://peter.bourgon.org/blog/2017/02/21/metrics-tracing-and-logging.html}},
+  year         = {2017}
+}
+
+@misc{majors2018pillars,
+  title        = {The Three Pillars of Observability},
+  author       = {Majors, Charity},
+  howpublished = {\url{https://www.honeycomb.io/blog/the-three-pillars-of-observability}},
+  year         = {2018}
+}
+// OpenTelemetry
+
+@misc{opentelemetry-spec,
+  title        = {OpenTelemetry Specification},
+  author       = {{OpenTelemetry Authors}},
+  howpublished = {\url{https://github.com/open-telemetry/opentelemetry-specification}},
+  note         = {Latest release hosted at \url{https://opentelemetry.io/docs/specs/otel/}},
+  year         = {2019}
+}

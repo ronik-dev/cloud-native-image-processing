@@ -1,0 +1,125 @@
+\babel@toc {italian}{}\relax 
+\babel@toc {italian}{}\relax 
+\contentsline {chapter}{Abstract}{iii}{}%
+\contentsline {section}{\numberline {0.1}English}{iii}{}%
+\contentsline {section}{\numberline {0.2}Italiano}{iii}{}%
+\contentsline {section}{\numberline {0.3}Use of AI}{iii}{}%
+\contentsline {chapter}{Ringraziamenti}{i}{}%
+\contentsline {chapter}{\numberline {1}Introduction}{1}{}%
+\contentsline {chapter}{\numberline {2}Context and Motivation}{3}{}%
+\contentsline {section}{\numberline {2.1}Academic Context}{3}{}%
+\contentsline {section}{\numberline {2.2}As-Is Analysis}{3}{}%
+\contentsline {section}{\numberline {2.3}Motivation}{4}{}%
+\contentsline {chapter}{\numberline {3}Goal}{5}{}%
+\contentsline {section}{\numberline {3.1}High-Level Goal}{5}{}%
+\contentsline {section}{\numberline {3.2}Milestone-Level Goals}{5}{}%
+\contentsline {subsection}{\numberline {3.2.1}Monolith}{5}{}%
+\contentsline {subsection}{\numberline {3.2.2}Microservices}{6}{}%
+\contentsline {subsection}{\numberline {3.2.3}Containerization}{6}{}%
+\contentsline {subsection}{\numberline {3.2.4}Kubernetes}{6}{}%
+\contentsline {subsection}{\numberline {3.2.5}Keycloak/Auth}{6}{}%
+\contentsline {subsection}{\numberline {3.2.6}Istio}{7}{}%
+\contentsline {subsection}{\numberline {3.2.7}Stretch Goals}{7}{}%
+\contentsline {section}{\numberline {3.3}Success Criteria}{7}{}%
+\contentsline {chapter}{\numberline {4}State of the Art}{9}{}%
+\contentsline {section}{\numberline {4.1}Application-Level Technologies}{9}{}%
+\contentsline {subsection}{\numberline {4.1.1}Java and the Spring Boot Framework}{9}{}%
+\contentsline {subsection}{\numberline {4.1.2}Python and FastAPI}{10}{}%
+\contentsline {subsection}{\numberline {4.1.3}Build and Dependency Management: Maven and uv}{10}{}%
+\contentsline {subsection}{\numberline {4.1.4}FFmpeg and Deterministic Media Processing}{11}{}%
+\contentsline {subsection}{\numberline {4.1.5}Pre-trained Models and the Hugging Face Ecosystem}{11}{}%
+\contentsline {section}{\numberline {4.2}Identity and Access Management}{12}{}%
+\contentsline {subsection}{\numberline {4.2.1}OAuth2 and OpenID Connect}{12}{}%
+\contentsline {subsection}{\numberline {4.2.2}Keycloak as an Identity Provider}{12}{}%
+\contentsline {section}{\numberline {4.3}Version Control and DevOps Platforms}{13}{}%
+\contentsline {section}{\numberline {4.4}Monolith vs. Microservices}{13}{}%
+\contentsline {section}{\numberline {4.5}API Gateways and the Backend-For-Frontend Pattern}{13}{}%
+\contentsline {section}{\numberline {4.6}Synchronous vs. Asynchronous Service Communication}{14}{}%
+\contentsline {section}{\numberline {4.7}Container Orchestration Platforms}{14}{}%
+\contentsline {section}{\numberline {4.8}Autoscaling Approaches}{15}{}%
+\contentsline {section}{\numberline {4.9}Service Mesh}{16}{}%
+\contentsline {section}{\numberline {4.10}Observability in Distributed Systems}{16}{}%
+\contentsline {section}{\numberline {4.11}CI/CD in Constrained/Academic Environments}{17}{}%
+\contentsline {chapter}{\numberline {5}Approach}{19}{}%
+\contentsline {section}{\numberline {5.1}Work Organization}{19}{}%
+\contentsline {subsection}{\numberline {5.1.1}Stakeholder Interaction}{19}{}%
+\contentsline {subsection}{\numberline {5.1.2}Agile/Iterative Methodology}{20}{}%
+\contentsline {subsection}{\numberline {5.1.3}Documentation as Code}{20}{}%
+\contentsline {section}{\numberline {5.2}Design Principles}{21}{}%
+\contentsline {subsection}{\numberline {5.2.1}Twelve-Factor App Alignment}{21}{}%
+\contentsline {subsection}{\numberline {5.2.2}Domain Model and Data Layer}{21}{}%
+\contentsline {subsection}{\numberline {5.2.3}API Design and Error Handling Strategy}{22}{}%
+\contentsline {section}{\numberline {5.3}Technology Choices}{22}{}%
+\contentsline {subsection}{\numberline {5.3.1}Application Technologies}{22}{}%
+\contentsline {subsection}{\numberline {5.3.2}Dependency and Build Management}{23}{}%
+\contentsline {subsection}{\numberline {5.3.3}DevOps \& Infrastructure Technologies}{23}{}%
+\contentsline {subsection}{\numberline {5.3.4}CI/CD \& Delivery Technologies}{23}{}%
+\contentsline {subsection}{\numberline {5.3.5}Documentation \& AI Tooling}{24}{}%
+\contentsline {section}{\numberline {5.4}Security and Secrets Management Strategy}{24}{}%
+\contentsline {section}{\numberline {5.5}Architectural Evolution}{24}{}%
+\contentsline {chapter}{\numberline {6}Results}{27}{}%
+\contentsline {section}{\numberline {6.1}Monolith}{27}{}%
+\contentsline {subsection}{\numberline {6.1.1}Architecture}{27}{}%
+\contentsline {subsection}{\numberline {6.1.2}Application Structure and Development}{27}{}%
+\contentsline {subsection}{\numberline {6.1.3}Key Implementation Decisions}{30}{}%
+\contentsline {subsection}{\numberline {6.1.4}Validation}{30}{}%
+\contentsline {subsection}{\numberline {6.1.5}Critical Assessment vs. Goal}{30}{}%
+\contentsline {section}{\numberline {6.2}Microservices}{30}{}%
+\contentsline {subsection}{\numberline {6.2.1}Architecture}{30}{}%
+\contentsline {subsection}{\numberline {6.2.2}Application Structure and Development}{32}{}%
+\contentsline {subsection}{\numberline {6.2.3}Key Implementation Decisions}{33}{}%
+\contentsline {subsection}{\numberline {6.2.4}Validation}{33}{}%
+\contentsline {subsection}{\numberline {6.2.5}Critical Assessment vs. Goal}{33}{}%
+\contentsline {section}{\numberline {6.3}Containerization}{34}{}%
+\contentsline {subsection}{\numberline {6.3.1}Architecture}{34}{}%
+\contentsline {subsection}{\numberline {6.3.2}Application Structure and Development}{34}{}%
+\contentsline {subsection}{\numberline {6.3.3}Key Implementation Decisions}{36}{}%
+\contentsline {subsection}{\numberline {6.3.4}Base Image Strategy: Alpine vs. Debian Slim}{36}{}%
+\contentsline {subsection}{\numberline {6.3.5}Alternative Build Strategy: Cloud Native Buildpacks}{37}{}%
+\contentsline {subsection}{\numberline {6.3.6}Validation}{37}{}%
+\contentsline {subsection}{\numberline {6.3.7}Critical Assessment vs. Goal}{37}{}%
+\contentsline {section}{\numberline {6.4}Kubernetes}{38}{}%
+\contentsline {subsection}{\numberline {6.4.1}Architecture}{38}{}%
+\contentsline {subsection}{\numberline {6.4.2}Application Structure and Development}{38}{}%
+\contentsline {subsection}{\numberline {6.4.3}Progressive Deployment Maturity: The Three-Lecture Evolution}{38}{}%
+\contentsline {subsubsection}{\numberline {6.4.3.1}Lecture one}{40}{}%
+\contentsline {subsubsection}{\numberline {6.4.3.2}Lecture two}{40}{}%
+\contentsline {subsubsection}{\numberline {6.4.3.3}Lecture three}{40}{}%
+\contentsline {subsection}{\numberline {6.4.4}Workload Patterns: Deployments, StatefulSets, and Init Containers}{41}{}%
+\contentsline {subsection}{\numberline {6.4.5}Kafka Message Contracts and Delivery Semantics}{42}{}%
+\contentsline {subsection}{\numberline {6.4.6}Autoscaling Approaches: KEDA vs. HPA}{43}{}%
+\contentsline {subsection}{\numberline {6.4.7}Key Implementation Decisions}{44}{}%
+\contentsline {subsection}{\numberline {6.4.8}Validation}{44}{}%
+\contentsline {subsection}{\numberline {6.4.9}Critical Assessment vs. Goal}{44}{}%
+\contentsline {section}{\numberline {6.5}Keycloak/Auth}{45}{}%
+\contentsline {subsection}{\numberline {6.5.1}Architecture}{45}{}%
+\contentsline {subsection}{\numberline {6.5.2}Application Structure and Development}{45}{}%
+\contentsline {subsection}{\numberline {6.5.3}Identity Bridging and Event-Driven User Lifecycle}{47}{}%
+\contentsline {subsubsection}{\numberline {6.5.3.1}Keycloak as Single Source of Truth: The Event Bridge}{47}{}%
+\contentsline {subsubsection}{\numberline {6.5.3.2}Authentication Flow Design}{48}{}%
+\contentsline {subsection}{\numberline {6.5.4}Frontend and Session Security}{48}{}%
+\contentsline {subsection}{\numberline {6.5.5}CI/CD Pipeline: Build, Test, and Deploy Stages}{49}{}%
+\contentsline {subsubsection}{\numberline {6.5.5.1}Test}{49}{}%
+\contentsline {subsubsection}{\numberline {6.5.5.2}Build}{49}{}%
+\contentsline {subsubsection}{\numberline {6.5.5.3}Deploy}{50}{}%
+\contentsline {subsection}{\numberline {6.5.6}Key Implementation Decisions}{51}{}%
+\contentsline {subsection}{\numberline {6.5.7}Validation}{51}{}%
+\contentsline {subsection}{\numberline {6.5.8}Critical Assessment vs. Goal}{51}{}%
+\contentsline {section}{\numberline {6.6}Istio}{53}{}%
+\contentsline {subsection}{\numberline {6.6.1}Architecture}{53}{}%
+\contentsline {subsection}{\numberline {6.6.2}Application Structure and Development}{53}{}%
+\contentsline {subsection}{\numberline {6.6.3}Key Implementation Decisions}{55}{}%
+\contentsline {subsection}{\numberline {6.6.4}Validation}{56}{}%
+\contentsline {subsection}{\numberline {6.6.5}Critical Assessment vs. Goal}{57}{}%
+\contentsline {section}{\numberline {6.7}Cross-Cutting Results}{58}{}%
+\contentsline {subsection}{\numberline {6.7.1}Observability Implementation}{58}{}%
+\contentsline {subsection}{\numberline {6.7.2}Secrets Management in Practice}{59}{}%
+\contentsline {subsection}{\numberline {6.7.3}Known Limitations}{59}{}%
+\contentsline {chapter}{\numberline {7}Conclusions}{61}{}%
+\contentsline {section}{\numberline {7.1}Goals Achieved}{61}{}%
+\contentsline {section}{\numberline {7.2}Goals Not Reached / Deferred}{62}{}%
+\contentsline {section}{\numberline {7.3}Critical Reflection}{63}{}%
+\contentsline {section}{\numberline {7.4}Generalizability and Future Work}{64}{}%
+\contentsline {section}{\numberline {7.5}Limits}{65}{}%
+\contentsline {chapter}{\numberline {A}Thesis Proposal}{67}{}%
+\contentsline {chapter}{\numberline {B}Proposed Architecture Diagram}{77}{}%

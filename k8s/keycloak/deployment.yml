@@ -16,6 +16,14 @@ spec:
       labels:
         app: keycloak
         layer: backend
+      annotations:
+        proxy.istio.io/config: |
+          proxyMetadata:
+            SECRET_TTL: "4h"
+        sidecar.istio.io/proxyCPU: "50m"
+        sidecar.istio.io/proxyCPULimit: "200m"
+        sidecar.istio.io/proxyMemory: "128Mi"
+        sidecar.istio.io/proxyMemoryLimit: "256Mi"
     spec:
       imagePullSecrets:
         - name: gitlab-registry-secret
@@ -45,6 +53,9 @@ spec:
                 name: keycloak-db-secret
             - secretRef:
                 name: keycloak-admin-secret
+          env:
+            - name: QUARKUS_HTTP_IDLE_TIMEOUT
+              value: "PT1H" # 1 hour in ISO-8601 duration
           ports:
             - name: http
               containerPort: 8080

@@ -67,8 +67,8 @@ public class ProcessingJobService {
 								job.getImage().getFormat(),
 								job.getTargetFormat()
 								);
-		// Key by jobId so every message for this job lands on the same partition, in order, even if a job is ever re-submitted.
-		jobRequestKafkaTemplate.send(jobRequestsTopic, String.valueOf(job.getId()), message)
+		    // Key by jobId so every message for this job lands on the same partition, in order, even if a job is ever re-submitted.
+		    jobRequestKafkaTemplate.send(jobRequestsTopic, String.valueOf(job.getId()), message)
 				.whenComplete((result, ex) -> {
 						if (ex != null) {
 								log.error("Failed to publish job request for job {}: {}", job.getId(), ex.getMessage(), ex);

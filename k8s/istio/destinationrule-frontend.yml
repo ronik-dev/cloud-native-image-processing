@@ -1,10 +1,10 @@
 apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
-  name: keycloak-destination
+  name: frontend-destination
   namespace: imageprocessing
 spec:
-  host: keycloak
+  host: frontend-service
   trafficPolicy:
     connectionPool:
       http:

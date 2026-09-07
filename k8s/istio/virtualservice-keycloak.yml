@@ -14,7 +14,6 @@ spec:
             host: keycloak
             port:
               number: 8080
-      # also add these? check retry on
       timeout: 8s
       retries:
         attempts: 3

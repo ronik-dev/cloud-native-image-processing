@@ -19,6 +19,14 @@ spec:
       labels:
         app: orchestrator
         version: v2
+      annotations:
+        proxy.istio.io/config: |
+          proxyMetadata:
+            SECRET_TTL: "4h"
+        sidecar.istio.io/proxyCPU: "50m"
+        sidecar.istio.io/proxyCPULimit: "200m"
+        sidecar.istio.io/proxyMemory: "128Mi"
+        sidecar.istio.io/proxyMemoryLimit: "256Mi"
     spec:
       imagePullSecrets:
         - name: gitlab-registry-secret
@@ -82,6 +90,10 @@ spec:
                   key: POSTGRES_PASSWORD
             - name: INFO_APP_VERSION
               value: "v2"
+            - name: SERVER_TOMCAT_KEEP_ALIVE_TIMEOUT
+              value: "3600000"
+            - name: SERVER_TOMCAT_MAX_KEEP_ALIVE_REQUESTS
+              value: "-1"
           envFrom:
             - configMapRef:
                 name: orchestrator-config

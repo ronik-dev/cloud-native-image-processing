@@ -40,8 +40,8 @@ Sprint 6  Helm + Cloud + Polish       --> GKE/AKS/EKS, Helm charts
 | Service | Language | Port | Responsibility |
 |---|---|---|---|
 | Gateway | Java / Spring Boot | 8080 | Public API (`/api/*`), UI serving, error forwarding, BFF OAuth2 Client |
-| Orchestrator | Java / Spring Boot | 8081 | Domain model, job lifecycle, storage, worker dispatch |
-| AI Worker | Python / FastAPI | 8082 | FFmpeg processing, rembg inference, Deformable DETR inference |
+| Orchestrator | Java / Spring Boot | 8080 | Domain model, job lifecycle, storage, worker dispatch |
+| AI Worker | Python / FastAPI | 8080 | FFmpeg processing, rembg inference, Deformable DETR inference |
 | PostgreSQL | — | 5432 | Persistence, owned exclusively by orchestrator and Keycloak |
 | Keycloak | Java | 8080 | Identity Provider (IdP), OIDC authentication, user management |
 

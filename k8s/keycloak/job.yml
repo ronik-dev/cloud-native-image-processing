@@ -9,6 +9,9 @@ spec:
   # kafka-create-topics' --if-not-exists (sprint-3-recap.md §9.4).
   backoffLimit: 3
   template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
     spec:
       restartPolicy: Never
       containers:
@@ -48,7 +51,8 @@ spec:
               SQL
 
               # Create database if not exists (double quotes added to preserve uppercase letters)
-              psql -v ON_ERROR_STOP=0 -U "$POSTGRES_USER" -d postgres -c "CREATE DATABASE keycloak OWNER \"${KC_DB_USERNAME}\";"
+              psql -tAc "SELECT 1 FROM pg_database WHERE datname = 'keycloak'" -U "$POSTGRES_USER" -d postgres | grep -q 1 || \
+              psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d postgres -c "CREATE DATABASE keycloak OWNER \"${KC_DB_USERNAME}\";"
 
               # Grant privileges (double quotes added to preserve uppercase letters)
               psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d postgres -c "GRANT ALL PRIVILEGES ON DATABASE keycloak TO \"${KC_DB_USERNAME}\";"

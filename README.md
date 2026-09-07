@@ -31,7 +31,7 @@ Sprint 1  Spring Boot monolith        --> single JVM, Spring MVC, REST API
 Sprint 2  Microservices & Containers  --> Gateway / Orchestrator / Python Worker, Docker, docker-compose
 Sprint 3  Kubernetes                  --> Minikube, Deployments/StatefulSets, Ingress, Kafka job queue, KEDA
 Sprint 4  CI/CD + Security            --> GitLab CI/CD pipeline, Kaniko, Keycloak, Session Cookies, BFF pattern
-Sprint 5  Service Mesh                --> Istio, mTLS, Prometheus, Grafana, Kiali, Jaeger
+Sprint 5  Service Mesh                --> Istio, L7 routing, Circuit Breakers, Canary Deployments
 Sprint 6  Helm + Cloud + Polish       --> GKE/AKS/EKS, Helm charts
 ```
 
@@ -40,8 +40,8 @@ Sprint 6  Helm + Cloud + Polish       --> GKE/AKS/EKS, Helm charts
 | Service | Language | Port | Responsibility |
 |---|---|---|---|
 | Gateway | Java / Spring Boot | 8080 | Public API (`/api/*`), UI serving, error forwarding, BFF OAuth2 Client |
-| Orchestrator | Java / Spring Boot | 8081 | Domain model, job lifecycle, storage, worker dispatch |
-| AI Worker | Python / FastAPI | 8082 | FFmpeg processing, rembg inference, Deformable DETR inference |
+| Orchestrator | Java / Spring Boot | 8080 | Domain model, job lifecycle, storage, worker dispatch |
+| AI Worker | Python / FastAPI | 8080 | FFmpeg processing, rembg inference, Deformable DETR inference |
 | PostgreSQL | — | 5432 | Persistence, owned exclusively by orchestrator and Keycloak |
 | Keycloak | Java | 8080 | Identity Provider (IdP), OIDC authentication, user management |
 
@@ -221,7 +221,7 @@ cd worker && uv run pytest test/ -v
 
 #### Full deployment
 
-The complete, current architecture (namespace, ConfigMaps/Secrets, PVCs, Deployments/StatefulSets, Kafka, KEDA, Ingress) is documented end-to-end — including the full dependency-ordered `kubectl apply` sequence — in [`docs/3-kubernetes/sprint-3-recap.md`](docs/3-kubernetes/sprint-3-recap.md).
+The complete, current architecture (namespace, ConfigMaps/Secrets, PVCs, Deployments/StatefulSets, Kafka, KEDA, Ingress) is documented end-to-end — including the full dependency-ordered `kubectl apply` sequence — in `docs/3-kubernetes/sprint-3-recap.md`.
 
 ```bash
 minikube start
@@ -231,7 +231,7 @@ minikube addons enable ingress
 kubectl apply -R -f k8s/
 ```
 
-Once every workload is `Running`/`Ready`, add `api.imageprocessing.local` to `/etc/hosts` pointing at the Ingress and run `minikube tunnel` (kept open in its own terminal) to reach the dashboard at `http://api.imageprocessing.local`.
+Once every workload is `Running`/`Ready`, add `api.imageprocessing.local` to `/etc/hosts` pointing at the Ingress and run `minikube tunnel` (kept open in its own terminal) to reach the dashboard at `[http://api.imageprocessing.local](http://api.imageprocessing.local)`.
 
 ---
 
@@ -248,12 +248,43 @@ Sprint 4 transitions the API Gateway into a Backend-For-Frontend (BFF) OIDC Clie
 With Keycloak deployed, unauthenticated requests are explicitly blocked.
 
 1. **Bootstrap Keycloak:** Keycloak is deployed with an init Job that automatically creates its PostgreSQL database. A ConfigMap auto-imports the `imageprocessing` realm and `gateway` client.
-2. **Access the Admin Console:** Navigate to `http://keycloak.imageprocessing.local`. Use the credentials defined in `k8s/keycloak/secret.yml.example` (or your applied secret) to access the Master realm.
-3. **Create a User:** 
-   - Switch to the `imageprocessing` realm.
+2. **Access the Admin Console:** Navigate to `[http://keycloak.imageprocessing.local](http://keycloak.imageprocessing.local)`. Use the credentials defined in `k8s/keycloak/secret.yml.example` (or your applied secret) to access the Master realm.
+3. **Create a User:** - Switch to the `imageprocessing` realm.
    - Create a new user. **Important:** The Orchestrator requires all users to have a valid email address.
    - Set a permanent password (disable the "Temporary" toggle).
-4. **Log In:** Navigate to `http://api.imageprocessing.local`. The Gateway will intercept the request and redirect you to Keycloak to securely log in. Session cookies are maintained server-side (BFF pattern) to ensure the static frontend does not handle raw JWTs.
+4. **Log In:** Navigate to `[http://api.imageprocessing.local](http://api.imageprocessing.local)`. The Gateway will intercept the request and redirect you to Keycloak to securely log in. Session cookies are maintained server-side (BFF pattern) to ensure the static frontend does not handle raw JWTs.
+
+---
+
+### Sprint 5 — Service Mesh
+
+Sprint 5 replaces the standard NGINX Ingress Controller with Istio, introducing L7 traffic management, circuit breaking, and progressive delivery (canary deployments) via Envoy sidecar proxies.
+
+#### Additional prerequisites
+- `istioctl` v1.30+
+
+#### Mesh Setup & Deployment
+1. **Install Istio (demo profile for local Minikube):**
+   ```bash
+   istioctl install --set profile=demo -y
+   ```
+2. **Enable automatic sidecar injection:**
+   ```bash
+   kubectl label namespace imageprocessing istio-injection=enabled
+   ```
+3. **Disable NGINX Ingress (replaced by Istio Gateway):**
+   ```bash
+   minikube addons disable ingress
+   ```
+4. **Apply the Kubernetes and Istio manifests:**
+   ```bash
+   # Make sure the old completed jobs are removed if restarting Minikube
+   kubectl delete job kafka-create-topics keycloak-create-db -n imageprocessing --ignore-not-found
+   kubectl apply -R -f k8s/
+   kubectl apply -R -f istio/
+   ```
+
+> **Note:** The data tier (PostgreSQL) and messaging tier (Kafka) are explicitly opted out of the mesh via pod annotations (`sidecar.istio.io/inject: "false"`) to prevent proxy interference with raw TCP consensus protocols and delicate startup probes.
 
 ---
 
@@ -294,6 +325,7 @@ cloud-native-image-processing/
 ├── worker/                  <- AI worker (Python / FastAPI)
 ├── k8s/                     <- Kubernetes manifests (namespace, ConfigMaps/Secrets, PV/PVC,
 │                                Deployments/StatefulSets, Services, Ingress, Kafka, KEDA, Keycloak)
+├── istio/                   <- Istio manifests (Gateway, VirtualServices, DestinationRules)
 ├── test/
 │   └── loadtest.js          <- k6 sustained-load script against the deployed API
 ├── docs/
@@ -301,10 +333,7 @@ cloud-native-image-processing/
 │   ├── 2-microservices-and-dockerization/
 │   ├── 3-kubernetes/
 │   ├── 4-ci-cd-and-security/
-│   │   ├── notes/           <- pipeline and keycloak integration dev logs
-│   │   ├── sprint-4-part-1-cicd-recap.md
-│   │   └── sprint-4-part-2-security-recap.md
-│   └── README.md
+│   └── 5-service-mesh/      <- architecture and routing decisions, sprint recap
 └── README.md
 ```
 
@@ -340,8 +369,8 @@ Target branch for MRs: always `dev` — never `main` directly.
 | 2 | Microservices & Containerisation| Complete |
 | 3 | Kubernetes (Deployments/StatefulSets, Ingress, Kafka, KEDA/HPA) | Complete |
 | 4 | CI/CD + Security (Keycloak, BFF) | Complete |
-| 5 | Service Mesh | Planned |
-| 6 | Helm + Cloud + Polish| Planned |
+| 5 | Service Mesh | Complete |
+| 6 | Helm + Cloud + Polish| Not Implemented |
 
 ---
 

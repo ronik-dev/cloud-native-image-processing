@@ -6,6 +6,8 @@ metadata:
   labels:
     app: postgres 
     layer: data
+  annotations:
+    sidecar.istio.io/inject: "false"
 spec:
   selector:
     matchLabels:

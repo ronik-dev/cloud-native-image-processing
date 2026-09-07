@@ -1,0 +1,14 @@
+\babel@toc {italian}{}\relax 
+\babel@toc {italian}{}\relax 
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {5.1}{\ignorespaces Architectural evolution across milestones}}{25}{}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {6.1}{\ignorespaces Probe timing at the v4 (Kubernetes) milestone, lecture-3 baseline configuration. \textsuperscript {*}Worker readiness/liveness delays are measured from startup-probe success, not pod start, due to the dedicated \texttt {startupProbe} gating model loading.}}{41}{}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }

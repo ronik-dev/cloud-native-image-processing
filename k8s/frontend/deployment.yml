@@ -16,12 +16,20 @@ spec:
     metadata:
       labels:
         app: frontend
+      annotations:
+        proxy.istio.io/config: |
+          proxyMetadata:
+            SECRET_TTL: "4h"
+        sidecar.istio.io/proxyCPU: "50m"
+        sidecar.istio.io/proxyCPULimit: "200m"
+        sidecar.istio.io/proxyMemory: "128Mi"
+        sidecar.istio.io/proxyMemoryLimit: "256Mi"
     spec:
       imagePullSecrets:
         - name: gitlab-registry-secret
       containers:
         - name: frontend
-          image: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/frontend:feature-53-update-gateway-to-handle-auth
+          image: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/frontend:feature-85-install-and-configure-istio
           imagePullPolicy: IfNotPresent
           readinessProbe:
             httpGet:
@@ -44,3 +52,8 @@ spec:
                 name: frontend-config
             - secretRef:
                 name: gateway-oauth2-secret
+          env:
+            - name: SERVER_TOMCAT_KEEP_ALIVE_TIMEOUT
+              value: "3600000" # 1 hour in milliseconds
+            - name: SERVER_TOMCAT_MAX_KEEP_ALIVE_REQUESTS
+              value: "-1"

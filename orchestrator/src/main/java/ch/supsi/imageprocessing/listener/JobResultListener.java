@@ -26,7 +26,7 @@ public class JobResultListener {
         this.pjr = pjr;
     }
 
-    @KafkaListener(topics = "${kafka.topics.job-results}", containerFactory = "jobResultListenerContainerFactory")
+    @KafkaListener(topics = "${kafka.topics.job-results}", groupId = "orchestrator-job-results")
     @Transactional
     public void onJobResult(JobResultMessage message) {
         ProcessingJob job = pjr.findById(message.jobId()).orElse(null);

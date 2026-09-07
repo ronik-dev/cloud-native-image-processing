@@ -1,0 +1,14 @@
+flowchart TD
+    Client[External Client] -->|HTTP host: api.imageprocessing.local| ING[NGINX Ingress Controller]
+    ING --> GWS[gateway-service :8080 / ClusterIP]
+    GWS --> GW[Deployment: gateway]
+    GW -->|HTTP /internal| ORS[orchestrator-service :8080]
+    ORS --> OR[Deployment: orchestrator]
+    OR -->|publish JobRequestMessage| K1[(job.requests)]
+    K1 -->|consume| WK[Deployment: worker]
+    WK -->|publish JobResultMessage| K2[(job.results)]
+    K2 -->|consume| OR
+    OR -->|SQL| PG[(StatefulSet: postgres)]
+    OR -->|write/read| SS(("PVC: shared storage"))
+    WK -->|write/read| SS
+    HPA[HPA] -.watches CPU usage, scales.-> WK

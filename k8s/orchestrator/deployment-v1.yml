@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orchestrator-v1
+  namespace: imageprocessing
+  labels:
+    app: orchestrator
+    version: v1
+    layer: backend
+spec:
+  replicas: 1 #(default: 1)
+  minReadySeconds: 0 #(default: 0)
+  selector:
+    matchLabels:
+      app: orchestrator
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: orchestrator
+        version: v1
+      annotations:
+        proxy.istio.io/config: |
+          proxyMetadata:
+            SECRET_TTL: "4h"
+        sidecar.istio.io/proxyCPU: "50m"
+        sidecar.istio.io/proxyCPULimit: "200m"
+        sidecar.istio.io/proxyMemory: "128Mi"
+        sidecar.istio.io/proxyMemoryLimit: "256Mi"
+    spec:
+      imagePullSecrets:
+        - name: gitlab-registry-secret
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:18-alpine
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: orchestrator-config
+                  key: POSTGRES_DB
+          command:
+          - sh
+          - -c
+          - |
+            until pg_isready -h postgres -U $POSTGRES_USER -d $POSTGRES_DB; do
+              echo "Waiting for postgres..."
+              sleep 2
+            done
+      containers:
+        - name: orchestrator
+          image: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/orchestrator@sha256:bc5488698c698fcbfb68f89301e7225a13503691418315db18693b852d6ffac3
+          imagePullPolicy: Always
+          volumeMounts:
+            - mountPath: "/data/imageprocessing"
+              name: pvc-shared-storage
+          readinessProbe:
+            httpGet:
+              path: /internal/actuator/health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /internal/actuator/health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          env:
+            - name: POSTGRES_USER_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: INFO_APP_VERSION
+              value: "v1"
+            - name: SERVER_TOMCAT_KEEP_ALIVE_TIMEOUT
+              value: "3600000"
+            - name: SERVER_TOMCAT_MAX_KEEP_ALIVE_REQUESTS
+              value: "-1"
+          envFrom:
+            - configMapRef:
+                name: orchestrator-config
+      volumes:
+        - name: pvc-shared-storage
+          persistentVolumeClaim:
+            claimName: pvc-shared-storage

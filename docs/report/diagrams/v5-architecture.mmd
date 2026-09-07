@@ -1,0 +1,35 @@
+flowchart TD
+    Client[External Client] -->|HTTP host: api.*| ING[NGINX Ingress]
+    Client -->|HTTP host: keycloak.*| ING
+    
+    ING --> GWS[gateway-service :8080]
+    ING --> KCS[keycloak-service :8080]
+    
+    GWS --> GW[Deployment: gateway]
+    KCS --> KC[Deployment: keycloak]
+    
+    %% BFF Backchannel
+    GW -.->|Token Swap /internal| KCS
+    
+    GW -->|HTTP /internal| ORS[orchestrator-service :8081]
+    ORS --> OR[Deployment: orchestrator]
+    
+    %% Kafka Topics
+    OR -->|publish JobRequestMessage| K1[(job.requests)]
+    K1 -->|consume| WK[Deployment: worker]
+    
+    WK -->|publish JobResultMessage| K2[(job.results)]
+    K2 -->|consume| OR
+    
+    KC -->|publish UserEventMessage| K3[(user.events)]
+    K3 -->|consume| OR
+    
+    %% Databases
+    OR -->|SQL| PG[(StatefulSet: postgres)]
+    KC -->|SQL| PG
+    
+    %% Storage & Scaling
+    OR -->|write/read| SS(("PVC: shared storage"))
+    WK -->|write/read| SS
+    
+    HPA[HPA] -.watches lag, scales.-> WK

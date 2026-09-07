@@ -1,0 +1,50 @@
+This is BibTeX, Version 0.99e (TeX Live 2026/Arch Linux)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: document.aux
+The style file: unsrt.bst
+Database file #1: bibliografia.bib
+Warning--I didn't find a database entry for "TODO-thesis-proposal"
+Warning--I didn't find a database entry for "uv2026-performance"
+Warning--I didn't find a database entry for "opentelemetry-spec-polyglot"
+You've used 76 entries,
+            1791 wiz_defined-function locations,
+            810 strings with 16414 characters,
+and the built_in function-call counts, 13623 in all, are:
+= -- 1076
+> -- 754
+< -- 7
++ -- 290
+- -- 214
+* -- 643
+:= -- 2261
+add.period$ -- 242
+call.type$ -- 76
+change.case$ -- 70
+chr.to.int$ -- 0
+cite$ -- 76
+duplicate$ -- 601
+empty$ -- 1490
+format.name$ -- 214
+if$ -- 3086
+int.to.chr$ -- 0
+int.to.str$ -- 76
+missing$ -- 47
+newline$ -- 389
+num.names$ -- 76
+pop$ -- 380
+preamble$ -- 1
+purify$ -- 0
+quote$ -- 0
+skip$ -- 224
+stack$ -- 0
+substring$ -- 237
+swap$ -- 103
+text.length$ -- 7
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 0
+warning$ -- 0
+while$ -- 97
+width$ -- 78
+write$ -- 808
+(There were 3 warnings)

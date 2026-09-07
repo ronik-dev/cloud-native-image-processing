@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.support.converter.RecordMessageConverter;
+import org.springframework.kafka.support.converter.StringJacksonJsonMessageConverter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,10 +30,16 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
+    public RecordMessageConverter converter() {
+        return new StringJacksonJsonMessageConverter();
+    }
+
+    @Bean
     public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory(
-            ConsumerFactory<String, String> consumerFactory) {
+            ConsumerFactory<String, String> consumerFactory, RecordMessageConverter converter) {
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory);
+        factory.setRecordMessageConverter(converter);
         return factory;
-    }
+            }
 }

@@ -1,0 +1,21 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: gateway-passthrough
+  namespace: imageprocessing
+spec:
+  hosts:
+    - "api.imageprocessing.local"
+  gateways:
+    - imageprocessing-gateway
+  http:
+    - route:
+        - destination:
+            host: frontend-service
+            port:
+              number: 8080
+      timeout: 8s
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+        retryOn: 5xx,reset,connect-failure,refused-stream

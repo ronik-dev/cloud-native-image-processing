@@ -1,0 +1,6 @@
+namespace: imageprocessing
+kafka:
+  bootstrapServers: "kafka:9092"
+postgres:
+  db: cloud_native_db
+  host: postgres

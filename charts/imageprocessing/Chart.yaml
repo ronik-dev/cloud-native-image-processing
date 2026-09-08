@@ -1,0 +1,19 @@
+apiVersion: v2
+name: cloud-native-image-processing
+version: 0.1.0
+appVersion: "5.0.0"
+type: application
+description: Cloud-Native Image Processing platform, developed as a bachelor's thesis project for SUPSI.
+kubeVersion: ">=1.28.0 <1.36.1"
+keywords:
+  - image
+  - dashboard
+  - cloud
+  - thesis
+home: http://api.imageprocessing.local
+sources:
+  - "https://github.com/ronik-dev/cloud-native-image-processing"
+maintainers:
+  - name: ronik
+    email: info@ronik.ch
+    url: https://www.ronik.ch

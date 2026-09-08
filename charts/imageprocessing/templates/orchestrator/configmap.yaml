@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orchestrator-config
+  namespace: {{ .Values.namespace }}
+data:
+  POSTGRES_DB: {{ .Values.postgres.db }}
+  POSTGRES_HOST: {{ .Values.postgres.host }}
+  STORAGE_DATA_DIR: /data/imageprocessing
+  LOCAL_DATA_DIR: /tmp/imageprocessing/data
+  ORCHESTRATOR_PORT: "8080"
+  KAFKA_BOOTSTRAP_SERVERS: {{ .Values.kafka.bootstrapServers }}

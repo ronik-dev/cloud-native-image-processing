@@ -4,9 +4,9 @@ metadata:
   name: orchestrator-config
   namespace: {{ .Values.namespace }}
 data:
-  POSTGRES_DB: {{ .Values.postgres.db }}
-  POSTGRES_HOST: {{ .Values.postgres.host }}
-  STORAGE_DATA_DIR: /data/imageprocessing
-  LOCAL_DATA_DIR: /tmp/imageprocessing/data
+  POSTGRES_DB: {{ .Values.postgres.db | quote }}
+  POSTGRES_HOST: {{ .Values.postgres.host | quote }}
+  STORAGE_DATA_DIR: {{ .Values.storage.dataDir | quote }}
+  LOCAL_DATA_DIR: {{ .Values.storage.localDataDir | quote }}
   ORCHESTRATOR_PORT: "8080"
-  KAFKA_BOOTSTRAP_SERVERS: {{ .Values.kafka.bootstrapServers }}
+  KAFKA_BOOTSTRAP_SERVERS: {{ .Values.kafka.bootstrapServers | quote }}

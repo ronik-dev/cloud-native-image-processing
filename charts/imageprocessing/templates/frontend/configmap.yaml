@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: imageprocessing
+data:
+  ORCHESTRATOR_URL: http://orchestrator-service:8080/internal
+  KEYCLOAK_CLIENT_ID: {{ .Values.keycloak.clientId | quote }}
+  KEYCLOAK_AUTHORIZATION_URI: {{ printf "http://%s/realms/%s/protocol/openid-connect/auth" .Values.keycloak.externalHost .Values.keycloak.realm | quote }}
+  KEYCLOAK_LOGOUT_URI: {{ printf "http://%s/realms/%s/protocol/openid-connect/logout" .Values.keycloak.externalHost .Values.keycloak.realm | quote }}
+  KEYCLOAK_TOKEN_URI: {{ printf "http://keycloak:8080/realms/%s/protocol/openid-connect/token" .Values.keycloak.realm | quote }}
+  KEYCLOAK_JWKS_URI: {{ printf "http://keycloak:8080/realms/%s/protocol/openid-connect/certs" .Values.keycloak.realm | quote }}
+  KEYCLOAK_USERINFO_URI: {{ printf "http://keycloak:8080/realms/%s/protocol/openid-connect/userinfo" .Values.keycloak.realm | quote }}

@@ -62,3 +62,6 @@ __pycache__/
 
 # Runner builds
 builds/
+
+# Helm 
+values-secret.yaml

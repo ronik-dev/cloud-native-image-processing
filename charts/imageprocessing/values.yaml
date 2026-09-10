@@ -1,6 +1,34 @@
 namespace: imageprocessing
+
 kafka:
   bootstrapServers: "kafka:9092"
+  jobRequestsTopic: "job.requests"
+  jobResultsTopic: "job.results"
+  autoCreateTopicsEnable: false
+  offsetsTopicReplicationFactor: 1
+
+
 postgres:
   db: cloud_native_db
   host: postgres
+  secret:
+    user: postgres_user_example
+    password: postgres_pw_example
+
+storage:
+  dataDir: /data/imageprocessing
+  localDataDir: /tmp/imageprocessing/data
+
+keycloak:
+  clientId: gateway
+  realm: imageprocessing
+  externalHost: keycloak.imageprocessing.local
+  secret:
+    client: client_secret_example
+    db:
+      username: kc_db_username_example
+      password: kc_db_password_example
+    admin:
+      username: kc_admin_username_example
+      password: kc_admin_password_example
+

@@ -18,6 +18,13 @@ postgres:
 storage:
   dataDir: /data/imageprocessing
   localDataDir: /tmp/imageprocessing/data
+  sharedStorage:
+    hostPath: /data/imageprocessing
+    size: 5Gi
+    storageClassName: manual
+  modelCache:
+    storageClassName: standard
+    size: 10Gi
 
 keycloak:
   clientId: gateway

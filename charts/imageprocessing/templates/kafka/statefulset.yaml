@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: kafka
+    layer: backend
+  annotations:
+    sidecar.istio.io/inject: "false"
+spec:
+  serviceName: kafka
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      containers:
+        - name: kafka
+          image: "{{ .Values.kafka.image.repository }}:{{ .Values.kafka.image.tag }}"
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: kafka-config
+          ports:
+            - containerPort: 9092
+              name: broker
+            - containerPort: 9093
+              name: controller
+          volumeMounts:
+            - name: kafka-data
+              mountPath: /var/lib/kafka/data
+          readinessProbe:
+            exec:
+              command: ["/opt/kafka/bin/kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092"]
+            initialDelaySeconds: {{ .Values.kafka.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.kafka.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.kafka.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.kafka.probes.readiness.failureThreshold }}
+          livenessProbe:
+            exec:
+              command: ["/opt/kafka/bin/kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092"]
+            initialDelaySeconds: {{ .Values.kafka.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.kafka.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.kafka.probes.liveness.timeoutSeconds }}
+          resources:
+            requests:
+              memory: {{ .Values.kafka.resources.requests.memory | quote }}
+              cpu: {{ .Values.kafka.resources.requests.cpu | quote }}
+            limits:
+              memory: {{ .Values.kafka.resources.limits.memory | quote }}
+  volumeClaimTemplates:
+    - metadata:
+        name: kafka-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: {{ .Values.kafka.storage.size | quote }}

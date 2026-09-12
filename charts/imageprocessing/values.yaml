@@ -6,14 +6,51 @@ kafka:
   jobResultsTopic: "job.results"
   autoCreateTopicsEnable: false
   offsetsTopicReplicationFactor: 1
+  image:
+    repository: apache/kafka
+    tag: "3.9.0"
+  storage:
+    size: 5Gi
+  resources:
+    requests:
+      memory: "768Mi"
+      cpu: "250m"
+    limits:
+      memory: "1.5Gi"
+  probes:
+    readiness:
+      initialDelaySeconds: 15
+      periodSeconds: 10
+      timeoutSeconds: 10
+      failureThreshold: 6
+    liveness:
+      initialDelaySeconds: 30
+      periodSeconds: 20
+      timeoutSeconds: 10
 
 
 postgres:
   db: cloud_native_db
   host: postgres
+  image:
+    repository: postgres
+    tag: "18-alpine"
   secret:
     user: postgres_user_example
     password: postgres_pw_example
+  storage:
+    size: 2Gi
+  probes:
+    readiness:
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    liveness:
+      initialDelaySeconds: 60
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
 
 storage:
   dataDir: /data/imageprocessing

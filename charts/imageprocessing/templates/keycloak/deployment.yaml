@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: keycloak
+    layer: backend
+spec:
+  replicas: {{ .Values.keycloak.replicas }}
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+        layer: backend
+      {{- if .Values.istio.enabled }}
+      annotations:
+        proxy.istio.io/config: |
+          proxyMetadata:
+            SECRET_TTL: {{ .Values.istio.secretTTL | quote }}
+        sidecar.istio.io/proxyCPU: {{ .Values.istio.sidecarProxyCPU | quote }}
+        sidecar.istio.io/proxyCPULimit: {{ .Values.istio.sidecarProxyCPULimit | quote }}
+        sidecar.istio.io/proxyMemory: {{ .Values.istio.sidecarProxyMemory | quote }}
+        sidecar.istio.io/proxyMemoryLimit: {{ .Values.istio.sidecarProxyMemoryLimit | quote }}
+      {{- end }}
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecretName }}
+      initContainers:
+        - name: wait-for-keycloak-db
+          image: "{{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }}"
+          envFrom:
+            - secretRef:
+                name: keycloak-db-secret
+          command:
+            - sh
+            - -c
+            - >
+              until pg_isready -h postgres -U "$KC_DB_USERNAME" -d keycloak; do
+                echo "waiting for keycloak database...";
+                sleep 2;
+              done
+      containers:
+        - name: keycloak
+          image: "{{ .Values.keycloak.image.repository }}:{{ .Values.keycloak.image.tag }}"
+          imagePullPolicy: {{ .Values.keycloak.image.pullPolicy }}
+          args: ["start", "--import-realm"]
+          envFrom:
+            - configMapRef:
+                name: keycloak-config
+            - secretRef:
+                name: keycloak-db-secret
+            - secretRef:
+                name: keycloak-admin-secret
+          env:
+            - name: QUARKUS_HTTP_IDLE_TIMEOUT
+              value: "PT1H"
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: management
+              containerPort: 9000
+          volumeMounts:
+            - name: realm-config
+              mountPath: /opt/keycloak/data/import
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: management
+            initialDelaySeconds: {{ .Values.keycloak.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.keycloak.probes.readiness.periodSeconds }}
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: management
+            initialDelaySeconds: {{ .Values.keycloak.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.keycloak.probes.liveness.periodSeconds }}
+      volumes:
+        - name: realm-config
+          configMap:
+            name: keycloak-realm-config

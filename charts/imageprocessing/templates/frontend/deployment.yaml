@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: frontend
+    layer: web
+spec:
+  replicas: {{ .Values.frontend.replicas }}
+  minReadySeconds: 0
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+      {{- if .Values.istio.enabled }}
+      annotations:
+        proxy.istio.io/config: |
+          proxyMetadata:
+            SECRET_TTL: {{ .Values.istio.secretTTL | quote }}
+        sidecar.istio.io/proxyCPU: {{ .Values.istio.sidecarProxyCPU | quote }}
+        sidecar.istio.io/proxyCPULimit: {{ .Values.istio.sidecarProxyCPULimit | quote }}
+        sidecar.istio.io/proxyMemory: {{ .Values.istio.sidecarProxyMemory | quote }}
+        sidecar.istio.io/proxyMemoryLimit: {{ .Values.istio.sidecarProxyMemoryLimit | quote }}
+      {{- end }}
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecretName }}
+      containers:
+        - name: frontend
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: {{ .Values.frontend.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.frontend.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.frontend.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.frontend.probes.readiness.failureThreshold }}
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: {{ .Values.frontend.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.frontend.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.frontend.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.frontend.probes.liveness.failureThreshold }}
+          envFrom:
+            - configMapRef:
+                name: frontend-config
+            - secretRef:
+                name: gateway-oauth2-secret
+          env:
+            - name: SERVER_TOMCAT_KEEP_ALIVE_TIMEOUT
+              value: "3600000"
+            - name: SERVER_TOMCAT_MAX_KEEP_ALIVE_REQUESTS
+              value: "-1"

@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-realm-config
+  namespace: {{ .Values.namespace }}
+data:
+  imageprocessing-realm.json: |
+    {
+      "realm": {{ .Values.keycloak.realm | quote }},
+      "enabled": true,
+      "sslRequired": "none",
+      "clients": [
+        {
+          "clientId": {{ .Values.keycloak.clientId | quote }},
+          "enabled": true,
+          "protocol": "openid-connect",
+          "publicClient": false,
+          "clientAuthenticatorType": "client-secret",
+          "secret": {{ .Values.keycloak.secret.client | quote }},
+          "standardFlowEnabled": true,
+          "directAccessGrantsEnabled": false,
+          "implicitFlowEnabled": false,
+          "serviceAccountsEnabled": false,
+          "redirectUris": [
+            "http://{{ .Values.frontend.externalHost }}/login/oauth2/code/keycloak",
+            "http://{{ .Values.frontend.externalHost }}",
+            "http://{{ .Values.frontend.externalHost }}/*"
+          ],
+          "webOrigins": [
+            "http://{{ .Values.frontend.externalHost }}"
+          ],
+          "attributes": {
+            "post.logout.redirect.uris": "+"
+          }
+        }
+      ]
+    }

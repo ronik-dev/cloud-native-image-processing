@@ -1,0 +1,28 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: worker-hpa
+  namespace: {{ .Values.namespace }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: worker
+  minReplicas: {{ .Values.worker.hpa.minReplicas }}
+  maxReplicas: {{ .Values.worker.hpa.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.worker.hpa.targetCPUUtilization }}
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: {{ .Values.worker.hpa.scaleUpStabilizationSeconds }}
+      policies:
+        - type: Pods
+          value: {{ .Values.worker.hpa.scaleUpPodsPerPeriod }}
+          periodSeconds: {{ .Values.worker.hpa.scaleUpPeriodSeconds }}
+    scaleDown:
+      stabilizationWindowSeconds: {{ .Values.worker.hpa.scaleDownStabilizationSeconds }}

@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: worker
+    layer: backend
+spec:
+  replicas: {{ .Values.worker.replicas }}
+  minReadySeconds: 0
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+      {{- if .Values.istio.enabled }}
+      annotations:
+        proxy.istio.io/config: |
+          proxyMetadata:
+            SECRET_TTL: {{ .Values.istio.secretTTL | quote }}
+        sidecar.istio.io/proxyCPU: {{ .Values.istio.sidecarProxyCPU | quote }}
+        sidecar.istio.io/proxyCPULimit: {{ .Values.istio.sidecarProxyCPULimit | quote }}
+        sidecar.istio.io/proxyMemory: {{ .Values.istio.sidecarProxyMemory | quote }}
+        sidecar.istio.io/proxyMemoryLimit: {{ .Values.istio.sidecarProxyMemoryLimit | quote }}
+      {{- end }}
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecretName }}
+      containers:
+        - name: worker
+          image: "{{ .Values.worker.image.repository }}:{{ .Values.worker.image.tag }}"
+          imagePullPolicy: {{ .Values.worker.image.pullPolicy }}
+          resources:
+            requests:
+              cpu: {{ .Values.worker.resources.requests.cpu | quote }}
+              memory: {{ .Values.worker.resources.requests.memory | quote }}
+            limits:
+              cpu: {{ .Values.worker.resources.limits.cpu | quote }}
+              memory: {{ .Values.worker.resources.limits.memory | quote }}
+          volumeMounts:
+            - mountPath: "/home/appuser/.cache/huggingface"
+              name: pvc-model-cache
+            - mountPath: "/home/appuser/.u2net"
+              name: pvc-rembg-cache
+            - mountPath: "/data/imageprocessing"
+              name: pvc-shared-storage
+          envFrom:
+            - configMapRef:
+                name: worker-config
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            failureThreshold: {{ .Values.worker.probes.startup.failureThreshold }}
+            periodSeconds: {{ .Values.worker.probes.startup.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: {{ .Values.worker.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.worker.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.worker.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.worker.probes.readiness.failureThreshold }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: {{ .Values.worker.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.worker.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.worker.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.worker.probes.liveness.failureThreshold }}
+      volumes:
+        - name: pvc-model-cache
+          persistentVolumeClaim:
+            claimName: pvc-model-cache
+        - name: pvc-rembg-cache
+          persistentVolumeClaim:
+            claimName: pvc-rembg-cache
+        - name: pvc-shared-storage
+          persistentVolumeClaim:
+            claimName: pvc-shared-storage

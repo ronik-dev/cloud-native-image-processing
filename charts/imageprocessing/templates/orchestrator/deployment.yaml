@@ -1,0 +1,107 @@
+{{- range .Values.orchestrator.versions }}
+{{- $version := .name }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orchestrator-{{ $version }}
+  namespace: {{ $.Values.namespace }}
+  labels:
+    app: orchestrator
+    version: {{ $version }}
+    layer: backend
+spec:
+  replicas: {{ $.Values.orchestrator.replicas }}
+  minReadySeconds: 0
+  selector:
+    matchLabels:
+      app: orchestrator
+      version: {{ $version }}
+  template:
+    metadata:
+      labels:
+        app: orchestrator
+        version: {{ $version }}
+      {{- if $.Values.istio.enabled }}
+      annotations:
+        proxy.istio.io/config: |
+          proxyMetadata:
+            SECRET_TTL: {{ $.Values.istio.secretTTL | quote }}
+        sidecar.istio.io/proxyCPU: {{ $.Values.istio.sidecarProxyCPU | quote }}
+        sidecar.istio.io/proxyCPULimit: {{ $.Values.istio.sidecarProxyCPULimit | quote }}
+        sidecar.istio.io/proxyMemory: {{ $.Values.istio.sidecarProxyMemory | quote }}
+        sidecar.istio.io/proxyMemoryLimit: {{ $.Values.istio.sidecarProxyMemoryLimit | quote }}
+      {{- end }}
+    spec:
+      imagePullSecrets:
+        - name: {{ $.Values.imagePullSecretName }}
+      initContainers:
+        - name: wait-for-postgres
+          image: "{{ $.Values.postgres.image.repository }}:{{ $.Values.postgres.image.tag }}"
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: orchestrator-config
+                  key: POSTGRES_DB
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h postgres -U $POSTGRES_USER -d $POSTGRES_DB; do
+                echo "Waiting for postgres..."
+                sleep 2
+              done
+      containers:
+        - name: orchestrator
+          image: "{{ $.Values.orchestrator.image.repository }}@{{ .image.digest }}"
+          imagePullPolicy: {{ $.Values.orchestrator.image.pullPolicy }}
+          volumeMounts:
+            - mountPath: "/data/imageprocessing"
+              name: pvc-shared-storage
+          readinessProbe:
+            httpGet:
+              path: /internal/actuator/health
+              port: 8080
+            initialDelaySeconds: {{ $.Values.orchestrator.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ $.Values.orchestrator.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ $.Values.orchestrator.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ $.Values.orchestrator.probes.readiness.failureThreshold }}
+          livenessProbe:
+            httpGet:
+              path: /internal/actuator/health
+              port: 8080
+            initialDelaySeconds: {{ $.Values.orchestrator.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ $.Values.orchestrator.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ $.Values.orchestrator.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ $.Values.orchestrator.probes.liveness.failureThreshold }}
+          env:
+            - name: POSTGRES_USER_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: INFO_APP_VERSION
+              value: {{ $version | quote }}
+            - name: SERVER_TOMCAT_KEEP_ALIVE_TIMEOUT
+              value: "3600000"
+            - name: SERVER_TOMCAT_MAX_KEEP_ALIVE_REQUESTS
+              value: "-1"
+          envFrom:
+            - configMapRef:
+                name: orchestrator-config
+      volumes:
+        - name: pvc-shared-storage
+          persistentVolumeClaim:
+            claimName: pvc-shared-storage
+{{- end }}

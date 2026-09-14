@@ -1,0 +1,35 @@
+# templates/kafka/create-topics-job.yaml
+# One-shot Job to create topics explicitly with a deliberate partition count,
+# instead of relying on auto-create. Re-running is safe: --if-not-exists is a
+# no-op on topics that already exist.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kafka-create-topics
+  namespace: {{ .Values.namespace }}
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: create-topics
+          image: "{{ .Values.kafka.image.repository }}:{{ .Values.kafka.image.tag }}"
+          command:
+            - /bin/bash
+            - -c
+            - |
+              echo "Waiting for Kafka broker to be ready..."
+              until /opt/kafka/bin/kafka-topics.sh --bootstrap-server {{ .Values.kafka.bootstrapServers }} --list; do
+                echo "Kafka is not ready yet, retrying in 3 seconds..."
+                sleep 3
+              done
+              echo "Kafka is ready! Creating topics..."
+              /opt/kafka/bin/kafka-topics.sh --bootstrap-server {{ .Values.kafka.bootstrapServers }} \
+                --create --if-not-exists --topic {{ .Values.kafka.jobRequestsTopic }} \
+                --partitions {{ .Values.kafka.topics.jobRequests.partitions }} \
+                --replication-factor {{ .Values.kafka.topics.jobRequests.replicationFactor }}
+              /opt/kafka/bin/kafka-topics.sh --bootstrap-server {{ .Values.kafka.bootstrapServers }} \
+                --create --if-not-exists --topic {{ .Values.kafka.jobResultsTopic }} \
+                --partitions {{ .Values.kafka.topics.jobResults.partitions }} \
+                --replication-factor {{ .Values.kafka.topics.jobResults.replicationFactor }}
+              echo "Topics created successfully."

@@ -1,0 +1,52 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: keycloak-create-db
+  namespace: {{ .Values.namespace }}
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: create-keycloak-db
+          image: "{{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }}"
+          envFrom:
+            - secretRef:
+                name: postgres-secret
+            - secretRef:
+                name: keycloak-db-secret
+          env:
+            - name: PGHOST
+              value: postgres
+            - name: PGPORT
+              value: "5432"
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h postgres -U "$POSTGRES_USER" -d postgres; do
+                echo "Waiting for postgres..."
+                sleep 2
+              done
+
+              export PGPASSWORD="$POSTGRES_PASSWORD"
+
+              set -e
+              psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d postgres <<-SQL
+                DO \$\$
+                BEGIN
+                  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '${KC_DB_USERNAME}') THEN
+                    EXECUTE format('CREATE ROLE %I LOGIN PASSWORD %L', '${KC_DB_USERNAME}', '${KC_DB_PASSWORD}');
+                  END IF;
+                END
+                \$\$;
+              SQL
+
+              psql -tAc "SELECT 1 FROM pg_database WHERE datname = 'keycloak'" -U "$POSTGRES_USER" -d postgres | grep -q 1 || \
+              psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d postgres -c "CREATE DATABASE keycloak OWNER \"${KC_DB_USERNAME}\";"
+
+              psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d postgres -c "GRANT ALL PRIVILEGES ON DATABASE keycloak TO \"${KC_DB_USERNAME}\";"

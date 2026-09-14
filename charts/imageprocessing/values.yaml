@@ -1,0 +1,188 @@
+namespace: imageprocessing
+
+frontend:
+  image:
+    repository: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/frontend
+    tag: "c037b5b1"
+    pullPolicy: IfNotPresent
+  replicas: 1
+  probes:
+    readiness:
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    liveness:
+      initialDelaySeconds: 20
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+
+orchestrator:
+  replicas: 1
+  image:
+    repository: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/orchestrator
+    pullPolicy: Always
+  probes:
+    readiness:
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    liveness:
+      initialDelaySeconds: 15
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+  versions:
+    - name: v1
+      image:
+        digest: "sha256:bc5488698c698fcbfb68f89301e7225a13503691418315db18693b852d6ffac3"
+    - name: v2
+      image:
+        digest: "sha256:bc5488698c698fcbfb68f89301e7225a13503691418315db18693b852d6ffac3"
+  canary:
+    v1Weight: 70
+    v2Weight: 30
+
+worker:
+  image:
+    repository: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/worker
+    tag: "c037b5b1"
+    pullPolicy: IfNotPresent
+  replicas: 1
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "2Gi"
+    limits:
+      cpu: "3000m"
+      memory: "3Gi"
+  probes:
+    startup:
+      failureThreshold: 120
+      periodSeconds: 5
+    readiness:
+      initialDelaySeconds: 0
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 3
+    liveness:
+      initialDelaySeconds: 0
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3
+  hpa:
+    minReplicas: 1
+    maxReplicas: 2
+    targetCPUUtilization: 90
+    scaleUpStabilizationSeconds: 60
+    scaleUpPodsPerPeriod: 1
+    scaleUpPeriodSeconds: 60
+    scaleDownStabilizationSeconds: 60
+
+istio:
+  enabled: true
+  sidecarProxyCPU: "50m"
+  sidecarProxyCPULimit: "200m"
+  sidecarProxyMemory: "128Mi"
+  sidecarProxyMemoryLimit: "256Mi"
+  secretTTL: "4h"
+
+imagePullSecretName: gitlab-registry-secret
+
+kafka:
+  bootstrapServers: "kafka:9092"
+  jobRequestsTopic: "job.requests"
+  jobResultsTopic: "job.results"
+  userEventsTopic: "user.events"
+  autoCreateTopicsEnable: false
+  offsetsTopicReplicationFactor: 1
+  topics:
+    jobRequests:
+      partitions: 10
+      replicationFactor: 1
+    jobResults:
+      partitions: 3
+      replicationFactor: 1
+  image:
+    repository: apache/kafka
+    tag: "3.9.0"
+  storage:
+    size: 5Gi
+  resources:
+    requests:
+      memory: "768Mi"
+      cpu: "250m"
+    limits:
+      memory: "1.5Gi"
+  probes:
+    readiness:
+      initialDelaySeconds: 15
+      periodSeconds: 10
+      timeoutSeconds: 10
+      failureThreshold: 6
+    liveness:
+      initialDelaySeconds: 30
+      periodSeconds: 20
+      timeoutSeconds: 10
+
+
+postgres:
+  db: cloud_native_db
+  host: postgres
+  image:
+    repository: postgres
+    tag: "18-alpine"
+  secret:
+    user: postgres_user_example
+    password: postgres_pw_example
+  storage:
+    size: 2Gi
+  probes:
+    readiness:
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    liveness:
+      initialDelaySeconds: 60
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+
+storage:
+  dataDir: /data/imageprocessing
+  localDataDir: /tmp/imageprocessing/data
+  sharedStorage:
+    hostPath: /data/imageprocessing
+    size: 5Gi
+    storageClassName: manual
+  modelCache:
+    storageClassName: standard
+    size: 10Gi
+
+keycloak:
+  clientId: gateway
+  realm: imageprocessing
+  externalHost: keycloak.imageprocessing.local
+  replicas: 1
+  image:
+    repository: gitlab-edu.supsi.ch:5050/dti-isin/roberto.guidi/didattica/progetti-semestre-diploma/cloud-native-image-processing/keycloak
+    tag: "c037b5b1"
+    pullPolicy: IfNotPresent
+  secret:
+    client: client_secret_example
+    db:
+      username: kc_db_username_example
+      password: kc_db_password_example
+    admin:
+      username: kc_admin_username_example
+      password: kc_admin_password_example
+  probes:
+    readiness:
+      initialDelaySeconds: 20
+      periodSeconds: 5
+    liveness:
+      initialDelaySeconds: 40
+      periodSeconds: 10

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: worker-config
+  namespace: imageprocessing
+data:
+  STORAGE_DATA_DIR: {{ .Values.storage.dataDir | quote }}
+  LOCAL_DATA_DIR: {{ .Values.storage.localDataDir | quote }}
+  HF_HOME: /home/appuser/.cache/huggingface
+  U2NET_HOME: /home/appuser/.u2net
+  WORKER_PORT: "8080"
+  KAFKA_BOOTSTRAP_SERVERS: {{ .Values.kafka.bootstrapServers | quote }} 
+  JOB_REQUESTS_TOPIC: {{ .Values.kafka.jobRequestsTopic | quote }}
+  JOB_RESULTS_TOPIC: {{ .Values.kafka.jobResultsTopic | quote }}
+  KAFKA_CONSUMER_GROUP: "ai-worker" 

@@ -1,0 +1,27 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: orchestrator-internal
+  namespace: {{ .Values.namespace }}
+spec:
+  hosts:
+    - orchestrator-service
+  http:
+    - route:
+        - destination:
+            host: orchestrator-service
+            subset: v1
+            port:
+              number: 8080
+          weight: {{ .Values.orchestrator.canary.v1Weight }}
+        - destination:
+            host: orchestrator-service
+            subset: v2
+            port:
+              number: 8080
+          weight: {{ .Values.orchestrator.canary.v2Weight }}
+      timeout: 5s
+      retries:
+        attempts: 2
+        perTryTimeout: 2s
+        retryOn: 5xx,reset,connect-failure,refused-stream
